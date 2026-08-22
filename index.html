@@ -148,6 +148,31 @@
   }
   #cast-btn{width:100%; margin-top:12px;}
 
+  /* ---------- Leaderboard FAB ---------- */
+  #leaderboard-fab{
+    position:fixed; left:14px; bottom:210px; z-index:199;
+    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(145deg, #ffd23f, #ff8a3f 55%, #ff2d78);
+    box-shadow:0 10px 26px rgba(255,45,120,0.4), 0 0 0 0 rgba(255,210,63,0.6);
+    animation:fabPulse 2.4s ease-in-out infinite;
+  }
+  #leaderboard-fab svg{width:24px; height:24px; position:relative; z-index:1;}
+  #leaderboard-fab:active{transform:scale(0.92);}
+  .lb-fab-ring{
+    position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid rgba(255,180,60,0.55);
+    animation:fabRing 2.4s ease-out infinite;
+  }
+  @keyframes fabPulse{
+    0%,100%{box-shadow:0 10px 26px rgba(255,45,120,0.4), 0 0 0 0 rgba(255,210,63,0.5);}
+    50%{box-shadow:0 10px 30px rgba(255,45,120,0.55), 0 0 0 10px rgba(255,210,63,0);}
+  }
+  @keyframes fabRing{
+    0%{transform:scale(1); opacity:0.9;}
+    100%{transform:scale(1.5); opacity:0;}
+  }
+
   /* ---------- Toast ---------- */
   #toast{
     position:fixed; left:50%; top:120px; transform:translate(-50%,-14px); z-index:600;
@@ -220,8 +245,28 @@
   }
 
   .swim-fish{
-    position:absolute; top:37%; transform:translateY(-50%); z-index:2;
-    pointer-events:none; will-change:left, transform, opacity;
+    position:absolute; z-index:2;
+    pointer-events:none; will-change:left, top, transform, opacity;
+  }
+
+  .strike-shockwave{
+    position:absolute; width:14px; height:14px; margin:-7px 0 0 -7px;
+    border-radius:50%; border:2.5px solid #fff; opacity:0.95; z-index:1;
+    pointer-events:none; animation:shockwaveExpand .6s ease-out forwards;
+  }
+  @keyframes shockwaveExpand{
+    0%{width:14px; height:14px; margin:-7px 0 0 -7px; opacity:0.95;}
+    100%{width:160px; height:160px; margin:-80px 0 0 -80px; opacity:0;}
+  }
+  .strike-flash{
+    position:absolute; width:220px; height:220px; margin:-110px 0 0 -110px;
+    border-radius:50%; opacity:0; z-index:0; pointer-events:none;
+    animation:strikeFlashPop .4s ease-out forwards;
+  }
+  @keyframes strikeFlashPop{
+    0%{opacity:0; transform:scale(0.5);}
+    35%{opacity:1; transform:scale(1);}
+    100%{opacity:0; transform:scale(1.3);}
   }
 
   #cast-status{
@@ -340,19 +385,19 @@
   #signin-banner-dismiss svg{width:12px; height:12px; stroke:var(--ink-dim);}
 
   /* ---------- Account drawer ---------- */
-  #account-scrim, #leaderboard-scrim{
+  #account-scrim{
     position:fixed; inset:0; background:rgba(10,25,35,0.45); z-index:900;
     opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
-  #account-scrim.show, #leaderboard-scrim.show{opacity:1; pointer-events:auto;}
-  #account-drawer, #leaderboard-drawer{
+  #account-scrim.show{opacity:1; pointer-events:auto;}
+  #account-drawer{
     position:fixed; left:0; right:0; bottom:0; z-index:901; max-height:82vh;
     background:var(--panel-solid); border-radius:26px 26px 0 0; border:1px solid rgba(18,41,58,0.08); border-bottom:none;
     box-shadow:0 -8px 40px rgba(18,41,58,0.12);
     transform:translateY(100%); transition:transform .38s cubic-bezier(.2,.9,.25,1);
     display:flex; flex-direction:column; overflow-y:auto;
   }
-  #account-drawer.show, #leaderboard-drawer.show{transform:translateY(0);}
+  #account-drawer.show{transform:translateY(0);}
 
   .account-form{padding:4px 20px 0; display:flex; flex-direction:column; gap:6px;}
   .account-form label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-dim); margin-top:10px;}
@@ -380,16 +425,97 @@
   #account-signed-in .btn-primary{width:100%; margin-bottom:10px;}
   #account-signed-in .btn-ghost{width:100%; text-decoration:none; background:rgba(18,41,58,0.05); border-radius:999px; padding:11px;}
 
-  #leaderboard-list{padding:6px 16px 24px;}
-  .lb-loading{text-align:center; padding:40px 20px; color:var(--ink-dim); font-size:13.5px;}
-  .lb-row{
-    display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:14px;
-    background:#f4f9fb; margin-bottom:7px;
+  /* ---------- Leaderboard: full-screen, electric ---------- */
+  #leaderboard-fullscreen{
+    position:fixed; inset:0; z-index:960; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    opacity:0; pointer-events:none; transform:scale(0.98);
+    transition:opacity .3s ease, transform .3s ease;
+    background:
+      radial-gradient(60% 45% at 18% 8%, rgba(0,229,255,0.35), transparent 60%),
+      radial-gradient(55% 45% at 85% 15%, rgba(255,45,120,0.32), transparent 60%),
+      radial-gradient(70% 55% at 50% 100%, rgba(124,58,237,0.35), transparent 65%),
+      linear-gradient(180deg, #070417 0%, #0b0620 45%, #05030f 100%);
   }
-  .lb-row.lb-me{background:rgba(14,134,196,0.1); border:1px solid rgba(14,134,196,0.3);}
-  .lb-rank{width:32px; flex:0 0 auto; font-weight:800; font-size:14px; text-align:center;}
-  .lb-name{flex:1; font-weight:700; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .lb-points{flex:0 0 auto; font-weight:800; font-size:13px; color:var(--cyan);}
+  #leaderboard-fullscreen.show{opacity:1; pointer-events:auto; transform:scale(1);}
+  #leaderboard-fullscreen::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:3px; z-index:2;
+    background:linear-gradient(90deg, transparent, #00e5ff, #ff2d78, #ffd23f, transparent);
+    background-size:200% 100%;
+    animation:lbSweep 3.5s linear infinite;
+  }
+  @keyframes lbSweep{ 0%{background-position:0% 0;} 100%{background-position:200% 0;} }
+
+  .lb-blob{
+    position:fixed; border-radius:50%; filter:blur(50px); opacity:0.45; pointer-events:none; z-index:0;
+    animation:lbDrift 9s ease-in-out infinite;
+  }
+  @keyframes lbDrift{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(24px,-30px) scale(1.15); }
+  }
+
+  .lb-header{position:relative; z-index:2; padding:22px 20px 8px; text-align:center;}
+  .lb-close{
+    position:absolute; top:20px; right:18px; width:36px; height:36px; border-radius:50%;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lb-close svg{width:16px; height:16px; stroke:#fff;}
+  .lb-trophy{font-size:40px; filter:drop-shadow(0 0 18px rgba(255,210,63,0.7)); margin-bottom:4px;}
+  .lb-title{
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:30px; letter-spacing:0.03em;
+    margin:0; color:#fff;
+    background:linear-gradient(90deg, #00e5ff, #ff2d78 45%, #ffd23f 85%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    background-size:220% 100%;
+    animation:lbTitleShift 4s ease-in-out infinite;
+    text-shadow:0 0 40px rgba(124,58,237,0.35);
+  }
+  @keyframes lbTitleShift{ 0%,100%{background-position:0% 0;} 50%{background-position:100% 0;} }
+  .lb-subtitle{color:rgba(255,255,255,0.55); font-size:12.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; margin:4px 0 0;}
+
+  #leaderboard-list{position:relative; z-index:2; padding:18px 16px 100px; max-width:480px; margin:0 auto;}
+  .lb-loading{text-align:center; padding:60px 20px; color:rgba(255,255,255,0.55); font-size:13.5px;}
+
+  .lb-row{
+    position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); margin-bottom:9px;
+    backdrop-filter:blur(6px);
+  }
+  .lb-row.lb-me{
+    background:rgba(0,229,255,0.14); border:1px solid rgba(0,229,255,0.5);
+    box-shadow:0 0 22px rgba(0,229,255,0.25);
+  }
+  .lb-row.lb-top1{background:linear-gradient(100deg, rgba(255,210,63,0.22), rgba(255,138,63,0.1)); border-color:rgba(255,210,63,0.55); box-shadow:0 0 26px rgba(255,180,50,0.3);}
+  .lb-row.lb-top2{background:rgba(224,230,238,0.14); border-color:rgba(224,230,238,0.4); box-shadow:0 0 18px rgba(224,230,238,0.2);}
+  .lb-row.lb-top3{background:rgba(255,160,90,0.14); border-color:rgba(255,160,90,0.4); box-shadow:0 0 18px rgba(255,140,70,0.2);}
+  .lb-rank{width:34px; flex:0 0 auto; font-weight:800; font-size:15px; text-align:center; color:#fff;}
+  .lb-name{flex:1; font-weight:700; font-size:14.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;}
+  .lb-points{flex:0 0 auto; font-weight:800; font-size:13.5px; color:#00e5ff; font-variant-numeric:tabular-nums;}
+  .lb-row.lb-top1 .lb-points{color:#ffd23f;}
+
+  /* ---------- Sign-out reminder (full screen, every 5 min) ---------- */
+  #signout-reminder-overlay{
+    position:fixed; inset:0; z-index:980;
+    background:rgba(5,10,20,0.4);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    display:flex; align-items:center; justify-content:center; padding:26px;
+    opacity:0; pointer-events:none; transition:opacity .4s ease;
+  }
+  #signout-reminder-overlay.show{opacity:1; pointer-events:auto;}
+  #signout-reminder-card{
+    width:100%; max-width:340px; border-radius:26px; padding:32px 26px 26px; text-align:center;
+    background:rgba(255,255,255,0.94); border:1px solid rgba(255,255,255,0.5);
+    box-shadow:0 30px 70px rgba(0,0,0,0.35);
+    transform:translateY(16px) scale(0.96); opacity:0;
+    transition:transform .35s cubic-bezier(.2,.9,.25,1), opacity .3s ease;
+  }
+  #signout-reminder-overlay.show #signout-reminder-card{transform:translateY(0) scale(1); opacity:1;}
+  .src-icon{font-size:38px; margin-bottom:10px;}
+  #signout-reminder-card h2{font-family:'Bricolage Grotesque'; font-size:20px; font-weight:800; margin:0 0 8px; color:var(--ink);}
+  #signout-reminder-card p{font-size:13.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 22px;}
+  #signout-reminder-card .btn-primary{width:100%; margin-bottom:10px;}
+  #signout-reminder-card .btn-ghost{width:100%; background:rgba(18,41,58,0.05); border-radius:999px; padding:11px; text-decoration:none;}
 
   /* ---------- Fish detail / share card ---------- */
   #fish-detail-scrim{
@@ -532,6 +658,11 @@
   <button class="btn btn-primary" id="cast-btn" disabled>Cast Your Line</button>
 </div>
 
+<button id="leaderboard-fab" title="Leaderboard">
+  <span class="lb-fab-ring"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4"/></svg>
+</button>
+
 <div id="toast"></div>
 
 <!-- Fishing overlay -->
@@ -605,15 +736,29 @@
   </div>
 </div>
 
-<!-- Leaderboard drawer -->
-<div id="leaderboard-scrim"></div>
-<div id="leaderboard-drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-header">
-    <h2>Leaderboard</h2>
-    <button class="close-x" id="leaderboard-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+<!-- Leaderboard: full-screen electric takeover -->
+<div id="leaderboard-fullscreen">
+  <div class="lb-blob" style="width:280px;height:280px;top:-60px;left:-60px;background:#00e5ff;"></div>
+  <div class="lb-blob" style="width:260px;height:260px;top:10%;right:-80px;background:#ff2d78;animation-delay:-3s;"></div>
+  <div class="lb-blob" style="width:320px;height:320px;bottom:-100px;left:10%;background:#7c3aed;animation-delay:-6s;"></div>
+  <div class="lb-header">
+    <button class="lb-close" id="leaderboard-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="lb-trophy">🏆</div>
+    <h1 class="lb-title">LEADERBOARD</h1>
+    <p class="lb-subtitle">Top Anglers Worldwide</p>
   </div>
   <div id="leaderboard-list"></div>
+</div>
+
+<!-- Sign-out reminder: full-screen blur, recurring every 5 min while signed out -->
+<div id="signout-reminder-overlay">
+  <div id="signout-reminder-card">
+    <div class="src-icon">🎣</div>
+    <h2>Still Fishing Anonymously?</h2>
+    <p>Sign in to save your bag across devices and get your name on the leaderboard.</p>
+    <button class="btn btn-primary" id="signout-reminder-signin">Sign In Now</button>
+    <button class="btn btn-ghost" id="signout-reminder-dismiss">Keep Fishing</button>
+  </div>
 </div>
 
 <!-- Fish detail / share card -->
@@ -1325,11 +1470,11 @@ function beginSuccessBite(){
   }
 
   const tier = pendingResult.tier;
-  const { fish, anim } = spawnSwimFish(tier);
+  const { fish, anim, targetX, targetY } = spawnSwimFish(tier);
 
   anim.finished.then(()=>{
     status.textContent = 'Something\u2019s on the line!';
-    return runFishStrike(fish);
+    return runFishStrike(fish, tier, targetX, targetY);
   }).then(()=>{
     revealResult(fish);
   }).catch(()=>{
@@ -1342,43 +1487,92 @@ function spawnSwimFish(tier){
   const overlay = $('fishing-overlay');
   overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
 
-  const sizeByTier = { common:44, hard:48, rare:54, superrare:60, ultimate:68, abyssal:78 };
-  const glowByTier = { common:0, hard:4, rare:9, superrare:16, ultimate:24, abyssal:34 };
-  const size = sizeByTier[tier.key] || 44;
+  const sizeByTier = { common:58, hard:64, rare:72, superrare:82, ultimate:94, abyssal:106 };
+  const glowByTier = { common:0, hard:6, rare:12, superrare:20, ultimate:30, abyssal:44 };
+  const size = sizeByTier[tier.key] || 58;
   const glow = glowByTier[tier.key] || 0;
+
+  // Find the hook's real on-screen position — this is the fish's actual
+  // destination, not a guessed percentage. Fixes the "fish floats near the
+  // surface instead of at the hook" bug.
+  const hookEl = document.querySelector('#line-rig .hook');
+  const hookRect = hookEl.getBoundingClientRect();
+  const targetX = hookRect.left + hookRect.width/2;
+  const targetY = hookRect.top + hookRect.height/2;
+
+  const vw = window.innerWidth;
   const fromLeft = Math.random() < 0.5;
+  const startX = fromLeft ? -size : vw + size;
+  const startY = targetY + (Math.random()*70 - 35);
 
   const fish = document.createElement('div');
   fish.className = 'swim-fish';
-  fish.style.top = '37%';
   fish.style.filter = glow ? `drop-shadow(0 0 ${glow}px ${tier.hex}cc)` : 'none';
-  fish.style.left = fromLeft ? '-90px' : 'calc(100% + 90px)';
+  fish.style.left = startX + 'px';
+  fish.style.top = startY + 'px';
   fish.style.opacity = '0';
-  fish.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="transform:scaleX(${fromLeft ? 1 : -1})">
-    <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" fill="${tier.hex}" fill-opacity="0.92" stroke="${tier.hex}" stroke-width="0.6"/>
+  fish.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block; transform:scaleX(${fromLeft ? 1 : -1})">
+    <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" fill="${tier.hex}" fill-opacity="0.95" stroke="${tier.hex}" stroke-width="0.6"/>
     <circle cx="15" cy="12" r="1.3" fill="#04121f"/>
   </svg>`;
   overlay.appendChild(fish);
 
-  const startX = fromLeft ? '-90px' : 'calc(100% + 90px)';
-  const midX = fromLeft ? 'calc(50% - 70px)' : 'calc(50% + 70px)';
-  const wiggle = fromLeft ? [-5,5,0] : [5,-5,0];
+  // Build a wavy, decelerating swim path from off-screen to the hook.
+  const steps = 10;
+  const keyframes = [];
+  for(let i=0;i<=steps;i++){
+    const t = i/steps;
+    const ease = 1 - Math.pow(1-t, 2.2);
+    const x = startX + (targetX-startX)*ease;
+    const waveAmp = 26*(1-t) + 3;
+    const y = startY + (targetY-startY)*ease + Math.sin(t*Math.PI*3.2)*waveAmp;
+    const rot = Math.sin(t*Math.PI*5) * (fromLeft?10:-10) * (1-t*0.4);
+    const scale = 0.82 + t*0.22;
+    keyframes.push({
+      left: x+'px', top: y+'px',
+      opacity: t < 0.08 ? t/0.08 : 1,
+      transform: `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`,
+      offset: t
+    });
+  }
 
-  const anim = fish.animate([
-    { left:startX, opacity:0, transform:`translateY(-50%) rotate(${wiggle[0]}deg)` },
-    { left:midX, opacity:1, transform:`translateY(-50%) rotate(${wiggle[1]}deg)`, offset:0.6 },
-    { left:'50%', opacity:1, transform:`translateY(-50%) rotate(${wiggle[2]}deg)` }
-  ], { duration: 1050 + Math.random()*350, easing:'cubic-bezier(.35,.7,.3,1)', fill:'forwards' });
+  const anim = fish.animate(keyframes, {
+    duration: 1150 + Math.random()*300,
+    easing: 'linear',
+    fill: 'forwards'
+  });
 
-  return { fish, anim };
+  return { fish, anim, targetX, targetY };
 }
 
-function runFishStrike(fish){
+function runFishStrike(fish, tier, x, y){
+  spawnStrikeShockwave(x, y, tier.hex);
+  if('vibrate' in navigator) navigator.vibrate(25);
+  playTone(880, 0, 0.09, 'square', 0.06);
   return fish.animate([
-    { transform:'translateY(-50%) scale(1) rotate(0deg)' },
-    { transform:'translateY(-50%) scale(1.22) rotate(-8deg)', offset:0.45 },
-    { transform:'translateY(-50%) scale(1) rotate(0deg)' }
-  ], { duration:260, easing:'ease-out' }).finished;
+    { transform:'translate(-50%,-50%) scale(1) rotate(0deg)' },
+    { transform:'translate(-50%,-50%) scale(1.32) rotate(-10deg)', offset:0.4 },
+    { transform:'translate(-50%,-50%) scale(1.05) rotate(4deg)', offset:0.7 },
+    { transform:'translate(-50%,-50%) scale(1) rotate(0deg)' }
+  ], { duration:300, easing:'ease-out' }).finished;
+}
+
+function spawnStrikeShockwave(x, y, color){
+  const overlay = $('fishing-overlay');
+  const ring = document.createElement('div');
+  ring.className = 'strike-shockwave';
+  ring.style.left = x+'px';
+  ring.style.top = y+'px';
+  ring.style.borderColor = color;
+  ring.style.boxShadow = `0 0 30px ${color}aa`;
+  overlay.appendChild(ring);
+  setTimeout(()=>ring.remove(), 650);
+
+  const flash = document.createElement('div');
+  flash.className = 'strike-flash';
+  flash.style.background = `radial-gradient(circle, ${color}55, transparent 70%)`;
+  overlay.appendChild(flash);
+  setTimeout(()=>flash.remove(), 400);
 }
 
 function spawnBubbles(){
@@ -1633,6 +1827,20 @@ function updateAccountBadge(){
 function checkSigninReminder(){
   updateAccountBadge();
   $('signin-banner').classList.toggle('show', !session);
+  if(session) closeSignoutReminder();
+}
+let signoutReminderInterval = null;
+function startSignoutReminderTimer(){
+  clearInterval(signoutReminderInterval);
+  signoutReminderInterval = setInterval(()=>{
+    if(!session) showSignoutReminder();
+  }, 5*60*1000);
+}
+function showSignoutReminder(){
+  $('signout-reminder-overlay').classList.add('show');
+}
+function closeSignoutReminder(){
+  $('signout-reminder-overlay').classList.remove('show');
 }
 function openAccountDrawer(){ renderAccountDrawer(); $('account-scrim').classList.add('show'); $('account-drawer').classList.add('show'); }
 function closeAccountDrawer(){ $('account-scrim').classList.remove('show'); $('account-drawer').classList.remove('show'); }
@@ -1704,9 +1912,12 @@ function handleSignOut(){
   showToast('Signed out. Your bag stays saved on this device.');
 }
 async function openLeaderboard(){
-  $('leaderboard-scrim').classList.add('show');
-  $('leaderboard-drawer').classList.add('show');
+  $('leaderboard-fullscreen').classList.add('show');
   $('leaderboard-list').innerHTML = '<div class="lb-loading">Loading leaderboard\u2026</div>';
+  ensureAudioCtx();
+  playTone(660, 0, 0.12, 'triangle', 0.1);
+  playTone(880, 0.08, 0.16, 'triangle', 0.11);
+  if('vibrate' in navigator) navigator.vibrate(20);
   if(!window.DriftlineCloud){
     $('leaderboard-list').innerHTML = '<div class="lb-loading">Still connecting \u2014 try again in a moment.</div>';
     return;
@@ -1718,21 +1929,40 @@ async function openLeaderboard(){
     $('leaderboard-list').innerHTML = '<div class="lb-loading">Couldn\u2019t load the leaderboard. Try again in a moment.</div>';
   }
 }
-function closeLeaderboard(){ $('leaderboard-scrim').classList.remove('show'); $('leaderboard-drawer').classList.remove('show'); }
+function closeLeaderboard(){ $('leaderboard-fullscreen').classList.remove('show'); }
 function renderLeaderboard(list){
   if(!list.length){
     $('leaderboard-list').innerHTML = '<div class="lb-loading">No anglers on the board yet \u2014 be the first!</div>';
     return;
   }
   const medals = ['\u{1F947}','\u{1F948}','\u{1F949}'];
+  const topClass = ['lb-top1','lb-top2','lb-top3'];
   $('leaderboard-list').innerHTML = list.map((p,i)=>{
     const isMe = session && p.uid === session.uid;
-    return `<div class="lb-row ${isMe?'lb-me':''}">
+    const cls = ['lb-row'];
+    if(isMe) cls.push('lb-me');
+    if(topClass[i]) cls.push(topClass[i]);
+    return `<div class="${cls.join(' ')}">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
-      <div class="lb-points">${p.points} pts</div>
+      <div class="lb-points" data-target="${p.points}">0 pts</div>
     </div>`;
   }).join('');
+  animateLeaderboardCounts();
+}
+function animateLeaderboardCounts(){
+  document.querySelectorAll('#leaderboard-list .lb-points').forEach(el=>{
+    const target = parseInt(el.dataset.target, 10) || 0;
+    const start = performance.now();
+    const duration = 700 + Math.random()*300;
+    function tick(now){
+      const t = Math.min(1, (now-start)/duration);
+      const eased = 1 - Math.pow(1-t, 3);
+      el.textContent = Math.round(target*eased) + ' pts';
+      if(t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
 }
 
 /* ====================== FISH DETAIL / SHARE CARD ====================== */
@@ -1811,6 +2041,7 @@ function beginGame(pt, accuracy){
   startLiveTracking();
   if(isBoostActive()) startBoostTicker();
   checkSigninReminder();
+  startSignoutReminderTimer();
 }
 
 function requestLocation(btnEl){
@@ -1942,15 +2173,21 @@ $('account-pin').addEventListener('input', (e)=>{
 });
 $('account-submit').addEventListener('click', handleAuthSubmit);
 $('account-signout-btn').addEventListener('click', handleSignOut);
-$('view-leaderboard-btn').addEventListener('click', openLeaderboard);
-$('leaderboard-close').addEventListener('click', closeLeaderboard);
-$('leaderboard-scrim').addEventListener('click', (e)=>{
-  if(e.target.id === 'leaderboard-scrim') closeLeaderboard();
+$('view-leaderboard-btn').addEventListener('click', ()=>{
+  closeAccountDrawer();
+  openLeaderboard();
 });
+$('leaderboard-fab').addEventListener('click', openLeaderboard);
+$('leaderboard-close').addEventListener('click', closeLeaderboard);
 $('signin-banner-btn').addEventListener('click', openAccountDrawer);
 $('signin-banner-dismiss').addEventListener('click', ()=>{
   $('signin-banner').classList.remove('show');
 });
+$('signout-reminder-signin').addEventListener('click', ()=>{
+  closeSignoutReminder();
+  openAccountDrawer();
+});
+$('signout-reminder-dismiss').addEventListener('click', closeSignoutReminder);
 
 </script>
 </body>
