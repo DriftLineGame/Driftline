@@ -425,6 +425,82 @@
   #account-signed-in .btn-primary{width:100%; margin-bottom:10px;}
   #account-signed-in .btn-ghost{width:100%; text-decoration:none; background:rgba(18,41,58,0.05); border-radius:999px; padding:11px;}
 
+  /* ---------- Tackle Shop: full-screen ---------- */
+  #shop-fullscreen{
+    position:fixed; inset:0; z-index:960; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    opacity:0; pointer-events:none; transform:scale(0.98);
+    transition:opacity .3s ease, transform .3s ease;
+    background:
+      radial-gradient(60% 45% at 15% 6%, rgba(255,210,63,0.28), transparent 60%),
+      radial-gradient(55% 45% at 88% 12%, rgba(57,255,143,0.22), transparent 60%),
+      radial-gradient(70% 55% at 50% 100%, rgba(14,134,196,0.28), transparent 65%),
+      linear-gradient(180deg, #04201c 0%, #062a26 45%, #031513 100%);
+  }
+  #shop-fullscreen.show{opacity:1; pointer-events:auto; transform:scale(1);}
+  .shop-header{position:relative; z-index:2; padding:22px 20px 14px; text-align:center;}
+  .shop-trophy{font-size:38px; filter:drop-shadow(0 0 16px rgba(255,210,63,0.6)); margin-bottom:2px;}
+  .shop-title{
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:27px; letter-spacing:0.02em; margin:0; color:#fff;
+    background:linear-gradient(90deg,#ffd23f,#39ff8f 60%,#00e5ff);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  #shop-coins-wrap{
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:7px 16px;
+    background:rgba(255,210,63,0.14); border:1px solid rgba(255,210,63,0.35); border-radius:999px;
+    font-weight:800; font-size:14px; color:#ffd23f;
+  }
+  .shop-tabs{display:flex; gap:8px; justify-content:center; margin-top:16px;}
+  .shop-tab{
+    appearance:none; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7);
+    font-family:'Inter',sans-serif; font-weight:700; font-size:13px; padding:9px 20px; border-radius:999px;
+    cursor:pointer; transition:all .2s ease;
+  }
+  .shop-tab.active{
+    background:linear-gradient(90deg,#ffd23f,#39ff8f); color:#04201c; border-color:transparent;
+    box-shadow:0 0 18px rgba(255,210,63,0.4);
+  }
+  #shop-content{position:relative; z-index:2; padding:6px 16px 100px; max-width:520px; margin:0 auto;}
+  .shop-section-title{color:#fff; font-family:'Bricolage Grotesque'; font-size:15px; font-weight:800; margin:22px 4px 10px;}
+  .shop-note{color:rgba(255,255,255,0.55); font-size:12.5px; text-align:center; padding:16px 10px;}
+
+  .shop-rod-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,210,63,0.3); border-radius:18px; padding:16px;
+  }
+  .shop-rod-level{color:#fff; font-weight:800; font-size:15px; margin-bottom:3px;}
+  .shop-rod-sub{color:rgba(255,255,255,0.6); font-size:11.5px; line-height:1.4; max-width:190px;}
+
+  .shop-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .shop-card{
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:16px;
+    padding:14px 12px; text-align:center;
+  }
+  .shop-card-icon{font-size:28px; margin-bottom:6px;}
+  .shop-card-name{color:#fff; font-weight:700; font-size:12.5px; margin-bottom:3px;}
+  .shop-card-desc{color:rgba(255,255,255,0.55); font-size:10.5px; line-height:1.4; margin-bottom:10px; min-height:28px;}
+  .shop-card-owned{color:#39ff8f; font-size:11px; font-weight:700; margin-bottom:8px;}
+  .shop-buy-btn{
+    width:100%; appearance:none; border:none; border-radius:999px; padding:9px 10px; font-weight:800; font-size:12.5px;
+    cursor:pointer; background:linear-gradient(90deg,#ffd23f,#ff8a3f); color:#1a0f2e;
+  }
+  .shop-buy-btn.disabled{background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); cursor:not-allowed;}
+  .shop-buy-btn.shop-equip-btn{background:linear-gradient(90deg,#00e5ff,#39ff8f); color:#04201c;}
+
+  .gear-rod-card{background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); border-radius:16px; padding:16px; margin-bottom:6px;}
+  .gear-rod-level{color:#ffd23f; font-weight:800; font-size:18px;}
+  .gear-rod-bonus{color:rgba(255,255,255,0.65); font-size:12px; margin-top:3px;}
+  .gear-boost-row, .gear-inv-row, .gear-cosmetic-row{
+    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; color:#fff;
+  }
+  .gear-boost-name{flex:1; font-weight:700; font-size:13px;}
+  .gear-boost-amt{color:#39ff8f; font-weight:800; font-size:12.5px;}
+  .gear-boost-time{color:rgba(255,255,255,0.6); font-size:12px; font-variant-numeric:tabular-nums;}
+  .gear-inv-icon{font-size:22px; flex:0 0 auto;}
+  .gear-inv-info{flex:1; min-width:0;}
+  .gear-inv-name{font-weight:700; font-size:13px;}
+  .gear-inv-desc{color:rgba(255,255,255,0.55); font-size:11px; margin-top:2px;}
+
   /* ---------- Leaderboard: full-screen, electric ---------- */
   #leaderboard-fullscreen{
     position:fixed; inset:0; z-index:960; overflow-y:auto; -webkit-overflow-scrolling:touch;
@@ -823,9 +899,25 @@
       </div>
     </div>
     <div id="account-rank"></div>
+    <button class="btn btn-primary" id="open-shop-btn">🧰 Tackle Shop</button>
     <button class="btn btn-primary" id="view-leaderboard-btn">View Leaderboard</button>
     <button class="btn btn-ghost" id="account-signout-btn">Sign Out</button>
   </div>
+</div>
+
+<!-- Tackle Shop: full-screen -->
+<div id="shop-fullscreen">
+  <div class="shop-header">
+    <button class="lb-close" id="shop-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="shop-trophy">🧰</div>
+    <h1 class="shop-title">TACKLE SHOP</h1>
+    <div id="shop-coins-wrap">🪙 <span id="shop-coins">0</span> Chum Coins</div>
+    <div class="shop-tabs">
+      <button class="shop-tab active" data-tab="shop">Shop</button>
+      <button class="shop-tab" data-tab="gear">My Gear</button>
+    </div>
+  </div>
+  <div id="shop-content"></div>
 </div>
 
 <!-- Leaderboard: full-screen electric takeover -->
@@ -893,7 +985,7 @@
   </div>
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
   <div id="rod-milestones"></div>
-  <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Your level is based on your all-time points (1 per catch, plus a bonus per rarity tier), and there's always another upgrade waiting.</p>
+  <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
 </div>
 
 <!-- Fish detail / share card -->
@@ -962,10 +1054,10 @@
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
     await setDoc(ref, {
-      displayName, pinHash, points: 0, bag: [],
+      displayName, pinHash, points: 0, bag: [], shop: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
-    return { uid, displayName, points: 0, bag: [] };
+    return { uid, displayName, points: 0, bag: [], shop: null };
   }
 
   async function signIn(username, pin){
@@ -980,12 +1072,17 @@
     if(pinHash !== data.pinHash){
       throw new Error('Incorrect PIN.');
     }
-    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [] };
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null };
   }
 
   async function syncBag(uid, bag, points){
     const ref = doc(db, 'players', uid);
     await updateDoc(ref, { bag, points, updatedAt: Date.now() });
+  }
+
+  async function syncShop(uid, shopState){
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { shop: shopState });
   }
 
   async function fetchLeaderboard(max){
@@ -1009,7 +1106,7 @@
     return out;
   }
 
-  window.DriftlineCloud = { signUp, signIn, syncBag, fetchLeaderboard, fetchAllPlayersForPeriods };
+  window.DriftlineCloud = { signUp, signIn, syncBag, syncShop, fetchLeaderboard, fetchAllPlayersForPeriods };
 </script>
 
 <script>
@@ -1055,6 +1152,8 @@ let bagViewMode = 'catches';     // 'catches' | 'guide'
 let shareState = loadShareState();
 let session = loadSession();     // { uid, displayName } | null
 let pendingRodUpgrade = null;    // level number, shown once the fishing overlay closes
+let shopState = loadShopState();
+let shopTab = 'shop';            // 'shop' | 'gear'
 let authMode = 'signin';         // 'signin' | 'signup'
 
 const $ = (id)=>document.getElementById(id);
@@ -1082,6 +1181,41 @@ function loadSession(){
 }
 function saveSession(s){ localStorage.setItem('driftline_session', JSON.stringify(s)); }
 function clearSession(){ localStorage.removeItem('driftline_session'); }
+function defaultShopState(){
+  return {
+    coinsSpent: 0,
+    bonusRodLevels: 0,
+    inventory: {},
+    ownedCosmetics: { avatars:['default'], hooks:['classic'] },
+    equipped: { avatar:'default', hook:'classic' },
+    activeBoosts: [],
+    updatedAt: 0
+  };
+}
+function loadShopState(){
+  try{
+    const s = JSON.parse(localStorage.getItem('driftline_shop')||'null');
+    if(!s || typeof s !== 'object') return defaultShopState();
+    const d = defaultShopState();
+    return {
+      coinsSpent: s.coinsSpent||0,
+      bonusRodLevels: s.bonusRodLevels||0,
+      inventory: s.inventory||{},
+      ownedCosmetics: {
+        avatars: (s.ownedCosmetics && s.ownedCosmetics.avatars) || d.ownedCosmetics.avatars,
+        hooks: (s.ownedCosmetics && s.ownedCosmetics.hooks) || d.ownedCosmetics.hooks
+      },
+      equipped: { avatar: (s.equipped&&s.equipped.avatar)||'default', hook: (s.equipped&&s.equipped.hook)||'classic' },
+      activeBoosts: s.activeBoosts||[],
+      updatedAt: s.updatedAt||0
+    };
+  }catch(e){ return defaultShopState(); }
+}
+function saveShopState(){ localStorage.setItem('driftline_shop', JSON.stringify(shopState)); }
+function syncShopToCloud(){
+  if(!session || !window.DriftlineCloud) return;
+  window.DriftlineCloud.syncShop(session.uid, shopState).catch(()=>{});
+}
 
 /* ====================== GEO / MATH HELPERS ====================== */
 function metersToLatDeg(m){ return m/111320; }
@@ -1228,17 +1362,29 @@ function oddsAtPoint(pt){
       best = h.odds; inHotspot = h;
     }
   });
-  const rodBonus = rodBonusPercent(computePoints(loadBag()));
-  const withRod = Math.min(SHARE_ODDS_CAP, best + rodBonus);
+  const withRod = Math.min(SHARE_ODDS_CAP, best + currentRodLevel());
   return { odds: applyShareBoost(withRod), hotspot:inHotspot };
 }
 
-/* ====================== SHARE BOOST ====================== */
+/* ====================== BOOSTS (generalized: share + shop lures) ====================== */
+function pruneExpiredBoosts(){
+  const now = Date.now();
+  shopState.activeBoosts = (shopState.activeBoosts||[]).filter(b=>b.until>now);
+}
+function activeBoostTotal(){
+  pruneExpiredBoosts();
+  return shopState.activeBoosts.reduce((sum,b)=>sum+b.amount,0);
+}
+function soonestBoostExpiry(){
+  pruneExpiredBoosts();
+  if(!shopState.activeBoosts.length) return null;
+  return Math.min(...shopState.activeBoosts.map(b=>b.until));
+}
 function isBoostActive(){
-  return !!shareState.boostUntil && Date.now() < shareState.boostUntil;
+  return activeBoostTotal() > 0;
 }
 function applyShareBoost(odds){
-  return isBoostActive() ? Math.min(SHARE_ODDS_CAP, odds + SHARE_BOOST_AMOUNT) : odds;
+  return Math.min(SHARE_ODDS_CAP, odds + activeBoostTotal());
 }
 function fmtCooldown(ms){
   const totalMin = Math.max(1, Math.ceil(ms/60000));
@@ -1281,14 +1427,22 @@ async function handleShareClick(){
 
   if(eligible){
     shareState.lastGrantedAt = now;
-    shareState.boostUntil = now + SHARE_BOOST_MS;
     saveShareState();
+    grantBoost('share', SHARE_BOOST_AMOUNT, SHARE_BOOST_MS);
     showToast('Boost activated! +20% bite chance for 10 minutes \u{1F525}');
-    startBoostTicker();
   } else {
     const remain = SHARE_COOLDOWN_MS - (now - shareState.lastGrantedAt);
     showToast(`Thanks for sharing! Your next boost unlocks in ${fmtCooldown(remain)}.`);
   }
+}
+function grantBoost(source, amount, durationMs){
+  const now = Date.now();
+  shopState.activeBoosts = shopState.activeBoosts || [];
+  shopState.activeBoosts.push({ source, amount, until: now+durationMs });
+  shopState.updatedAt = now;
+  saveShopState();
+  syncShopToCloud();
+  startBoostTicker();
 }
 function startBoostTicker(){
   clearInterval(boostInterval);
@@ -1304,10 +1458,10 @@ function tickBoost(){
     return;
   }
   chip.classList.remove('hidden');
-  const remain = shareState.boostUntil - Date.now();
+  const remain = soonestBoostExpiry() - Date.now();
   const mm = Math.floor(remain/60000);
   const ss = Math.floor((remain%60000)/1000);
-  $('boost-value').textContent = `${mm}:${String(ss).padStart(2,'0')}`;
+  $('boost-value').textContent = `+${activeBoostTotal()}% \u00b7 ${mm}:${String(ss).padStart(2,'0')}`;
   updateCastPanel();
 }
 
@@ -1580,6 +1734,12 @@ function runFishingAnimation(){
   status.classList.remove('show');
   overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
   spawnBubbles();
+
+  const hookColor = equippedHookColor();
+  const hookEl = rig.querySelector('.hook');
+  if(hookEl) hookEl.setAttribute('stroke', hookColor);
+  const lineEl = rig.querySelector('.line');
+  if(lineEl) lineEl.style.background = `linear-gradient(180deg, rgba(255,255,255,0.05), ${hookColor})`;
 
   overlay.classList.add('active');
 
@@ -1864,6 +2024,28 @@ function syncBagToCloud(bag){
   });
 }
 
+/* ====================== TACKLE SHOP CATALOG ====================== */
+const SHOP_ITEMS = {
+  lure_basic:     { name:'Basic Lure',     desc:'+10% bite chance for 15 min',  price:40,  boostAmount:10, boostMs:15*60*1000, icon:'\u{1FAB1}' },
+  lure_pro:       { name:'Pro Lure',       desc:'+20% bite chance for 20 min',  price:120, boostAmount:20, boostMs:20*60*1000, icon:'\u{1FA9D}' },
+  lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:350, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' }
+};
+const AVATAR_COSMETICS = [
+  { id:'default', emoji:'\u{1F3A3}', name:'Classic Rod', price:0 },
+  { id:'fish',    emoji:'\u{1F41F}', name:'Blue Fish',   price:100 },
+  { id:'shark',   emoji:'\u{1F988}', name:'Shark',       price:150 },
+  { id:'octopus', emoji:'\u{1F419}', name:'Octopus',     price:200 },
+  { id:'crown',   emoji:'\u{1F451}', name:'Champion',    price:400 },
+  { id:'diamond', emoji:'\u{1F48E}', name:'Diamond',     price:600 }
+];
+const HOOK_COSMETICS = [
+  { id:'classic', name:'Classic White', color:'#eaf6ff', price:0 },
+  { id:'gold',    name:'Golden Hook',   color:'#ffd23f', price:180 },
+  { id:'crimson', name:'Crimson Hook',  color:'#ff2d78', price:180 },
+  { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:180 },
+  { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:250 }
+];
+
 /* ====================== ROD UPGRADES ====================== */
 // Explicit early milestones, then the pattern keeps extending forever so
 // there's always a next upgrade no matter how much someone grinds.
@@ -1883,6 +2065,15 @@ function rodLevelForPoints(points){
 }
 function rodBonusPercent(points){
   return rodLevelForPoints(points); // 1% per level, so bonus == level
+}
+function currentRodLevel(){
+  return rodLevelForPoints(computePoints(loadBag())) + (shopState.bonusRodLevels||0);
+}
+function getCoinsBalance(){
+  return Math.max(0, computePoints(loadBag()) - (shopState.coinsSpent||0));
+}
+function nextRodTokenPrice(){
+  return 150 + currentRodLevel()*100;
 }
 function updateBagBadge(){
   const bag = loadBag();
@@ -2041,6 +2232,211 @@ function spawnRodSparks(){
   }
 }
 
+/* ====================== TACKLE SHOP ====================== */
+function openShop(){
+  shopTab = 'shop';
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab==='shop'));
+  $('shop-fullscreen').classList.add('show');
+  renderShop();
+}
+function closeShop(){ $('shop-fullscreen').classList.remove('show'); }
+function setShopTab(tab){
+  shopTab = tab;
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  renderShop();
+}
+function renderShop(){
+  $('shop-coins').textContent = getCoinsBalance().toLocaleString();
+  if(shopTab === 'gear'){
+    renderGearView();
+  } else {
+    renderShopView();
+  }
+}
+function affordBadge(price){
+  return getCoinsBalance() >= price ? '' : 'disabled';
+}
+function renderShopView(){
+  const coins = getCoinsBalance();
+  const rodPrice = nextRodTokenPrice();
+
+  let html = '';
+
+  html += `<h3 class="shop-section-title">\u{1F3A3} Rod Upgrade</h3>`;
+  html += `<div class="shop-rod-card">
+    <div>
+      <div class="shop-rod-level">Rod Level ${currentRodLevel()}</div>
+      <div class="shop-rod-sub">Buy a token to instantly gain +1 level (+1% odds), no grinding required.</div>
+    </div>
+    <button class="shop-buy-btn ${affordBadge(rodPrice)}" data-action="buy-rod-token">${rodPrice.toLocaleString()} \u{1FA99}</button>
+  </div>`;
+
+  html += `<h3 class="shop-section-title">\u{1FA9D} Lures &amp; Boosts</h3>`;
+  html += `<div class="shop-grid">` + Object.keys(SHOP_ITEMS).map(key=>{
+    const item = SHOP_ITEMS[key];
+    const owned = shopState.inventory[key]||0;
+    return `<div class="shop-card">
+      <div class="shop-card-icon">${item.icon}</div>
+      <div class="shop-card-name">${item.name}</div>
+      <div class="shop-card-desc">${item.desc}</div>
+      ${owned>0 ? `<div class="shop-card-owned">Owned: ${owned}</div>` : ''}
+      <button class="shop-buy-btn ${affordBadge(item.price)}" data-action="buy-item" data-key="${key}">${item.price.toLocaleString()} \u{1FA99}</button>
+    </div>`;
+  }).join('') + `</div>`;
+
+  html += `<h3 class="shop-section-title">\u{1F3A3} Avatar Icons</h3>`;
+  html += `<div class="shop-grid">` + AVATAR_COSMETICS.map(c=>{
+    const owned = shopState.ownedCosmetics.avatars.includes(c.id);
+    const equipped = shopState.equipped.avatar === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon">${c.emoji}</div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-avatar" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-avatar" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
+  html += `<h3 class="shop-section-title">\u{1FA9D} Hook Skins</h3>`;
+  html += `<div class="shop-grid">` + HOOK_COSMETICS.map(c=>{
+    const owned = shopState.ownedCosmetics.hooks.includes(c.id);
+    const equipped = shopState.equipped.hook === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon" style="color:${c.color}">\u2014</div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-hook" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-hook" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
+  if(!session){
+    html += `<p class="shop-note">Sign in to save your coins, gear, and cosmetics across devices.</p>`;
+  }
+
+  $('shop-content').innerHTML = html;
+}
+function renderGearView(){
+  pruneExpiredBoosts();
+  let html = '';
+
+  html += `<h3 class="shop-section-title">\u{1F3A3} Rod</h3>`;
+  html += `<div class="gear-rod-card">
+    <div class="gear-rod-level">Level ${currentRodLevel()}</div>
+    <div class="gear-rod-bonus">+${currentRodLevel()}% baseline odds on every cast</div>
+  </div>`;
+
+  html += `<h3 class="shop-section-title">\u{1F525} Active Boosts</h3>`;
+  if(shopState.activeBoosts.length){
+    html += shopState.activeBoosts.map(b=>{
+      const label = b.source==='share' ? 'Share Boost' : (SHOP_ITEMS[b.source]?.name || 'Boost');
+      const remainMs = b.until - Date.now();
+      const mm = Math.max(0,Math.floor(remainMs/60000));
+      const ss = Math.max(0,Math.floor((remainMs%60000)/1000));
+      return `<div class="gear-boost-row">
+        <div class="gear-boost-name">${label}</div>
+        <div class="gear-boost-amt">+${b.amount}%</div>
+        <div class="gear-boost-time">${mm}:${String(ss).padStart(2,'0')}</div>
+      </div>`;
+    }).join('');
+  } else {
+    html += `<p class="shop-note">No active boosts right now \u2014 activate a lure below.</p>`;
+  }
+
+  html += `<h3 class="shop-section-title">\u{1F9F0} Inventory</h3>`;
+  const ownedKeys = Object.keys(shopState.inventory).filter(k=>shopState.inventory[k]>0);
+  if(ownedKeys.length){
+    html += ownedKeys.map(key=>{
+      const item = SHOP_ITEMS[key];
+      if(!item) return '';
+      return `<div class="gear-inv-row">
+        <div class="gear-inv-icon">${item.icon}</div>
+        <div class="gear-inv-info">
+          <div class="gear-inv-name">${item.name} \u00d7${shopState.inventory[key]}</div>
+          <div class="gear-inv-desc">${item.desc}</div>
+        </div>
+        <button class="shop-buy-btn shop-equip-btn" data-action="activate-item" data-key="${key}">Use</button>
+      </div>`;
+    }).join('');
+  } else {
+    html += `<p class="shop-note">Nothing in your tackle box yet \u2014 visit the Shop tab to buy lures.</p>`;
+  }
+
+  html += `<h3 class="shop-section-title">\u{1F3A8} Equipped Cosmetics</h3>`;
+  const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+  const hook = HOOK_COSMETICS.find(c=>c.id===shopState.equipped.hook) || HOOK_COSMETICS[0];
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon">${avatar.emoji}</div><div>Avatar: <strong>${avatar.name}</strong></div></div>`;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon" style="color:${hook.color}">\u2014</div><div>Hook: <strong>${hook.name}</strong></div></div>`;
+
+  $('shop-content').innerHTML = html;
+}
+
+function buyRodToken(){
+  const price = nextRodTokenPrice();
+  if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
+  shopState.coinsSpent += price;
+  shopState.bonusRodLevels = (shopState.bonusRodLevels||0)+1;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  showRodUpgrade(currentRodLevel());
+  renderShop();
+}
+function buyItem(key){
+  const item = SHOP_ITEMS[key];
+  if(!item) return;
+  if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
+  shopState.coinsSpent += item.price;
+  shopState.inventory[key] = (shopState.inventory[key]||0)+1;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  showToast(`Bought ${item.name}!`);
+  renderShop();
+}
+function activateItem(key){
+  const item = SHOP_ITEMS[key];
+  if(!item || !(shopState.inventory[key]>0)) return;
+  shopState.inventory[key]--;
+  grantBoost(key, item.boostAmount, item.boostMs);
+  showToast(`${item.name} activated! +${item.boostAmount}% for ${Math.round(item.boostMs/60000)} min \u{1F525}`);
+  renderShop();
+}
+function buyCosmetic(type, id){
+  const list = type==='avatar' ? AVATAR_COSMETICS : HOOK_COSMETICS;
+  const item = list.find(c=>c.id===id);
+  if(!item) return;
+  const owned = shopState.ownedCosmetics[type==='avatar'?'avatars':'hooks'];
+  if(owned.includes(id)) return;
+  if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
+  shopState.coinsSpent += item.price;
+  owned.push(id);
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  showToast(`Unlocked ${item.name}!`);
+  renderShop();
+}
+function equipCosmetic(type, id){
+  shopState.equipped[type] = id;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  updateEquippedVisuals();
+  renderShop();
+}
+function updateEquippedVisuals(){
+  const avatarEl = $('account-avatar');
+  if(avatarEl){
+    const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+    avatarEl.textContent = avatar.emoji;
+  }
+}
+function equippedHookColor(){
+  const hook = HOOK_COSMETICS.find(c=>c.id===shopState.equipped.hook) || HOOK_COSMETICS[0];
+  return hook.color;
+}
+
 /* ---- Settings / rod roadmap ---- */
 function openSettingsDrawer(){
   renderRodSettings();
@@ -2053,24 +2449,29 @@ function closeSettingsDrawer(){
 }
 function renderRodSettings(){
   const points = computePoints(loadBag());
-  const level = rodLevelForPoints(points);
-  $('rod-summary-level').textContent = `Rod Level ${level}`;
-  $('rod-summary-bonus').textContent = `+${level}% baseline odds`;
+  const pointsLevel = rodLevelForPoints(points);
+  const totalLevel = currentRodLevel();
+  const bonusLevels = shopState.bonusRodLevels||0;
 
-  const currentThreshold = level>0 ? rodThresholdAt(level-1) : 0;
-  const nextThreshold = rodThresholdAt(level);
+  $('rod-summary-level').textContent = `Rod Level ${totalLevel}`;
+  $('rod-summary-bonus').textContent = bonusLevels>0
+    ? `+${totalLevel}% baseline odds (${bonusLevels} from Tackle Shop)`
+    : `+${totalLevel}% baseline odds`;
+
+  const currentThreshold = pointsLevel>0 ? rodThresholdAt(pointsLevel-1) : 0;
+  const nextThreshold = rodThresholdAt(pointsLevel);
   const span = Math.max(1, nextThreshold - currentThreshold);
   const progressed = Math.max(0, points - currentThreshold);
   const pct = Math.min(100, Math.round(progressed/span*100));
   $('rod-progress-fill').style.width = pct + '%';
-  $('rod-progress-label').textContent = `${points.toLocaleString()} / ${nextThreshold.toLocaleString()} points to Level ${level+1}`;
+  $('rod-progress-label').textContent = `${points.toLocaleString()} / ${nextThreshold.toLocaleString()} points to your next natural level (Tackle Shop tokens skip ahead separately)`;
 
-  const totalToShow = Math.max(level+6, 12);
+  const totalToShow = Math.max(totalLevel+6, 12);
   const rows = [];
   for(let i=0;i<totalToShow;i++){
     const threshold = rodThresholdAt(i);
-    const achieved = points >= threshold;
-    const isNext = i === level;
+    const achieved = i < totalLevel;
+    const isNext = i === totalLevel;
     rows.push(`<div class="rod-row ${achieved?'achieved':''} ${isNext?'next':''}">
       <div class="rod-row-badge">${achieved ? '\u2713' : (i+1)}</div>
       <div>
@@ -2160,6 +2561,17 @@ async function afterAuthSuccess(result){
   const merged = mergeBags(localBag, result.bag || []);
   saveBag(merged);
   syncBagToCloud(merged);
+
+  // Newer shopState wins outright (avoids double-counting spent coins by
+  // trying to field-merge two divergent inventories).
+  const cloudShop = result.shop;
+  if(cloudShop && typeof cloudShop === 'object' && (cloudShop.updatedAt||0) > (shopState.updatedAt||0)){
+    shopState = loadShopState.call(null); // fall through to defaults for any missing fields
+    shopState = Object.assign(defaultShopState(), cloudShop);
+  }
+  saveShopState();
+  syncShopToCloud();
+  updateEquippedVisuals();
 
   updateBagBadge();
   if(bagViewMode) renderBag();
@@ -2471,6 +2883,10 @@ $('account-pin').addEventListener('input', (e)=>{
 });
 $('account-submit').addEventListener('click', handleAuthSubmit);
 $('account-signout-btn').addEventListener('click', handleSignOut);
+$('open-shop-btn').addEventListener('click', ()=>{
+  closeAccountDrawer();
+  openShop();
+});
 $('view-leaderboard-btn').addEventListener('click', ()=>{
   closeAccountDrawer();
   openLeaderboard();
@@ -2482,6 +2898,26 @@ document.querySelectorAll('.lb-period-tab').forEach(tab=>{
     if(tab.classList.contains('active')) return;
     renderLeaderboardForPeriod(tab.dataset.period);
   });
+});
+$('shop-close').addEventListener('click', closeShop);
+document.querySelectorAll('.shop-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    if(tab.classList.contains('active')) return;
+    setShopTab(tab.dataset.tab);
+  });
+});
+$('shop-content').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-action]');
+  if(!btn || btn.classList.contains('disabled')) return;
+  const action = btn.dataset.action;
+  const key = btn.dataset.key;
+  if(action === 'buy-rod-token') buyRodToken();
+  else if(action === 'buy-item') buyItem(key);
+  else if(action === 'activate-item') activateItem(key);
+  else if(action === 'buy-avatar') buyCosmetic('avatar', key);
+  else if(action === 'buy-hook') buyCosmetic('hook', key);
+  else if(action === 'equip-avatar') equipCosmetic('avatar', key);
+  else if(action === 'equip-hook') equipCosmetic('hook', key);
 });
 $('signin-banner-btn').addEventListener('click', openAccountDrawer);
 $('signin-banner-dismiss').addEventListener('click', ()=>{
