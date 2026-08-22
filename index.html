@@ -480,9 +480,11 @@
   .shop-card-desc{color:rgba(255,255,255,0.55); font-size:10.5px; line-height:1.4; margin-bottom:10px; min-height:28px;}
   .shop-card-owned{color:#39ff8f; font-size:11px; font-weight:700; margin-bottom:8px;}
   .shop-buy-btn{
-    width:100%; appearance:none; border:none; border-radius:999px; padding:9px 10px; font-weight:800; font-size:12.5px;
+    appearance:none; border:none; border-radius:999px; padding:9px 16px; font-weight:800; font-size:12.5px;
     cursor:pointer; background:linear-gradient(90deg,#ffd23f,#ff8a3f); color:#1a0f2e;
+    flex:0 0 auto; white-space:nowrap;
   }
+  .shop-card .shop-buy-btn{width:100%; padding:9px 10px;}
   .shop-buy-btn.disabled{background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); cursor:not-allowed;}
   .shop-buy-btn.shop-equip-btn{background:linear-gradient(90deg,#00e5ff,#39ff8f); color:#04201c;}
 
@@ -532,11 +534,12 @@
 
   .lb-header{position:relative; z-index:2; padding:22px 20px 8px; text-align:center;}
   .lb-close{
-    position:absolute; top:20px; right:18px; width:36px; height:36px; border-radius:50%;
+    position:absolute; top:14px; right:12px; width:46px; height:46px; border-radius:50%;
     background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
     display:flex; align-items:center; justify-content:center; cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
   }
-  .lb-close svg{width:16px; height:16px; stroke:#fff;}
+  .lb-close svg{width:18px; height:18px; stroke:#fff;}
   .lb-trophy{font-size:40px; filter:drop-shadow(0 0 18px rgba(255,210,63,0.7)); margin-bottom:4px;}
   .lb-title{
     font-family:'Bricolage Grotesque'; font-weight:800; font-size:30px; letter-spacing:0.03em;
@@ -2026,24 +2029,24 @@ function syncBagToCloud(bag){
 
 /* ====================== TACKLE SHOP CATALOG ====================== */
 const SHOP_ITEMS = {
-  lure_basic:     { name:'Basic Lure',     desc:'+10% bite chance for 15 min',  price:40,  boostAmount:10, boostMs:15*60*1000, icon:'\u{1FAB1}' },
-  lure_pro:       { name:'Pro Lure',       desc:'+20% bite chance for 20 min',  price:120, boostAmount:20, boostMs:20*60*1000, icon:'\u{1FA9D}' },
-  lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:350, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' }
+  lure_basic:     { name:'Basic Lure',     desc:'+10% bite chance for 15 min',  price:20,  boostAmount:10, boostMs:15*60*1000, icon:'\u{1FAB1}' },
+  lure_pro:       { name:'Pro Lure',       desc:'+20% bite chance for 20 min',  price:60,  boostAmount:20, boostMs:20*60*1000, icon:'\u{1FA9D}' },
+  lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:175, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' }
 };
 const AVATAR_COSMETICS = [
   { id:'default', emoji:'\u{1F3A3}', name:'Classic Rod', price:0 },
-  { id:'fish',    emoji:'\u{1F41F}', name:'Blue Fish',   price:100 },
-  { id:'shark',   emoji:'\u{1F988}', name:'Shark',       price:150 },
-  { id:'octopus', emoji:'\u{1F419}', name:'Octopus',     price:200 },
-  { id:'crown',   emoji:'\u{1F451}', name:'Champion',    price:400 },
-  { id:'diamond', emoji:'\u{1F48E}', name:'Diamond',     price:600 }
+  { id:'fish',    emoji:'\u{1F41F}', name:'Blue Fish',   price:50 },
+  { id:'shark',   emoji:'\u{1F988}', name:'Shark',       price:75 },
+  { id:'octopus', emoji:'\u{1F419}', name:'Octopus',     price:100 },
+  { id:'crown',   emoji:'\u{1F451}', name:'Champion',    price:200 },
+  { id:'diamond', emoji:'\u{1F48E}', name:'Diamond',     price:300 }
 ];
 const HOOK_COSMETICS = [
   { id:'classic', name:'Classic White', color:'#eaf6ff', price:0 },
-  { id:'gold',    name:'Golden Hook',   color:'#ffd23f', price:180 },
-  { id:'crimson', name:'Crimson Hook',  color:'#ff2d78', price:180 },
-  { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:180 },
-  { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:250 }
+  { id:'gold',    name:'Golden Hook',   color:'#ffd23f', price:90 },
+  { id:'crimson', name:'Crimson Hook',  color:'#ff2d78', price:90 },
+  { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:90 },
+  { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:125 }
 ];
 
 /* ====================== ROD UPGRADES ====================== */
@@ -2073,7 +2076,7 @@ function getCoinsBalance(){
   return Math.max(0, computePoints(loadBag()) - (shopState.coinsSpent||0));
 }
 function nextRodTokenPrice(){
-  return 150 + currentRodLevel()*100;
+  return 75 + currentRodLevel()*50;
 }
 function updateBagBadge(){
   const bag = loadBag();
