@@ -167,8 +167,20 @@
   #line-rig.dropped{top:38%;}
   #line-rig .line{width:1.5px; height:220px; background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.55));}
   #line-rig .hook{width:22px; height:22px; margin-top:-4px;}
+  #line-rig.waiting{animation:idleBob 1.7s ease-in-out infinite;}
   #line-rig.tug{animation:tugmove .35s ease-in-out 2;}
   @keyframes tugmove{0%,100%{transform:translateX(-50%) rotate(0deg);} 50%{transform:translateX(-50%) rotate(9deg) translateX(6px);}}
+  @keyframes idleBob{0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(7px);}}
+
+  .splash-burst{
+    position:absolute; top:38%; left:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
+    border-radius:50%; border:2px solid rgba(255,255,255,0.85); opacity:0.9; z-index:2;
+    pointer-events:none; animation:splashExpand .8s ease-out forwards;
+  }
+  @keyframes splashExpand{
+    0%{width:10px; height:10px; margin:-5px 0 0 -5px; opacity:0.9; border-width:2px;}
+    100%{width:150px; height:60px; margin:-30px 0 0 -75px; opacity:0; border-width:1px;}
+  }
 
   #cast-status{
     position:relative; z-index:2; margin-top:auto; margin-bottom:56px;
@@ -189,8 +201,10 @@
     box-shadow:0 30px 60px rgba(0,0,0,0.4);
   }
   #result-card.show{transform:translateY(0) scale(1); opacity:1; pointer-events:auto;}
-  .result-icon{width:64px; height:64px; margin:0 auto 12px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
-  .result-icon svg{width:32px; height:32px;}
+  .result-icon{width:64px; height:64px; margin:0 auto 12px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative;}
+  .result-icon svg{width:32px; height:32px; position:relative; z-index:1;}
+  .pulse-ring{position:absolute; inset:-10px; border-radius:50%; border:2px solid currentColor; opacity:0.7; animation:pulseRing .9s ease-out forwards;}
+  @keyframes pulseRing{0%{transform:scale(0.6); opacity:0.7;} 100%{transform:scale(2); opacity:0;}}
   #result-title{font-family:'Bricolage Grotesque'; font-size:21px; font-weight:800; margin:0 0 4px;}
   #result-sub{color:var(--ink-dim); font-size:13px; margin:0 0 16px; line-height:1.5;}
   .tier-tag{display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:5px 12px; border-radius:999px; margin-bottom:16px;}
@@ -258,7 +272,7 @@
     </svg>
   </div>
   <h1 class="display">Driftline</h1>
-  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 30 minutes.</p>
+  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 5 minutes.</p>
   <button class="btn btn-primary" id="use-location-btn">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     Find My Fishing Grounds
@@ -351,14 +365,15 @@ const TIERS = [
 const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
 
 /* ====================== STATE ====================== */
-const REGION_RADIUS_M = 30000;      // 30km play area
-const HOTSPOT_MIN_M = 500;
-const HOTSPOT_MAX_M = 20000;
-const REFRESH_MS = 30*60*1000;      // 30 minutes
+const REGION_RADIUS_M = 10000;      // 10km play area
+const HOTSPOT_MIN_M = 50;
+const HOTSPOT_MAX_M = 1000;
+const REFRESH_MS = 5*60*1000;       // 5 minutes
 const BASE_ODDS = 5;
+const CLUSTER_PIXEL_RADIUS = 55;    // spots closer than this on-screen fold into one cluster circle
 
 let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
-let center = null;               // {lat,lng} — region anchor, refreshed every 30 min
+let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
 let hotspots = [];               // {lat,lng,radius,odds}
 let liveLatLng = null;           // {lat,lng} — your real-time GPS position (only valid cast location)
 let liveAccuracy = null;
@@ -366,6 +381,7 @@ let watchId = null;
 let refreshDeadline = null;
 let timerInterval = null;
 let pendingResult = null;
+let audioCtx = null;
 
 const $ = (id)=>document.getElementById(id);
 
@@ -411,28 +427,83 @@ function hotspotColor(odds){
 
 /* ====================== HOTSPOT GENERATION ====================== */
 function generateHotspots(centerPt){
-  const count = 12 + Math.floor(Math.random()*7); // 12-18
+  const count = 60 + Math.floor(Math.random()*41); // 60-100 (~10x the old count)
   const list = [];
+  // Skew radius toward the larger/lower-odds end so high-percentage spots
+  // are genuinely rare on the map, and common, low-odds spots dominate.
+  const ODDS_SKEW = 2.4;
   for(let i=0;i<count;i++){
     const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.94);
-    const radius = HOTSPOT_MIN_M + Math.random()*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
+    const frac = 1 - Math.pow(Math.random(), ODDS_SKEW);
+    const radius = HOTSPOT_MIN_M + frac*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
     list.push({ lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius) });
   }
   return list;
 }
 
-function drawHotspots(){
+function metersPerPixelAt(lat, zoom){
+  return 156543.03392 * Math.cos(lat*Math.PI/180) / Math.pow(2, zoom);
+}
+
+function averagePoint(members){
+  const lat = members.reduce((a,m)=>a+m.lat,0)/members.length;
+  const lng = members.reduce((a,m)=>a+m.lng,0)/members.length;
+  return {lat,lng};
+}
+
+// Greedily folds nearby hotspots into clusters based on how close they are
+// on screen at the current zoom — spreads apart into precise spots as you
+// zoom in, collapses into bigger "average" circles as you zoom out.
+function clusterHotspots(list, zoom, atLat){
+  const thresholdM = metersPerPixelAt(atLat, zoom) * CLUSTER_PIXEL_RADIUS;
+  const clusters = [];
+  list.forEach(h=>{
+    let target = null;
+    for(const c of clusters){
+      if(distMeters(h, c.centroid) < thresholdM){ target = c; break; }
+    }
+    if(target){
+      target.members.push(h);
+      target.centroid = averagePoint(target.members);
+    } else {
+      clusters.push({ members:[h], centroid:{lat:h.lat, lng:h.lng} });
+    }
+  });
+  return clusters;
+}
+
+function renderHotspots(){
+  if(!map) return;
   hotspotLayers.forEach(l=>map.removeLayer(l));
   hotspotLayers = [];
-  hotspots.forEach(h=>{
-    const col = hotspotColor(h.odds);
-    const circle = L.circle([h.lat,h.lng], {
-      radius: h.radius,
-      color: col, weight:1.4, opacity:0.85,
-      fillColor: col, fillOpacity:0.22,
-    }).addTo(map);
-    circle.bindTooltip(`${h.odds}% bite chance · ${fmtDistance(h.radius)} zone`, {direction:'top', opacity:0.9});
-    hotspotLayers.push(circle);
+  const zoom = map.getZoom();
+  const atLat = (center || liveLatLng || {lat:0}).lat;
+  const clusters = clusterHotspots(hotspots, zoom, atLat);
+
+  clusters.forEach(c=>{
+    if(c.members.length === 1){
+      const h = c.members[0];
+      const col = hotspotColor(h.odds);
+      const circle = L.circle([h.lat,h.lng], {
+        radius: h.radius,
+        color: col, weight:1.6, opacity:0.9,
+        fillColor: col, fillOpacity:0.3,
+      }).addTo(map);
+      circle.bindTooltip(`${h.odds}% bite chance · ${fmtDistance(h.radius)} spot`, {direction:'top', opacity:0.9});
+      hotspotLayers.push(circle);
+    } else {
+      const avgOdds = Math.round(c.members.reduce((a,m)=>a+m.odds,0)/c.members.length);
+      const avgMemberRadius = c.members.reduce((a,m)=>a+m.radius,0)/c.members.length;
+      const spread = Math.max(...c.members.map(m=>distMeters(c.centroid,m)));
+      const radius = Math.max(spread + avgMemberRadius, avgMemberRadius*1.6);
+      const col = hotspotColor(avgOdds);
+      const circle = L.circle([c.centroid.lat, c.centroid.lng], {
+        radius, color: col, weight:1.4, opacity:0.6, dashArray:'4 7',
+        fillColor: col, fillOpacity:0.14,
+      }).addTo(map);
+      circle.bindTooltip(`${c.members.length} spots here · ~${avgOdds}% avg bite chance · zoom in for exact spots`, {direction:'top', opacity:0.9});
+      hotspotLayers.push(circle);
+    }
   });
 }
 
@@ -453,7 +524,7 @@ function oddsAtPoint(pt){
 
 /* ====================== MAP SETUP ====================== */
 function initMap(centerPt){
-  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], 12);
+  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], 13);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd', maxZoom: 19
@@ -469,6 +540,10 @@ function initMap(centerPt){
     iconSize:[16,16], iconAnchor:[8,8]
   });
   userMarker = L.marker([centerPt.lat, centerPt.lng], { icon:userIcon, interactive:false }).addTo(map);
+
+  // Hotspots simplify into bigger averaged circles as you zoom out, and
+  // split back into their precise 50m-1km spots as you zoom in.
+  map.on('zoomend', renderHotspots);
 
   // Map is view-only: you can pan/zoom to scout hotspots, but you can only
   // cast from your real, live GPS position (handled by watchPosition below).
@@ -551,7 +626,7 @@ function startRefreshCycle(fresh){
   if(fresh || !refreshDeadline || Date.now() > refreshDeadline){
     hotspots = generateHotspots(center);
     refreshDeadline = Date.now() + REFRESH_MS;
-    drawHotspots();
+    renderHotspots();
     saveState();
   }
   clearInterval(timerInterval);
@@ -590,6 +665,61 @@ function refreshLocationAndHotspots(){
   );
 }
 
+/* ====================== SOUND ====================== */
+function ensureAudioCtx(){
+  if(!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, startTime, duration, type, peak){
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime+startTime);
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime+startTime);
+  gain.gain.exponentialRampToValueAtTime(peak||0.18, ctx.currentTime+startTime+0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+startTime+duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(ctx.currentTime+startTime);
+  osc.stop(ctx.currentTime+startTime+duration+0.05);
+}
+function playSplashSound(){
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  const len = Math.floor(ctx.sampleRate*0.28);
+  const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<len;i++){ data[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2.2); }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass'; filter.frequency.value = 1100;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.22, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.3);
+  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.start();
+}
+function playCatchSound(tierKey){
+  const base = { common:440, hard:494, rare:523, superrare:587, ultimate:659 }[tierKey] || 440;
+  playTone(base, 0, 0.18, 'triangle', 0.16);
+  playTone(base*1.25, 0.11, 0.18, 'triangle', 0.16);
+  playTone(base*1.5, 0.22, 0.32, 'triangle', 0.18);
+  if(tierKey==='superrare' || tierKey==='ultimate'){
+    playTone(base*2, 0.34, 0.42, 'sine', 0.15);
+  }
+}
+function playMissSound(){
+  playTone(210, 0, 0.32, 'sine', 0.12);
+  playTone(150, 0.14, 0.4, 'sine', 0.1);
+}
+
 /* ====================== FISHING FLOW ====================== */
 function pickTier(){
   const totalWeight = TIERS.reduce((a,t)=>a+t.weight,0);
@@ -606,6 +736,7 @@ function pickFish(tierKey){
 }
 
 function attemptCast(){
+  ensureAudioCtx(); // must happen inside the click gesture for audio to be allowed
   if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
   if(center && distMeters(liveLatLng, center) > REGION_RADIUS_M){
     showToast("You're outside your fishing grounds \u2014 move back into the dashed circle.");
@@ -629,7 +760,7 @@ function runFishingAnimation(){
   const status = $('cast-status');
   const card = $('result-card');
 
-  rig.classList.remove('dropped','tug');
+  rig.classList.remove('dropped','tug','waiting');
   card.classList.remove('show');
   status.classList.remove('show');
   spawnBubbles();
@@ -642,23 +773,29 @@ function runFishingAnimation(){
   setTimeout(()=>{ rig.classList.add('dropped'); }, 250);
 
   setTimeout(()=>{
+    playSplashSound();
+    spawnSplash();
+  }, 1550);
+
+  setTimeout(()=>{
     status.textContent = 'Waiting for a bite...';
-  }, 1500);
+    rig.classList.add('waiting');
+  }, 1700);
 
   const suspense = 1600 + Math.random()*1400;
   setTimeout(()=>{
     revealResult();
-  }, 1500 + suspense);
+  }, 1700 + suspense);
 }
 
 function spawnBubbles(){
   const overlay = $('fishing-overlay');
   document.querySelectorAll('.bubble').forEach(b=>b.remove());
-  const n = 26;
+  const n = 30;
   for(let i=0;i<n;i++){
     const b = document.createElement('div');
     b.className='bubble';
-    const size = 4+Math.random()*12;
+    const size = 4+Math.random()*13;
     b.style.width = size+'px';
     b.style.height = size+'px';
     b.style.left = Math.random()*100+'%';
@@ -667,6 +804,15 @@ function spawnBubbles(){
     b.style.animationDelay = (Math.random()*4)+'s';
     overlay.appendChild(b);
   }
+}
+
+function spawnSplash(){
+  const overlay = $('fishing-overlay');
+  overlay.querySelectorAll('.splash-burst').forEach(s=>s.remove());
+  const burst = document.createElement('div');
+  burst.className = 'splash-burst';
+  overlay.appendChild(burst);
+  setTimeout(()=>burst.remove(), 900);
 }
 
 function revealResult(){
@@ -679,22 +825,28 @@ function revealResult(){
   const sub = $('result-sub');
   const tierEl = $('result-tier');
 
+  rig.classList.remove('waiting');
+
   if(success){
     rig.classList.add('tug');
     status.textContent = 'Something\u2019s on the line!';
     icon.style.background = tier.hex+'26';
-    icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${tier.hex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${tier.hex}"/></svg>`;
+    icon.style.color = tier.hex;
+    icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="${tier.hex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${tier.hex}"/></svg>`;
     title.textContent = fish;
     sub.textContent = 'Added to your bag.';
     tierEl.innerHTML = `<span class="tier-tag" style="background:${tier.hex}22;color:${tier.hex}">${tier.label}</span>`;
     addToBag(fish, tier.key);
+    playCatchSound(tier.key);
   } else {
     status.textContent = 'The line comes back quiet.';
     icon.style.background = '#5fb0e822';
-    icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>`;
+    icon.style.color = '#7fb8d6';
+    icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>`;
     title.textContent = 'No luck this time';
     sub.textContent = 'Try another spot, or the same one again \u2014 the tide can turn fast.';
     tierEl.innerHTML = '';
+    playMissSound();
   }
   setTimeout(()=> card.classList.add('show'), 200);
 }
@@ -705,7 +857,7 @@ function closeFishingOverlay(){
   setTimeout(()=>{
     $('result-card').classList.remove('show');
     $('cast-status').classList.remove('show');
-    $('line-rig').classList.remove('dropped','tug');
+    $('line-rig').classList.remove('dropped','tug','waiting');
   }, 500);
   updateCastPanel();
   $('cast-panel').classList.add('show');
@@ -800,7 +952,7 @@ function beginGame(pt, accuracy){
   }
 
   initMap(center);
-  if(hotspots.length){ drawHotspots(); }
+  if(hotspots.length){ renderHotspots(); }
   startRefreshCycle(hotspots.length===0);
   updateBagBadge();
   updateCastPanel();
