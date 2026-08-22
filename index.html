@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Driftline — Live Fishing Grounds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --deep-0:#e9f6ff;
+    --deep-1:#7fd4ff;
+    --deep-2:#1793c9;
+    --deep-3:#0b4a75;
+    --deep-4:#062641;
+    --deep-5:#020e1c;
+    --ink:#eaf6ff;
+    --ink-dim:#9fc2d6;
+    --panel:#0a2338ee;
+    --panel-solid:#0c2a44;
+    --line:#1c4a68;
+    --cyan:#3fd6ff;
+    --tier-common:#63c8a3;
+    --tier-hard:#5fb0e8;
+    --tier-rare:#f2b84b;
+    --tier-superrare:#c98bff;
+    --tier-ultimate:#ff5c8a;
+    --radius-lg:22px;
+    --radius-md:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0; overflow:hidden; background:var(--deep-5); font-family:'Inter',sans-serif; color:var(--ink);}
+  .display{font-family:'Bricolage Grotesque', 'Inter', sans-serif;}
+
+  #map{position:absolute; inset:0; z-index:1; filter:saturate(1.05) brightness(0.9);}
+  .leaflet-control-attribution{background:rgba(4,17,31,0.7) !important; color:#8fb8cf !important; font-size:9px !important;}
+  .leaflet-control-attribution a{color:#bfe3f5 !important;}
+  .leaflet-control-zoom{display:none;}
+
+  /* ---------- Start screen ---------- */
+  #start-screen{
+    position:fixed; inset:0; z-index:500;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #0e3a57 0%, #062641 45%, #020e1c 100%);
+    text-align:center; padding:32px;
+  }
+  .brand-mark{
+    width:72px; height:72px; border-radius:22px;
+    background:linear-gradient(160deg, #3fd6ff, #0b6fa3);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 12px 34px rgba(63,214,255,0.35);
+    margin-bottom:22px;
+  }
+  .brand-mark svg{width:38px; height:38px;}
+  #start-screen h1{font-size:34px; margin:0 0 8px; letter-spacing:-0.02em; font-weight:800;}
+  #start-screen p{color:var(--ink-dim); font-size:15px; line-height:1.5; max-width:320px; margin:0 0 28px;}
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:999px; padding:15px 26px; font-size:15px; font-weight:700;
+    display:inline-flex; align-items:center; gap:8px; justify-content:center;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.96);}
+  .btn-primary{background:linear-gradient(160deg,#4fe0ff,#0e86c4); color:#02121e; box-shadow:0 10px 26px rgba(63,214,255,0.32);}
+  .btn-ghost{background:transparent; color:var(--ink-dim); font-weight:600; font-size:13px; text-decoration:underline; padding:10px;}
+  #geo-status{margin-top:16px; font-size:13px; color:#ff9c9c; max-width:280px; display:none;}
+  #manual-coords{margin-top:14px; display:none; flex-direction:column; gap:8px; width:100%; max-width:280px;}
+  #manual-coords input{
+    background:#08243a; border:1px solid var(--line); color:var(--ink); border-radius:10px;
+    padding:11px 13px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+
+  /* ---------- Top bar ---------- */
+  #topbar{
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 14px 0;
+    pointer-events:none;
+  }
+  #topbar > *{pointer-events:auto;}
+  .glass{
+    background:var(--panel); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .wordmark{
+    display:flex; align-items:center; gap:8px;
+    padding:9px 14px 9px 10px; border-radius:999px;
+  }
+  .wordmark .dot{width:9px; height:9px; border-radius:50%; background:#4fe0ff; box-shadow:0 0 10px #4fe0ff;}
+  .wordmark span{font-weight:700; font-size:14px; letter-spacing:0.01em;}
+  .top-actions{display:flex; gap:8px;}
+  .icon-btn{
+    width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .icon-btn svg{width:19px; height:19px; stroke:var(--ink); fill:none;}
+  .bag-badge{
+    position:absolute; top:-4px; right:-4px; background:var(--tier-rare); color:#26160a;
+    font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; padding:0 4px;
+    border:2px solid var(--deep-5);
+  }
+
+  #timer-chip{
+    position:fixed; top:66px; left:14px; z-index:200;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
+    display:flex; align-items:center; gap:6px;
+  }
+  #timer-chip svg{width:12px; height:12px; stroke:var(--cyan); fill:none;}
+  #timer-chip b{color:var(--ink); font-weight:700;}
+
+  /* ---------- Selected spot / cast panel ---------- */
+  #cast-panel{
+    position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
+    border-radius:var(--radius-lg); padding:16px 16px 14px;
+    transform:translateY(140%); transition:transform .32s cubic-bezier(.2,.9,.25,1);
+  }
+  #cast-panel.show{transform:translateY(0);}
+  .cast-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .cast-label{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); font-weight:700; margin-bottom:3px;}
+  .cast-value{font-size:16px; font-weight:800;}
+  .odds-pill{
+    font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; white-space:nowrap;
+  }
+  #cast-btn{width:100%; margin-top:12px;}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed; left:50%; top:120px; transform:translate(-50%,-14px); z-index:600;
+    padding:10px 16px; border-radius:999px; font-size:13px; font-weight:600;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+    background:var(--panel-solid); border:1px solid var(--line);
+  }
+  #toast.show{opacity:1; transform:translate(-50%,0);}
+
+  /* ---------- Fishing overlay ---------- */
+  #fishing-overlay{
+    position:fixed; inset:0; z-index:800;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    background:linear-gradient(180deg, var(--deep-0) 0%, var(--deep-1) 22%, var(--deep-2) 46%, var(--deep-3) 68%, var(--deep-4) 86%, var(--deep-5) 100%);
+    background-size:100% 260%;
+    background-position:0% 0%;
+    transition:opacity .5s ease, background-position 2.6s cubic-bezier(.3,.7,.3,1);
+    overflow:hidden;
+  }
+  #fishing-overlay.active{opacity:1; pointer-events:auto; background-position:0% 100%;}
+
+  .bubble{
+    position:absolute; bottom:-40px; border-radius:50%;
+    background:radial-gradient(circle at 32% 32%, rgba(255,255,255,0.85), rgba(255,255,255,0.08) 70%);
+    opacity:0; animation:rise linear infinite;
+  }
+  @keyframes rise{
+    0%{opacity:0; transform:translateY(0) translateX(0);}
+    8%{opacity:.75;}
+    92%{opacity:.4;}
+    100%{opacity:0; transform:translateY(-115vh) translateX(var(--drift,18px));}
+  }
+
+  #line-rig{position:absolute; top:-40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; transition:top 1.4s cubic-bezier(.45,0,.2,1);}
+  #line-rig.dropped{top:38%;}
+  #line-rig .line{width:1.5px; height:220px; background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.55));}
+  #line-rig .hook{width:22px; height:22px; margin-top:-4px;}
+  #line-rig.tug{animation:tugmove .35s ease-in-out 2;}
+  @keyframes tugmove{0%,100%{transform:translateX(-50%) rotate(0deg);} 50%{transform:translateX(-50%) rotate(9deg) translateX(6px);}}
+
+  #cast-status{
+    position:relative; z-index:2; margin-top:auto; margin-bottom:56px;
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:17px;
+    color:#ffffff; text-shadow:0 2px 14px rgba(0,0,0,0.35);
+    opacity:0; transition:opacity .4s ease;
+    text-align:center; padding:0 30px;
+  }
+  #cast-status.show{opacity:1;}
+
+  #result-card{
+    position:relative; z-index:3; width:calc(100% - 48px); max-width:360px;
+    border-radius:24px; padding:26px 22px 22px; text-align:center;
+    background:rgba(4,20,34,0.86); border:1px solid rgba(255,255,255,0.12);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    transform:translateY(30px) scale(0.94); opacity:0; pointer-events:none;
+    transition:transform .45s cubic-bezier(.2,.9,.25,1), opacity .4s ease;
+    box-shadow:0 30px 60px rgba(0,0,0,0.4);
+  }
+  #result-card.show{transform:translateY(0) scale(1); opacity:1; pointer-events:auto;}
+  .result-icon{width:64px; height:64px; margin:0 auto 12px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .result-icon svg{width:32px; height:32px;}
+  #result-title{font-family:'Bricolage Grotesque'; font-size:21px; font-weight:800; margin:0 0 4px;}
+  #result-sub{color:var(--ink-dim); font-size:13px; margin:0 0 16px; line-height:1.5;}
+  .tier-tag{display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:5px 12px; border-radius:999px; margin-bottom:16px;}
+  #result-close{width:100%;}
+
+  /* ---------- Bag drawer ---------- */
+  #bag-scrim{position:fixed; inset:0; background:rgba(0,5,10,0.55); z-index:900; opacity:0; pointer-events:none; transition:opacity .3s ease;}
+  #bag-scrim.show{opacity:1; pointer-events:auto;}
+  #bag-drawer{
+    position:fixed; left:0; right:0; bottom:0; z-index:901; height:82vh; max-height:82vh;
+    background:var(--panel-solid); border-radius:26px 26px 0 0; border:1px solid rgba(255,255,255,0.08); border-bottom:none;
+    transform:translateY(100%); transition:transform .38s cubic-bezier(.2,.9,.25,1);
+    display:flex; flex-direction:column;
+  }
+  #bag-drawer.show{transform:translateY(0);}
+  .drawer-handle{width:38px; height:4px; border-radius:2px; background:#2b5975; margin:10px auto 4px;}
+  .drawer-header{padding:6px 20px 14px; display:flex; align-items:center; justify-content:space-between;}
+  .drawer-header h2{font-family:'Bricolage Grotesque'; font-size:19px; margin:0; font-weight:800;}
+  .drawer-header .close-x{width:32px; height:32px; border-radius:10px; background:#12395a; display:flex; align-items:center; justify-content:center;}
+  .drawer-header .close-x svg{width:15px; height:15px; stroke:var(--ink);}
+
+  #progress-strip{display:flex; gap:8px; padding:0 16px 14px; overflow-x:auto;}
+  .tier-stat{
+    flex:0 0 auto; min-width:84px; border-radius:14px; padding:10px 12px; background:#0a2c47; border:1px solid var(--line);
+  }
+  .tier-stat .n{font-size:16px; font-weight:800; font-family:'Bricolage Grotesque';}
+  .tier-stat .l{font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
+
+  #bag-list{flex:1; overflow-y:auto; padding:0 16px 24px; -webkit-overflow-scrolling:touch;}
+  .catch-row{
+    display:flex; align-items:center; gap:12px; padding:12px; border-radius:16px;
+    background:#092338; margin-bottom:8px; border:1px solid transparent;
+  }
+  .catch-dot{width:38px; height:38px; border-radius:12px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
+  .catch-dot svg{width:18px; height:18px;}
+  .catch-info{flex:1; min-width:0;}
+  .catch-name{font-weight:700; font-size:14.5px;}
+  .catch-meta{font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
+  .catch-tier-tag{font-size:9.5px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:999px; flex:0 0 auto;}
+
+  #bag-empty{text-align:center; padding:60px 20px; color:var(--ink-dim);}
+  #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
+  #bag-empty p{font-size:14px; line-height:1.5; max-width:230px; margin:0 auto;}
+
+  .hidden{display:none !important;}
+
+  @media (prefers-reduced-motion: reduce){
+    .bubble{animation:none; display:none;}
+    #fishing-overlay{transition:opacity .3s ease;}
+    #line-rig{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Start screen -->
+<div id="start-screen">
+  <div class="brand-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/>
+      <circle cx="15" cy="12" r="1.4" fill="#02121e"/>
+      <path d="M2 12c-1 1.5-1 3 0 4"/>
+    </svg>
+  </div>
+  <h1 class="display">Driftline</h1>
+  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 30 minutes.</p>
+  <button class="btn btn-primary" id="use-location-btn">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    Find My Fishing Grounds
+  </button>
+  <div id="geo-status"></div>
+  <div id="manual-coords">
+    <input type="text" id="lat-input" placeholder="Latitude e.g. 50.0244" />
+    <input type="text" id="lng-input" placeholder="Longitude e.g. -125.2475" />
+    <button class="btn btn-primary" id="manual-submit" style="margin-top:2px;">Use These Coordinates</button>
+  </div>
+  <button class="btn btn-ghost" id="manual-toggle">Enter coordinates manually instead</button>
+</div>
+
+<!-- Top bar -->
+<div id="topbar" class="hidden">
+  <div class="wordmark glass">
+    <div class="dot"></div>
+    <span class="display">Driftline</span>
+  </div>
+  <div class="top-actions">
+    <button class="icon-btn glass" id="recenter-btn">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    </button>
+    <button class="icon-btn glass" id="bag-btn">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span class="bag-badge hidden" id="bag-count">0</span>
+    </button>
+  </div>
+</div>
+<div id="timer-chip" class="glass hidden" style="border-radius:999px;">
+  <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+  Hotspots refresh in <b id="timer-value">30:00</b>
+</div>
+
+<!-- Cast panel -->
+<div id="cast-panel" class="glass">
+  <div class="cast-row">
+    <div>
+      <div class="cast-label" id="cast-label">Selected spot</div>
+      <div class="cast-value" id="cast-value">Open water</div>
+    </div>
+    <div class="odds-pill" id="odds-pill">5% bite chance</div>
+  </div>
+  <button class="btn btn-primary" id="cast-btn">Cast Your Line</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- Fishing overlay -->
+<div id="fishing-overlay">
+  <div id="line-rig">
+    <div class="line"></div>
+    <svg class="hook" viewBox="0 0 24 24" fill="none" stroke="#eaf6ff" stroke-width="2" stroke-linecap="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>
+  </div>
+  <div id="cast-status"></div>
+  <div id="result-card">
+    <div class="result-icon" id="result-icon"></div>
+    <h3 id="result-title" class="display"></h3>
+    <p id="result-sub"></p>
+    <div id="result-tier"></div>
+    <button class="btn btn-primary" id="result-close">Reel It In</button>
+  </div>
+</div>
+
+<!-- Bag drawer -->
+<div id="bag-scrim"></div>
+<div id="bag-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>Your Bag</h2>
+    <button class="close-x" id="bag-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div id="progress-strip"></div>
+  <div id="bag-list"></div>
+</div>
+
+<script>
+/* ====================== FISH DATA ====================== */
+const FISH_DATA = {"common": ["Bluegill", "Pumpkinseed Sunfish", "Redear Sunfish", "Green Sunfish", "Longear Sunfish", "Warmouth", "Rock Bass", "Yellow Perch", "White Perch", "Black Crappie", "White Crappie", "Common Carp", "Grass Carp", "Bighead Carp", "Silver Carp", "Goldfish", "Fathead Minnow", "Golden Shiner", "Emerald Shiner", "Spottail Shiner", "Creek Chub", "Longnose Dace", "Blacknose Dace", "White Sucker", "Redhorse Sucker", "Quillback", "Brown Bullhead", "Yellow Bullhead", "Black Bullhead", "Channel Catfish", "White Catfish", "Bowfin", "Longnose Gar", "Spotted Gar", "Gizzard Shad", "Threadfin Shad", "Alewife", "Rainbow Smelt", "Brook Trout", "Brown Trout", "Rainbow Trout", "Lake Whitefish", "Round Whitefish", "Mountain Whitefish", "Burbot", "Northern Pikeminnow", "Mottled Sculpin", "Banded Killifish", "Mummichog", "Sheepshead Minnow", "Sailfin Molly", "Guppy", "Mosquitofish", "Fantail Darter", "Rainbow Darter", "Johnny Darter", "Logperch", "Stonecat", "Freshwater Drum", "Smallmouth Buffalo", "Bigmouth Buffalo", "River Carpsucker", "Longnose Sucker", "Common Shiner", "Bluntnose Minnow", "Blacknose Shiner", "Spotfin Shiner", "Rosyface Shiner", "Silver Redhorse", "Golden Redhorse", "Shorthead Redhorse", "Grass Pickerel", "Redfin Pickerel", "Banded Sunfish", "Bantam Sunfish", "Flier", "Mud Sunfish", "Tadpole Madtom", "Brindled Madtom", "Atlantic Silverside", "Bay Anchovy", "Striped Killifish", "Pinfish", "Pigfish", "Atlantic Croaker", "Spot Croaker", "Northern Kingfish", "Silver Perch", "White Mullet", "Striped Mullet", "Sand Perch", "Sea Bream", "Porgy", "Scup", "Tomtate", "Blue Runner", "Atlantic Bumper", "Ballyhoo", "Halfbeak", "Atlantic Menhaden", "Gulf Menhaden", "Round Herring", "Spanish Sardine", "Atlantic Herring", "Sand Lance", "Northern Puffer", "Striped Burrfish", "Cocoa Damselfish", "Sergeant Major", "Slippery Dick", "Bluehead Wrasse", "Mangrove Snapper", "Grey Snapper", "Schoolmaster Snapper", "Squirrelfish", "Cardinal Fish", "Sailfin Blenny", "Feather Blenny", "Frillfin Goby", "Naked Goby", "Code Goby", "Sand Diver", "Inshore Lizardfish", "Striped Mojarra", "Silver Jenny", "Spotfin Mojarra", "Sheepshead", "Northern Sea Robin", "Striped Sea Robin", "Oyster Toadfish", "Skilletfish", "Rainwater Killifish", "Diamond Killifish", "Atlantic Needlefish", "Keeltail Needlefish", "Houndfish", "Lookdown", "Atlantic Moonfish", "Silver Seatrout", "Sand Seatrout", "Pinfish Perch", "Striped Anchovy", "Bay Pipefish", "Gulf Pipefish", "Dusky Pipefish", "Rock Gunnel", "Grubby Sculpin", "Cunner", "Tautog Juvenile", "Skipjack Herring", "Blueback Herring", "Hickory Shad", "American Shad", "Fourspine Stickleback", "Threespine Stickleback", "Ninespine Stickleback", "Brook Silverside", "Pirate Perch"], "hard": ["Largemouth Bass", "Smallmouth Bass", "Spotted Bass", "Striped Bass", "White Bass", "Walleye", "Sauger", "Northern Pike", "Chain Pickerel", "Flathead Catfish", "Blue Catfish", "Muskellunge Hybrid Tiger Musky", "Yellow Bass", "Crappie Hybrid", "Longnose Gar Trophy", "Redbreast Sunfish", "Shoal Bass", "Suwannee Bass", "Guadalupe Bass", "Kentucky Spotted Bass", "Bluefish", "Spanish Mackerel", "King Mackerel", "Cero Mackerel", "Black Sea Bass", "Red Grouper", "Gag Grouper", "Snook", "Common Snook", "Fat Snook", "Redfish", "Black Drum", "Sheepshead Bream", "Cobia", "Spotted Seatrout Gator", "Flounder", "Southern Flounder", "Summer Flounder", "Winter Flounder", "Halibut", "California Halibut", "Yellowtail Amberjack", "Greater Amberjack", "Lesser Amberjack", "Almaco Jack", "Horse-Eye Jack", "Permit", "Pompano", "African Pompano", "Ladyfish", "Tarpon Juvenile", "Bonefish", "Triggerfish", "Grey Triggerfish", "Ocean Triggerfish", "Hogfish", "Mutton Snapper", "Lane Snapper", "Vermilion Snapper", "Red Snapper", "Cubera Snapper", "Dog Snapper", "Yellowtail Snapper", "Grunt", "White Grunt", "Bluestriped Grunt", "Sea Trout", "Weakfish Trophy", "Kelp Bass", "Barred Sand Bass", "Rockfish", "Vermillion Rockfish", "Lingcod", "Cabezon", "Greenling", "Wolf Eel", "Sablefish", "Pacific Cod", "Pacific Halibut", "Yelloweye Rockfish", "Bocaccio", "Copper Rockfish", "Steelhead Juvenile", "Coho Salmon", "Chum Salmon", "Pink Salmon", "Sockeye Salmon", "Golden Trout", "Cutthroat Trout", "Tiger Trout", "Splake", "Arctic Char", "Dolly Varden", "Grayling"], "rare": ["King Salmon", "Steelhead Trout", "Chinook Salmon", "Lake Trout", "Muskellunge", "Tiger Muskie", "Peacock Bass", "Speckled Peacock Bass", "Butterfly Peacock Bass", "Nile Perch", "Barramundi", "Golden Dorado", "Payara", "Redtail Catfish", "Wahoo", "Mahi Mahi", "Yellowfin Tuna", "Blackfin Tuna", "Little Tunny", "Skipjack Tuna", "Albacore Tuna", "Bigeye Tuna", "Sailfish", "Roosterfish", "Giant Trevally", "Bluefin Trevally", "Golden Trevally", "African Pompano Trophy", "Wahoo Trophy", "Spanish Flag Snapper", "Warsaw Grouper", "Snowy Grouper", "Goliath Grouper", "Jewfish", "Nassau Grouper", "Yellowedge Grouper", "Scamp Grouper", "Amberjack Giant", "Broadbill Swordfish Juvenile", "Opah", "Escolar", "Oilfish", "Pacific Bonito", "Atlantic Bonito", "Dogtooth Tuna", "Giant Snakehead", "Northern Snakehead", "Bull Trout", "Apache Trout", "Gila Trout", "Bonneville Cutthroat"], "superrare": ["Broadbill Swordfish", "Blue Marlin", "White Marlin", "Striped Marlin", "Black Marlin", "Atlantic Sailfish", "Pacific Sailfish", "Bluefin Tuna", "Giant Bluefin Tuna", "Southern Bluefin Tuna", "Tarpon", "Arapaima", "Wels Catfish", "Mekong Giant Catfish", "Alligator Gar", "Sturgeon", "Lake Sturgeon", "White Sturgeon", "Paddlefish", "Nile Tigerfish"], "ultimate": ["Beluga Sturgeon", "Great White Shark", "Whale Shark", "Coelacanth", "Giant Pacific Octopus"]}
+;
+
+const TIERS = [
+  { key:'common',     label:'Common',     weight:50, color:'var(--tier-common)',    hex:'#63c8a3' },
+  { key:'hard',        label:'Hard Catch', weight:30, color:'var(--tier-hard)',      hex:'#5fb0e8' },
+  { key:'rare',        label:'Rare',       weight:10, color:'var(--tier-rare)',      hex:'#f2b84b' },
+  { key:'superrare',   label:'Super Rare', weight:5,  color:'var(--tier-superrare)', hex:'#c98bff' },
+  { key:'ultimate',    label:'Ultimate',   weight:1,  color:'var(--tier-ultimate)',  hex:'#ff5c8a' },
+];
+const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
+
+/* ====================== STATE ====================== */
+const REGION_RADIUS_M = 30000;      // 30km play area
+const HOTSPOT_MIN_M = 500;
+const HOTSPOT_MAX_M = 20000;
+const REFRESH_MS = 30*60*1000;      // 30 minutes
+const BASE_ODDS = 5;
+
+let map, userMarker, regionCircle, hotspotLayers = [];
+let center = null;               // {lat,lng}
+let hotspots = [];               // {lat,lng,radius,odds}
+let selectedLatLng = null;
+let selectedMarker = null;
+let refreshDeadline = null;
+let timerInterval = null;
+let pendingResult = null;
+
+const $ = (id)=>document.getElementById(id);
+
+/* ====================== PERSISTENCE ====================== */
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem('driftline_state')||'null'); }catch(e){ return null; }
+}
+function saveState(){
+  localStorage.setItem('driftline_state', JSON.stringify({ center, hotspots, refreshDeadline }));
+}
+function loadBag(){
+  try{ return JSON.parse(localStorage.getItem('driftline_bag')||'[]'); }catch(e){ return []; }
+}
+function saveBag(bag){ localStorage.setItem('driftline_bag', JSON.stringify(bag)); }
+
+/* ====================== GEO / MATH HELPERS ====================== */
+function metersToLatDeg(m){ return m/111320; }
+function metersToLngDeg(m,lat){ return m/(111320*Math.cos(lat*Math.PI/180)); }
+function distMeters(a,b){
+  const R=6371000;
+  const dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+  const s=Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function randomPointInDisk(centerPt, radiusM){
+  const r = radiusM*Math.sqrt(Math.random());
+  const theta = Math.random()*2*Math.PI;
+  const dLat = metersToLatDeg(r*Math.sin(theta));
+  const dLng = metersToLngDeg(r*Math.cos(theta), centerPt.lat);
+  return { lat: centerPt.lat+dLat, lng: centerPt.lng+dLng };
+}
+function oddsForRadius(radiusM){
+  const frac = Math.min(1, Math.max(0, (radiusM-HOTSPOT_MIN_M)/(HOTSPOT_MAX_M-HOTSPOT_MIN_M)));
+  return Math.round(90 - frac*40); // 90% at smallest, 50% at largest
+}
+function hotspotColor(odds){
+  // 50 -> amber, 90 -> hot red-orange
+  const t = (odds-50)/40;
+  const c1=[250,204,60], c2=[255,80,60];
+  const mix = c1.map((v,i)=>Math.round(v+(c2[i]-v)*t));
+  return `rgb(${mix[0]},${mix[1]},${mix[2]})`;
+}
+
+/* ====================== HOTSPOT GENERATION ====================== */
+function generateHotspots(centerPt){
+  const count = 12 + Math.floor(Math.random()*7); // 12-18
+  const list = [];
+  for(let i=0;i<count;i++){
+    const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.94);
+    const radius = HOTSPOT_MIN_M + Math.random()*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
+    list.push({ lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius) });
+  }
+  return list;
+}
+
+function drawHotspots(){
+  hotspotLayers.forEach(l=>map.removeLayer(l));
+  hotspotLayers = [];
+  hotspots.forEach(h=>{
+    const col = hotspotColor(h.odds);
+    const circle = L.circle([h.lat,h.lng], {
+      radius: h.radius,
+      color: col, weight:1.4, opacity:0.85,
+      fillColor: col, fillOpacity:0.22,
+    }).addTo(map);
+    circle.bindTooltip(`${h.odds}% bite chance · ${fmtDistance(h.radius)} zone`, {direction:'top', opacity:0.9});
+    hotspotLayers.push(circle);
+  });
+}
+
+function fmtDistance(m){
+  return m>=1000 ? (m/1000).toFixed(1).replace(/\.0$/,'')+'km' : Math.round(m)+'m';
+}
+
+function oddsAtPoint(pt){
+  let best = BASE_ODDS;
+  let inHotspot = null;
+  hotspots.forEach(h=>{
+    if(distMeters(pt,h) <= h.radius && h.odds>best){
+      best = h.odds; inHotspot = h;
+    }
+  });
+  return { odds:best, hotspot:inHotspot };
+}
+
+/* ====================== MAP SETUP ====================== */
+function initMap(centerPt){
+  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+
+  regionCircle = L.circle([centerPt.lat, centerPt.lng], {
+    radius: REGION_RADIUS_M, color:'#3fd6ff', weight:1.5, dashArray:'6 8',
+    fillOpacity:0, opacity:0.55
+  }).addTo(map);
+
+  const userIcon = L.divIcon({
+    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:#3fd6ff;border:3px solid #06263d;box-shadow:0 0 0 6px rgba(63,214,255,0.25)"></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+  userMarker = L.marker([centerPt.lat, centerPt.lng], { icon:userIcon, interactive:false }).addTo(map);
+
+  map.on('click', onMapClick);
+}
+
+function onMapClick(e){
+  const pt = { lat:e.latlng.lat, lng:e.latlng.lng };
+  if(distMeters(pt, center) > REGION_RADIUS_M){
+    showToast("That's outside your fishing grounds \u2014 stay inside the dashed circle.");
+    return;
+  }
+  selectedLatLng = pt;
+  if(selectedMarker) map.removeLayer(selectedMarker);
+  const icon = L.divIcon({
+    className:'', html:`<div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#ffffff;transform:rotate(-45deg);border:2px solid #0b4a75;"></div>`,
+    iconSize:[14,14], iconAnchor:[7,14]
+  });
+  selectedMarker = L.marker([pt.lat,pt.lng], { icon, interactive:false }).addTo(map);
+
+  const {odds, hotspot} = oddsAtPoint(pt);
+  $('cast-label').textContent = hotspot ? 'Hotspot selected' : 'Selected spot';
+  $('cast-value').textContent = hotspot ? `${fmtDistance(hotspot.radius)} hotspot` : 'Open water';
+  $('odds-pill').textContent = `${odds}% bite chance`;
+  $('odds-pill').style.background = hotspot ? 'rgba(255,92,138,0.18)' : 'rgba(63,214,255,0.14)';
+  $('odds-pill').style.color = hotspot ? '#ff9db8' : '#7fe0ff';
+  $('cast-panel').classList.add('show');
+}
+
+/* ====================== TIMER / REFRESH ====================== */
+function startRefreshCycle(fresh){
+  if(fresh || !refreshDeadline || Date.now() > refreshDeadline){
+    hotspots = generateHotspots(center);
+    refreshDeadline = Date.now() + REFRESH_MS;
+    drawHotspots();
+    saveState();
+  }
+  clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 1000);
+  tickTimer();
+}
+function tickTimer(){
+  const remain = refreshDeadline - Date.now();
+  if(remain<=0){
+    refreshLocationAndHotspots();
+    return;
+  }
+  const mm = Math.floor(remain/60000);
+  const ss = Math.floor((remain%60000)/1000);
+  $('timer-value').textContent = `${mm}:${String(ss).padStart(2,'0')}`;
+}
+function refreshLocationAndHotspots(){
+  if(!navigator.geolocation){ startRefreshCycle(true); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      center = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+      map.setView([center.lat,center.lng]);
+      userMarker.setLatLng([center.lat,center.lng]);
+      regionCircle.setLatLng([center.lat,center.lng]);
+      startRefreshCycle(true);
+      showToast('New hotspots have appeared \u{1F41F}');
+    },
+    ()=>{ startRefreshCycle(true); },
+    { enableHighAccuracy:true, timeout:8000 }
+  );
+}
+
+/* ====================== FISHING FLOW ====================== */
+function pickTier(){
+  const totalWeight = TIERS.reduce((a,t)=>a+t.weight,0);
+  let r = Math.random()*totalWeight;
+  for(const t of TIERS){
+    if(r < t.weight) return t;
+    r -= t.weight;
+  }
+  return TIERS[0];
+}
+function pickFish(tierKey){
+  const list = FISH_DATA[tierKey];
+  return list[Math.floor(Math.random()*list.length)];
+}
+
+function attemptCast(){
+  if(!selectedLatLng) return;
+  const {odds, hotspot} = oddsAtPoint(selectedLatLng);
+  const success = Math.random()*100 < odds;
+  let fish=null, tier=null;
+  if(success){
+    tier = pickTier();
+    fish = pickFish(tier.key);
+  }
+  pendingResult = { success, fish, tier, hotspot, at: selectedLatLng };
+  runFishingAnimation();
+}
+
+function runFishingAnimation(){
+  $('cast-panel').classList.remove('show');
+  const overlay = $('fishing-overlay');
+  const rig = $('line-rig');
+  const status = $('cast-status');
+  const card = $('result-card');
+
+  rig.classList.remove('dropped','tug');
+  card.classList.remove('show');
+  status.classList.remove('show');
+  spawnBubbles();
+
+  overlay.classList.add('active');
+
+  status.textContent = 'Casting out...';
+  setTimeout(()=> status.classList.add('show'), 150);
+
+  setTimeout(()=>{ rig.classList.add('dropped'); }, 250);
+
+  setTimeout(()=>{
+    status.textContent = 'Waiting for a bite...';
+  }, 1500);
+
+  const suspense = 1600 + Math.random()*1400;
+  setTimeout(()=>{
+    revealResult();
+  }, 1500 + suspense);
+}
+
+function spawnBubbles(){
+  const overlay = $('fishing-overlay');
+  document.querySelectorAll('.bubble').forEach(b=>b.remove());
+  const n = 26;
+  for(let i=0;i<n;i++){
+    const b = document.createElement('div');
+    b.className='bubble';
+    const size = 4+Math.random()*12;
+    b.style.width = size+'px';
+    b.style.height = size+'px';
+    b.style.left = Math.random()*100+'%';
+    b.style.setProperty('--drift', (Math.random()*40-20)+'px');
+    b.style.animationDuration = (4+Math.random()*4)+'s';
+    b.style.animationDelay = (Math.random()*4)+'s';
+    overlay.appendChild(b);
+  }
+}
+
+function revealResult(){
+  const {success, fish, tier} = pendingResult;
+  const status = $('cast-status');
+  const rig = $('line-rig');
+  const card = $('result-card');
+  const icon = $('result-icon');
+  const title = $('result-title');
+  const sub = $('result-sub');
+  const tierEl = $('result-tier');
+
+  if(success){
+    rig.classList.add('tug');
+    status.textContent = 'Something\u2019s on the line!';
+    icon.style.background = tier.hex+'26';
+    icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${tier.hex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${tier.hex}"/></svg>`;
+    title.textContent = fish;
+    sub.textContent = 'Added to your bag.';
+    tierEl.innerHTML = `<span class="tier-tag" style="background:${tier.hex}22;color:${tier.hex}">${tier.label}</span>`;
+    addToBag(fish, tier.key);
+  } else {
+    status.textContent = 'The line comes back quiet.';
+    icon.style.background = '#5fb0e822';
+    icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>`;
+    title.textContent = 'No luck this time';
+    sub.textContent = 'Try another spot, or the same one again \u2014 the tide can turn fast.';
+    tierEl.innerHTML = '';
+  }
+  setTimeout(()=> card.classList.add('show'), 200);
+}
+
+function closeFishingOverlay(){
+  const overlay = $('fishing-overlay');
+  overlay.classList.remove('active');
+  setTimeout(()=>{
+    $('result-card').classList.remove('show');
+    $('cast-status').classList.remove('show');
+    $('line-rig').classList.remove('dropped','tug');
+  }, 500);
+}
+
+/* ====================== BAG ====================== */
+function addToBag(name, tierKey){
+  const bag = loadBag();
+  bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:selectedLatLng.lat, lng:selectedLatLng.lng });
+  saveBag(bag);
+  updateBagBadge();
+}
+function updateBagBadge(){
+  const bag = loadBag();
+  const badge = $('bag-count');
+  if(bag.length>0){
+    badge.textContent = bag.length>99 ? '99+' : bag.length;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+function tierMeta(key){ return TIERS.find(t=>t.key===key) || TIERS[0]; }
+
+function renderBag(){
+  const bag = loadBag();
+  const strip = $('progress-strip');
+  const uniqueByTier = {};
+  TIERS.forEach(t=>uniqueByTier[t.key] = new Set());
+  bag.forEach(c=>{ if(uniqueByTier[c.tier]) uniqueByTier[c.tier].add(c.name); });
+
+  strip.innerHTML = TIERS.map(t=>{
+    const have = uniqueByTier[t.key].size;
+    const total = FISH_DATA[t.key].length;
+    return `<div class="tier-stat" style="border-color:${t.hex}44">
+      <div class="n" style="color:${t.hex}">${have}<span style="color:var(--ink-dim);font-weight:600;font-size:12px">/${total}</span></div>
+      <div class="l">${t.label}</div>
+    </div>`;
+  }).join('');
+
+  const list = $('bag-list');
+  if(bag.length===0){
+    list.innerHTML = `<div id="bag-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <p>Nothing in your bag yet. Tap a spot on the map and cast your line to start your collection.</p>
+    </div>`;
+    return;
+  }
+  list.innerHTML = bag.map(c=>{
+    const t = tierMeta(c.tier);
+    const d = new Date(c.ts);
+    const dateStr = d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' \u00b7 ' + d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+    return `<div class="catch-row">
+      <div class="catch-dot" style="background:${t.hex}22">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${t.hex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${t.hex}"/></svg>
+      </div>
+      <div class="catch-info">
+        <div class="catch-name">${c.name}</div>
+        <div class="catch-meta">${dateStr}</div>
+      </div>
+      <div class="catch-tier-tag" style="background:${t.hex}22;color:${t.hex}">${t.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function openBag(){ renderBag(); $('bag-scrim').classList.add('show'); $('bag-drawer').classList.add('show'); }
+function closeBag(){ $('bag-scrim').classList.remove('show'); $('bag-drawer').classList.remove('show'); }
+
+/* ====================== TOAST ====================== */
+let toastTimeout;
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ====================== BOOTSTRAP ====================== */
+function beginGame(pt){
+  center = pt;
+  $('start-screen').classList.add('hidden');
+  $('topbar').classList.remove('hidden');
+  $('timer-chip').classList.remove('hidden');
+
+  const saved = loadState();
+  if(saved && saved.center && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
+    hotspots = saved.hotspots;
+    refreshDeadline = saved.refreshDeadline;
+  }
+
+  initMap(center);
+  if(hotspots.length){ drawHotspots(); }
+  startRefreshCycle(hotspots.length===0);
+  updateBagBadge();
+}
+
+function requestLocation(){
+  const statusEl = $('geo-status');
+  statusEl.style.display='none';
+  if(!navigator.geolocation){
+    statusEl.textContent = "Your browser can't share location. Enter coordinates manually below.";
+    statusEl.style.display='block';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => beginGame({ lat:pos.coords.latitude, lng:pos.coords.longitude }),
+    err => {
+      statusEl.textContent = "Couldn't get your location (" + err.message + "). Try again or enter coordinates manually.";
+      statusEl.style.display='block';
+    },
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+}
+
+$('use-location-btn').addEventListener('click', requestLocation);
+$('manual-toggle').addEventListener('click', ()=>{
+  $('manual-coords').style.display = $('manual-coords').style.display==='flex' ? 'none' : 'flex';
+  $('manual-coords').style.flexDirection='column';
+});
+$('manual-submit').addEventListener('click', ()=>{
+  const lat = parseFloat($('lat-input').value);
+  const lng = parseFloat($('lng-input').value);
+  if(isNaN(lat)||isNaN(lng)){ showToastPreGame("Enter valid latitude and longitude."); return; }
+  beginGame({lat,lng});
+});
+function showToastPreGame(msg){
+  const statusEl = $('geo-status');
+  statusEl.textContent = msg;
+  statusEl.style.display='block';
+}
+
+$('cast-btn').addEventListener('click', attemptCast);
+$('result-close').addEventListener('click', closeFishingOverlay);
+$('bag-btn').addEventListener('click', openBag);
+$('bag-close').addEventListener('click', closeBag);
+$('bag-scrim').addEventListener('click', closeBag);
+$('recenter-btn').addEventListener('click', ()=>{ if(map && center) map.setView([center.lat,center.lng], 12); });
+
+</script>
+</body>
+</html>
