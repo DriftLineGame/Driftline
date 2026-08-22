@@ -60,6 +60,7 @@
   .brand-mark svg{width:38px; height:38px;}
   #start-screen h1{font-size:34px; margin:0 0 8px; letter-spacing:-0.02em; font-weight:800;}
   #start-screen p{color:var(--ink-dim); font-size:15px; line-height:1.5; max-width:320px; margin:0 0 28px;}
+  #start-screen p strong{color:var(--ink); font-weight:700;}
   .btn{
     appearance:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;
     border-radius:999px; padding:15px 26px; font-size:15px; font-weight:700;
@@ -257,7 +258,9 @@
   #progress-strip{display:flex; gap:8px; padding:0 16px 14px; overflow-x:auto;}
   .tier-stat{
     flex:0 0 auto; min-width:84px; border-radius:14px; padding:10px 12px; background:#f2f8fb; border:1px solid var(--line);
+    cursor:pointer; transition:transform .12s ease, background .12s ease;
   }
+  .tier-stat:active{transform:scale(0.95); background:#e7f1f6;}
   .tier-stat .n{font-size:16px; font-weight:800; font-family:'Bricolage Grotesque';}
   .tier-stat .l{font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
 
@@ -365,7 +368,7 @@
     </svg>
   </div>
   <h1 class="display">Driftline</h1>
-  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 5 minutes.</p>
+  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 5 minutes. <strong>Driftline needs your phone's real GPS location to work \u2014 it won't run without it.</strong></p>
   <button class="btn btn-primary" id="use-location-btn">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     Find My Fishing Grounds
@@ -376,7 +379,7 @@
     <input type="text" id="lng-input" placeholder="Longitude e.g. -125.2475" />
     <button class="btn btn-primary" id="manual-submit" style="margin-top:2px;">Use These Coordinates</button>
   </div>
-  <button class="btn btn-ghost" id="manual-toggle">Enter coordinates manually instead</button>
+  <button class="btn btn-ghost" id="manual-toggle">Enter coordinates manually (not recommended \u2014 live tracking needs real GPS)</button>
 </div>
 
 <!-- Top bar -->
@@ -493,6 +496,8 @@ const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
 const REGION_RADIUS_M = 10000;      // 10km play area
 const HOTSPOT_MIN_M = 50;
 const HOTSPOT_MAX_M = 1000;
+const PINPOINT_RADIUS_M = 10;       // a handful of ultra-precise 10m fishing holes
+const PINPOINT_ODDS = 95;
 const REFRESH_MS = 5*60*1000;       // 5 minutes
 const BASE_ODDS = 15;
 const CLUSTER_PIXEL_RADIUS = 55;    // spots closer than this on-screen fold into one cluster circle
@@ -577,6 +582,13 @@ function generateHotspots(centerPt){
     const radius = HOTSPOT_MIN_M + frac*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
     list.push({ lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius) });
   }
+  // A rare handful of pinpoint 10m fishing holes — the best odds on the
+  // whole map, but you have to be standing almost exactly on top of one.
+  const pinpointCount = 2 + Math.floor(Math.random()*2); // 2-3
+  for(let i=0;i<pinpointCount;i++){
+    const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.9);
+    list.push({ lat:pt.lat, lng:pt.lng, radius:PINPOINT_RADIUS_M, odds:PINPOINT_ODDS, pinpoint:true });
+  }
   return list;
 }
 
@@ -622,25 +634,41 @@ function renderHotspots(){
   clusters.forEach(c=>{
     if(c.members.length === 1){
       const h = c.members[0];
-      const col = hotspotColor(h.odds);
+      const col = h.pinpoint ? '#e8590c' : hotspotColor(h.odds);
       const circle = L.circle([h.lat,h.lng], {
         radius: h.radius,
-        color: col, weight:1.6, opacity:0.9,
-        fillColor: col, fillOpacity:0.3,
+        color: col, weight: h.pinpoint ? 2.2 : 1.6, opacity:0.95,
+        fillColor: col, fillOpacity: h.pinpoint ? 0.4 : 0.3,
       }).addTo(map);
-      circle.bindTooltip(`${h.odds}% bite chance · ${fmtDistance(h.radius)} spot`, {direction:'top', opacity:0.9});
+      const tooltipText = h.pinpoint
+        ? `\u{1F3AF} Pinpoint hole \u2014 ${h.odds}% bite chance, but stand within ${h.radius}m dead center`
+        : `${h.odds}% bite chance \u00b7 ${fmtDistance(h.radius)} spot`;
+      circle.bindTooltip(tooltipText, {direction:'top', opacity:0.9});
       hotspotLayers.push(circle);
+
+      if(h.pinpoint){
+        // A 10m circle is often too small to tap or even see — pin a
+        // fixed-size marker on top so it stays visible at any zoom.
+        const icon = L.divIcon({
+          className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:#e8590c;border:2.5px solid #ffffff;box-shadow:0 0 0 4px rgba(232,89,12,0.28);"></div>`,
+          iconSize:[16,16], iconAnchor:[8,8]
+        });
+        const marker = L.marker([h.lat,h.lng], { icon, interactive:false }).addTo(map);
+        hotspotLayers.push(marker);
+      }
     } else {
       const avgOdds = Math.round(c.members.reduce((a,m)=>a+m.odds,0)/c.members.length);
       const avgMemberRadius = c.members.reduce((a,m)=>a+m.radius,0)/c.members.length;
       const spread = Math.max(...c.members.map(m=>distMeters(c.centroid,m)));
       const radius = Math.max(spread + avgMemberRadius, avgMemberRadius*1.6);
+      const hasPinpoint = c.members.some(m=>m.pinpoint);
       const col = hotspotColor(avgOdds);
       const circle = L.circle([c.centroid.lat, c.centroid.lng], {
         radius, color: col, weight:1.4, opacity:0.6, dashArray:'4 7',
         fillColor: col, fillOpacity:0.14,
       }).addTo(map);
-      circle.bindTooltip(`${c.members.length} spots here · ~${avgOdds}% avg bite chance · zoom in for exact spots`, {direction:'top', opacity:0.9});
+      const note = hasPinpoint ? ' \u2014 includes a pinpoint hole' : '';
+      circle.bindTooltip(`${c.members.length} spots here${note} \u00b7 ~${avgOdds}% avg bite chance \u00b7 zoom in for exact spots`, {direction:'top', opacity:0.9});
       hotspotLayers.push(circle);
     }
   });
@@ -820,7 +848,9 @@ function updateCastPanel(){
   }
   const {odds, hotspot} = oddsAtPoint(liveLatLng);
   $('cast-label').textContent = 'Your location';
-  $('cast-value').textContent = hotspot ? `In a ${fmtDistance(hotspot.radius)} hotspot` : 'Open water';
+  $('cast-value').textContent = hotspot
+    ? (hotspot.pinpoint ? '\u{1F3AF} On a pinpoint hole!' : `In a ${fmtDistance(hotspot.radius)} hotspot`)
+    : 'Open water';
   $('odds-pill').textContent = `${odds}% bite chance`;
   $('odds-pill').style.background = hotspot ? 'rgba(224,53,111,0.12)' : 'rgba(14,134,196,0.12)';
   $('odds-pill').style.color = hotspot ? '#c2185b' : '#0e73a8';
@@ -830,12 +860,13 @@ function updateCastPanel(){
 }
 
 function geoErrorMessage(err){
-  if(!err) return "Couldn't get a location fix. Try again in a moment.";
+  const required = "Driftline can't work without your real location \u2014 there's no way around this part.";
+  if(!err) return `Couldn't get a location fix. Try again in a moment. ${required}`;
   switch(err.code){
-    case 1: return "Location permission is blocked. Check your browser's site settings and allow location for this page, then reload.";
-    case 2: return "Your device can't determine a position right now (no GPS/network fix). Try moving near a window or outdoors.";
-    case 3: return "Location is taking too long to respond. Retrying automatically...";
-    default: return err.message || "Couldn't get your location.";
+    case 1: return `Location access is turned off for this browser. ${required} On your phone: open Settings \u2192 find this browser (Safari, Chrome, etc.) \u2192 turn Location on (or set it to "While Using the App"). On desktop: click the lock/site-info icon in your address bar and allow Location. Then reload this page and try again.`;
+    case 2: return `Your device can't get a position right now (no GPS or network fix). Try moving outdoors or near a window, and make sure Location Services are turned on for your phone in general (Settings \u2192 Privacy \u2192 Location Services). ${required}`;
+    case 3: return `Location is taking too long to respond \u2014 retrying with a longer timeout. If this keeps happening, check that Location is turned on for this browser in your phone's Settings. ${required}`;
+    default: return `${err.message || "Couldn't get your location."} ${required}`;
   }
 }
 
@@ -1133,7 +1164,7 @@ function renderBag(){
   strip.innerHTML = TIERS.map(t=>{
     const have = uniqueByTier[t.key].size;
     const total = FISH_DATA[t.key].length;
-    return `<div class="tier-stat" style="border-color:${t.hex}44">
+    return `<div class="tier-stat" data-tier="${t.key}" style="border-color:${t.hex}44">
       <div class="n" style="color:${t.hex}">${have}<span style="color:var(--ink-dim);font-weight:600;font-size:12px">/${total}</span></div>
       <div class="l">${t.label}</div>
     </div>`;
@@ -1181,7 +1212,7 @@ function renderFieldGuide(list, bag){
     const have = species.filter(n=>caughtNames.has(n)).length;
 
     if(t.key === 'abyssal' && !abyssalUnlocked){
-      html += `<div class="guide-section-title" style="color:${t.hex}">
+      html += `<div class="guide-section-title" id="guide-section-${t.key}" style="color:${t.hex}">
         <span>${t.label}</span><span class="guide-section-count">\u{1F512} Locked</span>
       </div>`;
       html += `<div class="guide-locked-note" style="border-color:${t.hex}33">
@@ -1191,7 +1222,7 @@ function renderFieldGuide(list, bag){
       return;
     }
 
-    html += `<div class="guide-section-title" style="color:${t.hex}">
+    html += `<div class="guide-section-title" id="guide-section-${t.key}" style="color:${t.hex}">
       <span>${t.label}</span><span class="guide-section-count">${have}/${species.length}</span>
     </div>`;
     html += species.map(name=>{
@@ -1214,6 +1245,11 @@ function renderFieldGuide(list, bag){
 
 function openBag(){ renderBag(); $('bag-scrim').classList.add('show'); $('bag-drawer').classList.add('show'); }
 function closeBag(){ $('bag-scrim').classList.remove('show'); $('bag-drawer').classList.remove('show'); }
+function setBagMode(mode){
+  bagViewMode = mode;
+  document.querySelectorAll('.bag-tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===mode));
+  renderBag();
+}
 
 /* ====================== FISH DETAIL / SHARE CARD ====================== */
 const TIER_FLAVOR = {
@@ -1377,10 +1413,17 @@ $('bag-list').addEventListener('click', (e)=>{
 document.querySelectorAll('.bag-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     if(tab.classList.contains('active')) return;
-    document.querySelectorAll('.bag-tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    bagViewMode = tab.dataset.mode;
-    renderBag();
+    setBagMode(tab.dataset.mode);
+  });
+});
+$('progress-strip').addEventListener('click', (e)=>{
+  const card = e.target.closest('.tier-stat');
+  if(!card) return;
+  const key = card.dataset.tier;
+  setBagMode('guide');
+  requestAnimationFrame(()=>{
+    const sec = document.getElementById('guide-section-'+key);
+    if(sec) sec.scrollIntoView({ behavior:'smooth', block:'start' });
   });
 });
 $('fd-close').addEventListener('click', closeFishDetail);
