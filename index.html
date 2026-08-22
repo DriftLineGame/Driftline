@@ -202,6 +202,28 @@
     100%{width:150px; height:60px; margin:-30px 0 0 -75px; opacity:0; border-width:1px;}
   }
 
+  .splash-flash{
+    position:absolute; top:38%; left:50%; width:36px; height:36px; margin:-18px 0 0 -18px;
+    border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0) 70%);
+    opacity:0; pointer-events:none; z-index:1; animation:flashPop .5s ease-out forwards;
+  }
+  @keyframes flashPop{
+    0%{opacity:0; transform:scale(0.3);}
+    30%{opacity:0.9; transform:scale(1);}
+    100%{opacity:0; transform:scale(1.6);}
+  }
+
+  .droplet{
+    position:absolute; top:38%; left:50%; width:6px; height:6px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #ffffff, rgba(255,255,255,0.45));
+    pointer-events:none; z-index:2;
+  }
+
+  .swim-fish{
+    position:absolute; top:37%; transform:translateY(-50%); z-index:2;
+    pointer-events:none; will-change:left, transform, opacity;
+  }
+
   #cast-status{
     position:relative; z-index:2; margin-top:auto; margin-bottom:56px;
     font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:17px;
@@ -247,13 +269,13 @@
   .drawer-header .close-x{width:32px; height:32px; border-radius:10px; background:#eaf1f6; display:flex; align-items:center; justify-content:center;}
   .drawer-header .close-x svg{width:15px; height:15px; stroke:var(--ink);}
 
-  #bag-tabs{display:flex; gap:8px; padding:0 16px 14px;}
-  .bag-tab{
+  #bag-tabs, #account-tabs{display:flex; gap:8px; padding:0 16px 14px;}
+  .bag-tab, .seg-tab{
     flex:1; appearance:none; border:1px solid var(--line); background:#f4f9fb; color:var(--ink-dim);
     font-family:'Inter',sans-serif; font-weight:700; font-size:12.5px; padding:9px 10px;
     border-radius:999px; cursor:pointer; transition:background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .bag-tab.active{background:var(--ink); color:#ffffff; border-color:var(--ink);}
+  .bag-tab.active, .seg-tab.active{background:var(--ink); color:#ffffff; border-color:var(--ink);}
 
   #progress-strip{display:flex; gap:8px; padding:0 16px 14px; overflow-x:auto;}
   .tier-stat{
@@ -297,6 +319,77 @@
   #bag-empty{text-align:center; padding:60px 20px; color:var(--ink-dim);}
   #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
   #bag-empty p{font-size:14px; line-height:1.5; max-width:230px; margin:0 auto;}
+
+  /* ---------- Sign-in reminder ---------- */
+  #signin-banner{
+    position:fixed; top:150px; left:14px; right:14px; z-index:198;
+    border-radius:var(--radius-md); padding:12px 12px 12px 14px;
+    display:flex; align-items:center; gap:10px;
+    transform:translateY(-160%); opacity:0; transition:transform .32s cubic-bezier(.2,.9,.25,1), opacity .3s ease;
+    pointer-events:none;
+  }
+  #signin-banner.show{transform:translateY(0); opacity:1; pointer-events:auto;}
+  #signin-banner-text{flex:1; display:flex; flex-direction:column; font-size:12.5px; line-height:1.4;}
+  #signin-banner-text strong{font-size:13.5px; margin-bottom:1px;}
+  #signin-banner-text span{color:var(--ink-dim);}
+  #signin-banner .btn-primary{padding:9px 14px; font-size:12.5px; flex:0 0 auto;}
+  #signin-banner-dismiss{
+    flex:0 0 auto; width:26px; height:26px; border-radius:8px; border:none; background:rgba(18,41,58,0.06);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  #signin-banner-dismiss svg{width:12px; height:12px; stroke:var(--ink-dim);}
+
+  /* ---------- Account drawer ---------- */
+  #account-scrim, #leaderboard-scrim{
+    position:fixed; inset:0; background:rgba(10,25,35,0.45); z-index:900;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #account-scrim.show, #leaderboard-scrim.show{opacity:1; pointer-events:auto;}
+  #account-drawer, #leaderboard-drawer{
+    position:fixed; left:0; right:0; bottom:0; z-index:901; max-height:82vh;
+    background:var(--panel-solid); border-radius:26px 26px 0 0; border:1px solid rgba(18,41,58,0.08); border-bottom:none;
+    box-shadow:0 -8px 40px rgba(18,41,58,0.12);
+    transform:translateY(100%); transition:transform .38s cubic-bezier(.2,.9,.25,1);
+    display:flex; flex-direction:column; overflow-y:auto;
+  }
+  #account-drawer.show, #leaderboard-drawer.show{transform:translateY(0);}
+
+  .account-form{padding:4px 20px 0; display:flex; flex-direction:column; gap:6px;}
+  .account-form label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-dim); margin-top:10px;}
+  .account-form input{
+    background:#f4f9fb; border:1px solid var(--line); color:var(--ink); border-radius:12px;
+    padding:12px 14px; font-size:15px; font-family:'Inter',sans-serif;
+  }
+  .account-form input#account-pin{letter-spacing:0.3em; font-weight:700;}
+  #account-error{color:var(--tier-ultimate); font-size:12.5px; min-height:16px; margin-top:8px;}
+  .account-form .btn-primary{width:100%; margin-top:14px;}
+  .account-note{padding:16px 20px 22px; margin:0; font-size:12px; color:var(--ink-dim); line-height:1.5;}
+
+  #account-signed-in{padding:6px 20px 24px;}
+  #account-profile{display:flex; align-items:center; gap:14px; margin-bottom:16px;}
+  #account-avatar{
+    width:52px; height:52px; border-radius:50%; background:rgba(14,134,196,0.12);
+    display:flex; align-items:center; justify-content:center; font-size:24px; flex:0 0 auto;
+  }
+  #account-name{font-family:'Bricolage Grotesque'; font-size:18px; font-weight:800;}
+  #account-points{font-size:12.5px; color:var(--ink-dim); margin-top:2px;}
+  #account-rank{
+    font-size:13px; font-weight:700; color:var(--cyan); background:rgba(14,134,196,0.08);
+    border-radius:12px; padding:10px 14px; margin-bottom:16px;
+  }
+  #account-signed-in .btn-primary{width:100%; margin-bottom:10px;}
+  #account-signed-in .btn-ghost{width:100%; text-decoration:none; background:rgba(18,41,58,0.05); border-radius:999px; padding:11px;}
+
+  #leaderboard-list{padding:6px 16px 24px;}
+  .lb-loading{text-align:center; padding:40px 20px; color:var(--ink-dim); font-size:13.5px;}
+  .lb-row{
+    display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:14px;
+    background:#f4f9fb; margin-bottom:7px;
+  }
+  .lb-row.lb-me{background:rgba(14,134,196,0.1); border:1px solid rgba(14,134,196,0.3);}
+  .lb-rank{width:32px; flex:0 0 auto; font-weight:800; font-size:14px; text-align:center;}
+  .lb-name{flex:1; font-weight:700; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-points{flex:0 0 auto; font-weight:800; font-size:13px; color:var(--cyan);}
 
   /* ---------- Fish detail / share card ---------- */
   #fish-detail-scrim{
@@ -395,6 +488,10 @@
     <button class="icon-btn glass" id="share-btn" title="Share Driftline">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
     </button>
+    <button class="icon-btn glass" id="account-btn" title="Account">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      <span class="bag-badge hidden" id="account-alert" style="background:var(--boost);">!</span>
+    </button>
     <button class="icon-btn glass" id="bag-btn">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
       <span class="bag-badge hidden" id="bag-count">0</span>
@@ -408,6 +505,17 @@
 <div id="boost-chip" class="glass hidden" style="border-radius:999px;">
   <span class="boost-flame">🔥</span>
   Boost active <b id="boost-value">10:00</b>
+</div>
+
+<div id="signin-banner" class="glass">
+  <div id="signin-banner-text">
+    <strong>You're not signed in.</strong>
+    <span>Sign in to save your bag and join the leaderboard.</span>
+  </div>
+  <button class="btn btn-primary" id="signin-banner-btn">Sign In</button>
+  <button id="signin-banner-dismiss" aria-label="Dismiss">
+    <svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
 </div>
 
 <!-- Cast panel -->
@@ -458,6 +566,56 @@
   <div id="bag-list"></div>
 </div>
 
+<!-- Account drawer -->
+<div id="account-scrim"></div>
+<div id="account-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>Account</h2>
+    <button class="close-x" id="account-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+
+  <div id="account-signed-out">
+    <div id="account-tabs">
+      <button class="seg-tab active" data-auth="signin">Sign In</button>
+      <button class="seg-tab" data-auth="signup">Sign Up</button>
+    </div>
+    <div class="account-form">
+      <label for="account-username">Username</label>
+      <input type="text" id="account-username" placeholder="e.g. reelwizard" autocomplete="off" autocapitalize="off" autocorrect="off" maxlength="20">
+      <label for="account-pin">6-digit PIN</label>
+      <input type="tel" id="account-pin" placeholder="••••••" inputmode="numeric" maxlength="6">
+      <div id="account-error"></div>
+      <button class="btn btn-primary" id="account-submit">Sign In</button>
+    </div>
+    <p class="account-note">Signing in saves your bag to the cloud across devices and puts your name on the public leaderboard. Nothing sensitive here — just pick something simple.</p>
+  </div>
+
+  <div id="account-signed-in" class="hidden">
+    <div id="account-profile">
+      <div id="account-avatar">\u{1F3A3}</div>
+      <div>
+        <div id="account-name"></div>
+        <div id="account-points"></div>
+      </div>
+    </div>
+    <div id="account-rank"></div>
+    <button class="btn btn-primary" id="view-leaderboard-btn">View Leaderboard</button>
+    <button class="btn btn-ghost" id="account-signout-btn">Sign Out</button>
+  </div>
+</div>
+
+<!-- Leaderboard drawer -->
+<div id="leaderboard-scrim"></div>
+<div id="leaderboard-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>Leaderboard</h2>
+    <button class="close-x" id="leaderboard-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div id="leaderboard-list"></div>
+</div>
+
 <!-- Fish detail / share card -->
 <div id="fish-detail-scrim">
   <div id="fish-detail-card">
@@ -477,6 +635,89 @@
     <button class="btn btn-primary" id="fd-share-btn">Share Catch</button>
   </div>
 </div>
+
+<!-- Firebase (module script — bridges to the classic game script via window.DriftlineCloud) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc,
+    collection, query, orderBy, limit, getDocs
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD12UpqmtQFI8GoohpTLX0cYe1CeX2s7s0",
+    authDomain: "driftline-e4e88.firebaseapp.com",
+    projectId: "driftline-e4e88",
+    storageBucket: "driftline-e4e88.firebasestorage.app",
+    messagingSenderId: "303919612507",
+    appId: "1:303919612507:web:72bc99c7dcf2f1032eb57e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function hashPin(pin){
+    const enc = new TextEncoder().encode('driftline-salt-v1-' + pin);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function normUsername(u){
+    return (u || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  }
+
+  async function signUp(username, pin){
+    const uid = normUsername(username);
+    if(uid.length < 3 || uid.length > 20){
+      throw new Error('Username must be 3-20 characters (letters, numbers, underscore).');
+    }
+    if(!/^\d{6}$/.test(pin)){
+      throw new Error('PIN must be exactly 6 digits.');
+    }
+    const ref = doc(db, 'players', uid);
+    const existing = await getDoc(ref);
+    if(existing.exists()){
+      throw new Error('That username is already taken.');
+    }
+    const pinHash = await hashPin(pin);
+    const displayName = username.trim();
+    await setDoc(ref, {
+      displayName, pinHash, points: 0, bag: [],
+      createdAt: Date.now(), updatedAt: Date.now()
+    });
+    return { uid, displayName, points: 0, bag: [] };
+  }
+
+  async function signIn(username, pin){
+    const uid = normUsername(username);
+    const ref = doc(db, 'players', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      throw new Error('No account found with that username.');
+    }
+    const data = snap.data();
+    const pinHash = await hashPin(pin);
+    if(pinHash !== data.pinHash){
+      throw new Error('Incorrect PIN.');
+    }
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [] };
+  }
+
+  async function syncBag(uid, bag, points){
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { bag, points, updatedAt: Date.now() });
+  }
+
+  async function fetchLeaderboard(max){
+    const q = query(collection(db, 'players'), orderBy('points', 'desc'), limit(max || 50));
+    const snap = await getDocs(q);
+    const out = [];
+    snap.forEach(d => out.push({ uid: d.id, displayName: d.data().displayName, points: d.data().points || 0 }));
+    return out;
+  }
+
+  window.DriftlineCloud = { signUp, signIn, syncBag, fetchLeaderboard };
+</script>
 
 <script>
 /* ====================== FISH DATA ====================== */
@@ -519,6 +760,8 @@ let pendingResult = null;
 let audioCtx = null;
 let bagViewMode = 'catches';     // 'catches' | 'guide'
 let shareState = loadShareState();
+let session = loadSession();     // { uid, displayName } | null
+let authMode = 'signin';         // 'signin' | 'signup'
 
 const $ = (id)=>document.getElementById(id);
 
@@ -540,6 +783,11 @@ function loadShareState(){
   }catch(e){ return { lastGrantedAt:0, boostUntil:0 }; }
 }
 function saveShareState(){ localStorage.setItem('driftline_share', JSON.stringify(shareState)); }
+function loadSession(){
+  try{ return JSON.parse(localStorage.getItem('driftline_session')||'null'); }catch(e){ return null; }
+}
+function saveSession(s){ localStorage.setItem('driftline_session', JSON.stringify(s)); }
+function clearSession(){ localStorage.removeItem('driftline_session'); }
 
 /* ====================== GEO / MATH HELPERS ====================== */
 function metersToLatDeg(m){ return m/111320; }
@@ -1034,6 +1282,7 @@ function runFishingAnimation(){
   rig.classList.remove('dropped','tug','waiting');
   card.classList.remove('show');
   status.classList.remove('show');
+  overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
   spawnBubbles();
 
   overlay.classList.add('active');
@@ -1053,10 +1302,83 @@ function runFishingAnimation(){
     rig.classList.add('waiting');
   }, 1700);
 
-  const suspense = 1600 + Math.random()*1400;
+  const preBiteDelay = 900 + Math.random()*900;
   setTimeout(()=>{
+    if(pendingResult.success){
+      beginSuccessBite();
+    } else {
+      revealResult();
+    }
+  }, 1700 + preBiteDelay);
+}
+
+function beginSuccessBite(){
+  const rig = $('line-rig');
+  const status = $('cast-status');
+  rig.classList.remove('waiting');
+  status.textContent = 'Something\u2019s circling the hook...';
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    status.textContent = 'Something\u2019s on the line!';
     revealResult();
-  }, 1700 + suspense);
+    return;
+  }
+
+  const tier = pendingResult.tier;
+  const { fish, anim } = spawnSwimFish(tier);
+
+  anim.finished.then(()=>{
+    status.textContent = 'Something\u2019s on the line!';
+    return runFishStrike(fish);
+  }).then(()=>{
+    revealResult(fish);
+  }).catch(()=>{
+    // Animation got interrupted (overlay closed early, etc.) — still resolve.
+    revealResult(fish);
+  });
+}
+
+function spawnSwimFish(tier){
+  const overlay = $('fishing-overlay');
+  overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
+
+  const sizeByTier = { common:44, hard:48, rare:54, superrare:60, ultimate:68, abyssal:78 };
+  const glowByTier = { common:0, hard:4, rare:9, superrare:16, ultimate:24, abyssal:34 };
+  const size = sizeByTier[tier.key] || 44;
+  const glow = glowByTier[tier.key] || 0;
+  const fromLeft = Math.random() < 0.5;
+
+  const fish = document.createElement('div');
+  fish.className = 'swim-fish';
+  fish.style.top = '37%';
+  fish.style.filter = glow ? `drop-shadow(0 0 ${glow}px ${tier.hex}cc)` : 'none';
+  fish.style.left = fromLeft ? '-90px' : 'calc(100% + 90px)';
+  fish.style.opacity = '0';
+  fish.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="transform:scaleX(${fromLeft ? 1 : -1})">
+    <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" fill="${tier.hex}" fill-opacity="0.92" stroke="${tier.hex}" stroke-width="0.6"/>
+    <circle cx="15" cy="12" r="1.3" fill="#04121f"/>
+  </svg>`;
+  overlay.appendChild(fish);
+
+  const startX = fromLeft ? '-90px' : 'calc(100% + 90px)';
+  const midX = fromLeft ? 'calc(50% - 70px)' : 'calc(50% + 70px)';
+  const wiggle = fromLeft ? [-5,5,0] : [5,-5,0];
+
+  const anim = fish.animate([
+    { left:startX, opacity:0, transform:`translateY(-50%) rotate(${wiggle[0]}deg)` },
+    { left:midX, opacity:1, transform:`translateY(-50%) rotate(${wiggle[1]}deg)`, offset:0.6 },
+    { left:'50%', opacity:1, transform:`translateY(-50%) rotate(${wiggle[2]}deg)` }
+  ], { duration: 1050 + Math.random()*350, easing:'cubic-bezier(.35,.7,.3,1)', fill:'forwards' });
+
+  return { fish, anim };
+}
+
+function runFishStrike(fish){
+  return fish.animate([
+    { transform:'translateY(-50%) scale(1) rotate(0deg)' },
+    { transform:'translateY(-50%) scale(1.22) rotate(-8deg)', offset:0.45 },
+    { transform:'translateY(-50%) scale(1) rotate(0deg)' }
+  ], { duration:260, easing:'ease-out' }).finished;
 }
 
 function spawnBubbles(){
@@ -1079,14 +1401,33 @@ function spawnBubbles(){
 
 function spawnSplash(){
   const overlay = $('fishing-overlay');
-  overlay.querySelectorAll('.splash-burst').forEach(s=>s.remove());
+  overlay.querySelectorAll('.splash-burst,.splash-flash').forEach(s=>s.remove());
+
+  const flash = document.createElement('div');
+  flash.className = 'splash-flash';
+  overlay.appendChild(flash);
+  setTimeout(()=>flash.remove(), 550);
+
   const burst = document.createElement('div');
   burst.className = 'splash-burst';
   overlay.appendChild(burst);
   setTimeout(()=>burst.remove(), 900);
+
+  for(let i=0;i<7;i++){
+    const d = document.createElement('div');
+    d.className = 'droplet';
+    overlay.appendChild(d);
+    const dx = (Math.random()*2-1)*46;
+    const dy = -(26 + Math.random()*30);
+    d.animate([
+      { transform:'translate(-50%,-50%) translate(0,0) scale(1)', opacity:0.95 },
+      { transform:`translate(-50%,-50%) translate(${dx*0.6}px, ${dy}px) scale(0.8)`, opacity:0.9, offset:0.5 },
+      { transform:`translate(-50%,-50%) translate(${dx}px, ${dy+40}px) scale(0.3)`, opacity:0 }
+    ], { duration: 550+Math.random()*200, easing:'cubic-bezier(.2,.7,.4,1)' }).finished.then(()=>d.remove()).catch(()=>d.remove());
+  }
 }
 
-function revealResult(){
+function revealResult(fishEl){
   const {success, fish, tier} = pendingResult;
   const status = $('cast-status');
   const rig = $('line-rig');
@@ -1121,11 +1462,19 @@ function revealResult(){
     playMissSound();
   }
   setTimeout(()=> card.classList.add('show'), 200);
+
+  if(fishEl){
+    setTimeout(()=>{
+      fishEl.animate([{opacity:1},{opacity:0}], {duration:350, easing:'ease-in', fill:'forwards'})
+        .finished.then(()=>fishEl.remove()).catch(()=>fishEl.remove());
+    }, 150);
+  }
 }
 
 function closeFishingOverlay(){
   const overlay = $('fishing-overlay');
   overlay.classList.remove('active');
+  overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
   setTimeout(()=>{
     $('result-card').classList.remove('show');
     $('cast-status').classList.remove('show');
@@ -1141,6 +1490,20 @@ function addToBag(name, tierKey){
   bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng });
   saveBag(bag);
   updateBagBadge();
+  syncBagToCloud(bag);
+}
+function tierIndexOf(tierKey){
+  return TIERS.findIndex(t=>t.key===tierKey);
+}
+function computePoints(bag){
+  return bag.reduce((sum,c)=> sum + 1 + Math.max(0, tierIndexOf(c.tier)), 0);
+}
+function syncBagToCloud(bag){
+  if(!session || !window.DriftlineCloud) return;
+  const points = computePoints(bag);
+  window.DriftlineCloud.syncBag(session.uid, bag, points).catch(()=>{
+    // Local save already succeeded — cloud sync can quietly retry next catch.
+  });
 }
 function updateBagBadge(){
   const bag = loadBag();
@@ -1251,6 +1614,127 @@ function setBagMode(mode){
   renderBag();
 }
 
+/* ====================== ACCOUNT / LEADERBOARD ====================== */
+function mergeBags(a, b){
+  const seen = new Set();
+  const out = [];
+  [...a, ...b].forEach(c=>{
+    const key = c.name+'|'+c.ts;
+    if(!seen.has(key)){ seen.add(key); out.push(c); }
+  });
+  out.sort((x,y)=> y.ts - x.ts);
+  return out;
+}
+function updateAccountBadge(){
+  const dot = $('account-alert');
+  if(!dot) return;
+  dot.classList.toggle('hidden', !!session);
+}
+function checkSigninReminder(){
+  updateAccountBadge();
+  $('signin-banner').classList.toggle('show', !session);
+}
+function openAccountDrawer(){ renderAccountDrawer(); $('account-scrim').classList.add('show'); $('account-drawer').classList.add('show'); }
+function closeAccountDrawer(){ $('account-scrim').classList.remove('show'); $('account-drawer').classList.remove('show'); }
+function renderAccountDrawer(){
+  const signedOut = $('account-signed-out');
+  const signedIn = $('account-signed-in');
+  if(session){
+    signedOut.classList.add('hidden');
+    signedIn.classList.remove('hidden');
+    const bag = loadBag();
+    const points = computePoints(bag);
+    $('account-name').textContent = session.displayName;
+    $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches`;
+    $('account-rank').textContent = 'Checking your rank...';
+    if(window.DriftlineCloud){
+      window.DriftlineCloud.fetchLeaderboard(1000).then(list=>{
+        const idx = list.findIndex(p=>p.uid===session.uid);
+        $('account-rank').textContent = idx>=0
+          ? `Ranked #${idx+1} of ${list.length} anglers`
+          : 'Not ranked yet \u2014 catch a fish to get on the board!';
+      }).catch(()=>{ $('account-rank').textContent = "Couldn't load your rank right now."; });
+    }
+  } else {
+    signedOut.classList.remove('hidden');
+    signedIn.classList.add('hidden');
+    $('account-error').textContent = '';
+  }
+}
+async function handleAuthSubmit(){
+  if(!window.DriftlineCloud){ $('account-error').textContent = 'Still connecting \u2014 try again in a moment.'; return; }
+  const username = $('account-username').value;
+  const pin = $('account-pin').value;
+  const errEl = $('account-error');
+  const btn = $('account-submit');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Please wait...';
+  try{
+    const result = authMode === 'signup'
+      ? await window.DriftlineCloud.signUp(username, pin)
+      : await window.DriftlineCloud.signIn(username, pin);
+    await afterAuthSuccess(result);
+  }catch(e){
+    errEl.textContent = (e && e.message) ? e.message : 'Something went wrong. Try again.';
+  }
+  btn.disabled = false;
+  btn.textContent = authMode === 'signup' ? 'Create Account' : 'Sign In';
+}
+async function afterAuthSuccess(result){
+  session = { uid: result.uid, displayName: result.displayName };
+  saveSession(session);
+
+  const localBag = loadBag();
+  const merged = mergeBags(localBag, result.bag || []);
+  saveBag(merged);
+  syncBagToCloud(merged);
+
+  updateBagBadge();
+  if(bagViewMode) renderBag();
+  checkSigninReminder();
+  showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
+  renderAccountDrawer();
+}
+function handleSignOut(){
+  session = null;
+  clearSession();
+  renderAccountDrawer();
+  checkSigninReminder();
+  showToast('Signed out. Your bag stays saved on this device.');
+}
+async function openLeaderboard(){
+  $('leaderboard-scrim').classList.add('show');
+  $('leaderboard-drawer').classList.add('show');
+  $('leaderboard-list').innerHTML = '<div class="lb-loading">Loading leaderboard\u2026</div>';
+  if(!window.DriftlineCloud){
+    $('leaderboard-list').innerHTML = '<div class="lb-loading">Still connecting \u2014 try again in a moment.</div>';
+    return;
+  }
+  try{
+    const list = await window.DriftlineCloud.fetchLeaderboard(100);
+    renderLeaderboard(list);
+  }catch(e){
+    $('leaderboard-list').innerHTML = '<div class="lb-loading">Couldn\u2019t load the leaderboard. Try again in a moment.</div>';
+  }
+}
+function closeLeaderboard(){ $('leaderboard-scrim').classList.remove('show'); $('leaderboard-drawer').classList.remove('show'); }
+function renderLeaderboard(list){
+  if(!list.length){
+    $('leaderboard-list').innerHTML = '<div class="lb-loading">No anglers on the board yet \u2014 be the first!</div>';
+    return;
+  }
+  const medals = ['\u{1F947}','\u{1F948}','\u{1F949}'];
+  $('leaderboard-list').innerHTML = list.map((p,i)=>{
+    const isMe = session && p.uid === session.uid;
+    return `<div class="lb-row ${isMe?'lb-me':''}">
+      <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
+      <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
+      <div class="lb-points">${p.points} pts</div>
+    </div>`;
+  }).join('');
+}
+
 /* ====================== FISH DETAIL / SHARE CARD ====================== */
 const TIER_FLAVOR = {
   common:   'A solid, reliable catch.',
@@ -1326,6 +1810,7 @@ function beginGame(pt, accuracy){
   updateCastPanel();
   startLiveTracking();
   if(isBoostActive()) startBoostTicker();
+  checkSigninReminder();
 }
 
 function requestLocation(btnEl){
@@ -1435,6 +1920,36 @@ $('share-btn').addEventListener('click', handleShareClick);
 $('recenter-btn').addEventListener('click', ()=>{
   const pt = liveLatLng || center;
   if(map && pt) map.setView([pt.lat,pt.lng], 14);
+});
+
+/* ---- Account / leaderboard listeners ---- */
+$('account-btn').addEventListener('click', openAccountDrawer);
+$('account-close').addEventListener('click', closeAccountDrawer);
+$('account-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'account-scrim') closeAccountDrawer();
+});
+document.querySelectorAll('.seg-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    if(tab.classList.contains('active')) return;
+    authMode = tab.dataset.auth;
+    document.querySelectorAll('.seg-tab').forEach(t=>t.classList.toggle('active', t===tab));
+    $('account-submit').textContent = authMode === 'signup' ? 'Create Account' : 'Sign In';
+    $('account-error').textContent = '';
+  });
+});
+$('account-pin').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0,6);
+});
+$('account-submit').addEventListener('click', handleAuthSubmit);
+$('account-signout-btn').addEventListener('click', handleSignOut);
+$('view-leaderboard-btn').addEventListener('click', openLeaderboard);
+$('leaderboard-close').addEventListener('click', closeLeaderboard);
+$('leaderboard-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'leaderboard-scrim') closeLeaderboard();
+});
+$('signin-banner-btn').addEventListener('click', openAccountDrawer);
+$('signin-banner-dismiss').addEventListener('click', ()=>{
+  $('signin-banner').classList.remove('show');
 });
 
 </script>
