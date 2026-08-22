@@ -149,24 +149,38 @@
   #cast-btn{width:100%; margin-top:12px;}
 
   /* ---------- Leaderboard FAB ---------- */
-  #leaderboard-fab{
-    position:fixed; left:14px; bottom:210px; z-index:199;
+  #leaderboard-fab, #shop-fab{
+    position:fixed; bottom:210px; z-index:199;
     width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
+  }
+  #leaderboard-fab{
+    left:14px;
     background:linear-gradient(145deg, #ffd23f, #ff8a3f 55%, #ff2d78);
     box-shadow:0 10px 26px rgba(255,45,120,0.4), 0 0 0 0 rgba(255,210,63,0.6);
     animation:fabPulse 2.4s ease-in-out infinite;
   }
-  #leaderboard-fab svg{width:24px; height:24px; position:relative; z-index:1;}
-  #leaderboard-fab:active{transform:scale(0.92);}
+  #shop-fab{
+    left:80px;
+    background:linear-gradient(145deg, #39ff8f, #00e5ff 55%, #ffd23f);
+    box-shadow:0 10px 26px rgba(0,229,255,0.35), 0 0 0 0 rgba(57,255,143,0.5);
+    animation:shopFabPulse 2.4s ease-in-out infinite;
+  }
+  #leaderboard-fab svg, #shop-fab svg{width:22px; height:22px; position:relative; z-index:1;}
+  #leaderboard-fab:active, #shop-fab:active{transform:scale(0.92);}
   .lb-fab-ring{
     position:absolute; inset:-6px; border-radius:50%;
     border:2px solid rgba(255,180,60,0.55);
     animation:fabRing 2.4s ease-out infinite;
   }
+  .shop-fab-ring{border-color:rgba(57,255,143,0.55);}
   @keyframes fabPulse{
     0%,100%{box-shadow:0 10px 26px rgba(255,45,120,0.4), 0 0 0 0 rgba(255,210,63,0.5);}
     50%{box-shadow:0 10px 30px rgba(255,45,120,0.55), 0 0 0 10px rgba(255,210,63,0);}
+  }
+  @keyframes shopFabPulse{
+    0%,100%{box-shadow:0 10px 26px rgba(0,229,255,0.35), 0 0 0 0 rgba(57,255,143,0.45);}
+    50%{box-shadow:0 10px 30px rgba(0,229,255,0.5), 0 0 0 10px rgba(57,255,143,0);}
   }
   @keyframes fabRing{
     0%{transform:scale(1); opacity:0.9;}
@@ -585,6 +599,7 @@
   .lb-row.lb-top2{background:rgba(224,230,238,0.14); border-color:rgba(224,230,238,0.4); box-shadow:0 0 18px rgba(224,230,238,0.2);}
   .lb-row.lb-top3{background:rgba(255,160,90,0.14); border-color:rgba(255,160,90,0.4); box-shadow:0 0 18px rgba(255,140,70,0.2);}
   .lb-rank{width:34px; flex:0 0 auto; font-weight:800; font-size:15px; text-align:center; color:#fff;}
+  .lb-avatar{width:26px; flex:0 0 auto; font-size:18px; text-align:center;}
   .lb-name{flex:1; font-weight:700; font-size:14.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;}
   .lb-points{flex:0 0 auto; font-weight:800; font-size:13.5px; color:#00e5ff; font-variant-numeric:tabular-nums;}
   .lb-row.lb-top1 .lb-points{color:#ffd23f;}
@@ -684,6 +699,37 @@
   .rod-row-title{font-weight:700; font-size:13.5px;}
   .rod-row-sub{font-size:11.5px; color:var(--ink-dim); margin-top:1px;}
   .settings-footnote{padding:14px 20px 26px; margin:4px 0 0; font-size:12px; color:var(--ink-dim); line-height:1.55;}
+
+  /* ---------- Interactive tutorial ---------- */
+  #tutorial-overlay{
+    position:fixed; inset:0; z-index:999;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #tutorial-overlay.show{opacity:1; pointer-events:auto;}
+  #tutorial-spotlight{
+    position:fixed; pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(4,10,20,0.8);
+    border:2px solid rgba(63,214,255,0.85);
+    transition:left .35s cubic-bezier(.2,.9,.25,1), top .35s cubic-bezier(.2,.9,.25,1),
+               width .35s ease, height .35s ease, border-radius .35s ease;
+  }
+  #tutorial-card{
+    position:fixed; width:calc(100% - 40px); max-width:340px; left:50%;
+    background:#ffffff; border-radius:22px; padding:20px 20px 16px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+    transition:top .35s ease, bottom .35s ease;
+  }
+  #tutorial-progress{font-size:11px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;}
+  #tutorial-title{font-family:'Bricolage Grotesque'; font-size:17px; font-weight:800; margin:0 0 8px; color:var(--ink);}
+  #tutorial-desc{font-size:13.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 16px;}
+  #tutorial-nav{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  #tutorial-back, #tutorial-next{
+    appearance:none; border:none; border-radius:999px; padding:10px 18px; font-weight:800; font-size:13px; cursor:pointer;
+  }
+  #tutorial-back{background:#eef2f6; color:var(--ink);}
+  #tutorial-back[data-hidden="true"]{visibility:hidden;}
+  #tutorial-next{background:linear-gradient(160deg,#4fe0ff,#0e86c4); color:#02121e; flex:0 0 auto;}
+  #tutorial-skip{background:none; border:none; color:var(--ink-dim); font-size:11.5px; font-weight:600; text-decoration:underline; cursor:pointer; padding:8px;}
 
   /* ---------- Fish detail / share card ---------- */
   #fish-detail-scrim{
@@ -833,6 +879,10 @@
   <span class="lb-fab-ring"></span>
   <svg viewBox="0 0 24 24" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4"/></svg>
 </button>
+<button id="shop-fab" title="Tackle Shop">
+  <span class="lb-fab-ring shop-fab-ring"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="#04201c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="11" rx="2"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/><path d="M3 13h18"/></svg>
+</button>
 
 <div id="toast"></div>
 
@@ -915,7 +965,7 @@
     <div class="shop-trophy">🧰</div>
     <h1 class="shop-title">TACKLE SHOP</h1>
     <div id="shop-coins-wrap">🪙 <span id="shop-coins">0</span> Chum Coins</div>
-    <div class="shop-tabs">
+    <div class="shop-tabs" id="shop-tabs">
       <button class="shop-tab active" data-tab="shop">Shop</button>
       <button class="shop-tab" data-tab="gear">My Gear</button>
     </div>
@@ -989,6 +1039,23 @@
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
   <div id="rod-milestones"></div>
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
+  <h3 class="settings-section-title">Need a Refresher?</h3>
+  <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
+</div>
+
+<!-- Interactive tutorial -->
+<div id="tutorial-overlay">
+  <div id="tutorial-spotlight"></div>
+  <div id="tutorial-card">
+    <div id="tutorial-progress"></div>
+    <h3 id="tutorial-title"></h3>
+    <p id="tutorial-desc"></p>
+    <div id="tutorial-nav">
+      <button id="tutorial-back">Back</button>
+      <button id="tutorial-skip">Skip Tour</button>
+      <button id="tutorial-next">Next</button>
+    </div>
+  </div>
 </div>
 
 <!-- Fish detail / share card -->
@@ -1088,11 +1155,18 @@
     await updateDoc(ref, { shop: shopState });
   }
 
+  function avatarIdFromData(data){
+    return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
+  }
+
   async function fetchLeaderboard(max){
     const q = query(collection(db, 'players'), orderBy('points', 'desc'), limit(max || 50));
     const snap = await getDocs(q);
     const out = [];
-    snap.forEach(d => out.push({ uid: d.id, displayName: d.data().displayName, points: d.data().points || 0 }));
+    snap.forEach(d => {
+      const data = d.data();
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, avatar: avatarIdFromData(data) });
+    });
     return out;
   }
 
@@ -1104,7 +1178,7 @@
     const out = [];
     snap.forEach(d => {
       const data = d.data();
-      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [] });
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], avatar: avatarIdFromData(data) });
     });
     return out;
   }
@@ -2486,6 +2560,130 @@ function renderRodSettings(){
   $('rod-milestones').innerHTML = rows.join('');
 }
 
+/* ====================== INTERACTIVE TUTORIAL ====================== */
+// Bump this whenever a significant new feature ships so the tour
+// auto-triggers again for everyone, even people who've seen an older one.
+const TUTORIAL_VERSION = 1;
+
+const TUTORIAL_STEPS = [
+  { title:'Welcome to Driftline! \u{1F3A3}', desc:"Let's take a quick tour of everything the app can do. Tap Next to continue \u2014 you can replay this anytime from Settings.", target:null },
+  { title:'Hotspot Timer', desc:'Hotspots refresh across your 10km fishing grounds every 5 minutes \u2014 new spots appear automatically, so keep moving.', target:'timer-chip' },
+  { title:'Cast Your Line', desc:"This panel shows your live bite chance based on exactly where you're standing right now. You can only cast from your real GPS location \u2014 no teleporting.", target:'cast-panel' },
+  { title:'Recenter', desc:'Lost track of your marker on the map? Tap this to snap the view back to your live position.', target:'recenter-btn' },
+  { title:'Share for a Boost', desc:'Share Driftline with someone to get a temporary bite-chance boost \u2014 available once every 48 hours.', target:'share-btn' },
+  { title:'Your Account', desc:'Sign in here with a username and 6-digit PIN to save your bag across devices and appear on the leaderboard. This is also home base for the Leaderboard and Tackle Shop.', target:'account-btn', action:'open-account' },
+  { title:'Leaderboard', desc:'Tap here to see how you rank \u2014 Today, This Week, This Month, or All Time.', target:'view-leaderboard-btn' },
+  { title:'Tackle Shop', desc:'Tap here to spend Chum Coins on rod upgrades, temporary lures, and cosmetics.', target:'open-shop-btn' },
+  { title:'Quick Shortcuts', desc:'These two floating buttons jump straight to the Leaderboard and Tackle Shop from anywhere \u2014 no need to open Account first.', target:'leaderboard-fab', action:'close-all' },
+  { title:'The Shop', desc:'Buy a Rod Token for an instant permanent level, or grab a Lure for a temporary boost. Chum Coins come from your points \u2014 1 coin per point earned.', target:'shop-tabs', action:'open-shop' },
+  { title:'My Gear', desc:'Switch here to see your rod level, any active boosts counting down, your lure inventory, and your equipped cosmetics.', target:'shop-tabs', action:'open-shop-gear' },
+  { title:'Settings & Rod Upgrades', desc:'See your full rod upgrade roadmap here \u2014 every level is a permanent bite-chance boost, whether you earn it or buy it. You can always replay this tour from this screen too.', target:'settings-btn', action:'open-settings' },
+  { title:'Your Bag', desc:'Every fish you\u2019ve ever caught, organized by rarity.', target:'bag-btn', action:'open-bag' },
+  { title:'Field Guide', desc:'Switch tabs here to browse every catchable species in Driftline, caught or not \u2014 tap the tier counts up top to jump straight to a section.', target:'bag-tabs' },
+  { title:'You\u2019re All Set! \u{1F3A3}', desc:'That covers everything. Go stand somewhere real, find a hotspot, and cast your line.', target:null, action:'close-all' }
+];
+
+let tutorialStep = 0;
+
+function hasSeenTutorial(){
+  return localStorage.getItem('driftline_tutorial_seen') === String(TUTORIAL_VERSION);
+}
+function markTutorialSeen(){
+  localStorage.setItem('driftline_tutorial_seen', String(TUTORIAL_VERSION));
+}
+function maybeAutoStartTutorial(){
+  if(!hasSeenTutorial()){
+    setTimeout(()=>startTutorial(), 700);
+  }
+}
+function startTutorial(){
+  tutorialStep = 0;
+  $('tutorial-overlay').classList.add('show');
+  renderTutorialStep();
+}
+function endTutorial(){
+  $('tutorial-overlay').classList.remove('show');
+  closeAllOverlaysForTutorial();
+  markTutorialSeen();
+}
+function tutorialNext(){
+  if(tutorialStep < TUTORIAL_STEPS.length-1){
+    tutorialStep++;
+    renderTutorialStep();
+  } else {
+    endTutorial();
+  }
+}
+function tutorialBack(){
+  if(tutorialStep>0){
+    tutorialStep--;
+    renderTutorialStep();
+  }
+}
+function closeAllOverlaysForTutorial(){
+  closeBag();
+  closeAccountDrawer();
+  closeSettingsDrawer();
+  closeShop();
+  closeLeaderboard();
+  closeFishDetail();
+}
+function applyTutorialAction(action){
+  switch(action){
+    case 'open-account': closeAllOverlaysForTutorial(); openAccountDrawer(); break;
+    case 'open-shop': closeAllOverlaysForTutorial(); openShop(); setShopTab('shop'); break;
+    case 'open-shop-gear': closeAllOverlaysForTutorial(); openShop(); setShopTab('gear'); break;
+    case 'open-settings': closeAllOverlaysForTutorial(); openSettingsDrawer(); break;
+    case 'open-bag': closeAllOverlaysForTutorial(); openBag(); break;
+    case 'close-all': closeAllOverlaysForTutorial(); break;
+  }
+}
+function renderTutorialStep(){
+  const step = TUTORIAL_STEPS[tutorialStep];
+  $('tutorial-title').textContent = step.title;
+  $('tutorial-desc').textContent = step.desc;
+  $('tutorial-progress').textContent = `${tutorialStep+1} / ${TUTORIAL_STEPS.length}`;
+  $('tutorial-back').setAttribute('data-hidden', tutorialStep===0 ? 'true' : 'false');
+  $('tutorial-next').textContent = tutorialStep === TUTORIAL_STEPS.length-1 ? 'Done' : 'Next';
+
+  if(step.action) applyTutorialAction(step.action);
+
+  setTimeout(()=>positionTutorialSpotlight(step.target), step.action ? 380 : 30);
+}
+function positionTutorialSpotlight(targetId){
+  const spot = $('tutorial-spotlight');
+  const card = $('tutorial-card');
+  const el = targetId ? document.getElementById(targetId) : null;
+  const r = el ? el.getBoundingClientRect() : null;
+
+  if(!r || r.width===0){
+    const cx = window.innerWidth/2, cy = window.innerHeight*0.3;
+    spot.style.left = cx+'px'; spot.style.top = cy+'px';
+    spot.style.width = '0px'; spot.style.height = '0px';
+    spot.style.borderRadius = '50%';
+    card.style.top='50%'; card.style.bottom='auto'; card.style.left='50%'; card.style.transform='translate(-50%,-50%)';
+    return;
+  }
+
+  const pad = 8;
+  spot.style.left = (r.left-pad)+'px';
+  spot.style.top = (r.top-pad)+'px';
+  spot.style.width = (r.width+pad*2)+'px';
+  spot.style.height = (r.height+pad*2)+'px';
+  spot.style.borderRadius = Math.min(40, Math.min(r.width,r.height)/2+8) + 'px';
+
+  const spaceBelow = window.innerHeight - r.bottom;
+  if(spaceBelow > 260){
+    card.style.top = Math.min(r.bottom+20, window.innerHeight-280)+'px';
+    card.style.bottom = 'auto';
+  } else {
+    card.style.bottom = (window.innerHeight-r.top+20)+'px';
+    card.style.top = 'auto';
+  }
+  card.style.left = '50%';
+  card.style.transform = 'translateX(-50%)';
+}
+
 function updateAccountBadge(){
   const dot = $('account-alert');
   if(!dot) return;
@@ -2637,6 +2835,7 @@ function renderLeaderboardForPeriod(period){
   let ranked = lbCache.map(p=>({
     uid: p.uid,
     displayName: p.displayName,
+    avatar: p.avatar,
     points: windowMs === null ? p.points : computePeriodPoints(p.bag || [], windowMs)
   }));
   ranked = ranked.filter(p=>p.points > 0).sort((a,b)=>b.points-a.points).slice(0,100);
@@ -2655,8 +2854,10 @@ function renderLeaderboard(list, period){
     const cls = ['lb-row'];
     if(isMe) cls.push('lb-me');
     if(topClass[i]) cls.push(topClass[i]);
+    const avatarObj = AVATAR_COSMETICS.find(c=>c.id===p.avatar) || AVATAR_COSMETICS[0];
     return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
+      <div class="lb-avatar">${avatarObj.emoji}</div>
       <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
       <div class="lb-points" data-target="${p.points}">0 pts</div>
     </div>`;
@@ -2755,6 +2956,8 @@ function beginGame(pt, accuracy){
   if(isBoostActive()) startBoostTicker();
   checkSigninReminder();
   startSignoutReminderTimer();
+  updateEquippedVisuals();
+  maybeAutoStartTutorial();
 }
 
 function requestLocation(btnEl){
@@ -2895,6 +3098,7 @@ $('view-leaderboard-btn').addEventListener('click', ()=>{
   openLeaderboard();
 });
 $('leaderboard-fab').addEventListener('click', openLeaderboard);
+$('shop-fab').addEventListener('click', openShop);
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
 document.querySelectorAll('.lb-period-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
@@ -2937,6 +3141,13 @@ $('settings-close').addEventListener('click', closeSettingsDrawer);
 $('settings-scrim').addEventListener('click', (e)=>{
   if(e.target.id === 'settings-scrim') closeSettingsDrawer();
 });
+$('replay-tutorial-btn').addEventListener('click', ()=>{
+  closeSettingsDrawer();
+  startTutorial();
+});
+$('tutorial-next').addEventListener('click', tutorialNext);
+$('tutorial-back').addEventListener('click', tutorialBack);
+$('tutorial-skip').addEventListener('click', endTutorial);
 
 </script>
 </body>
