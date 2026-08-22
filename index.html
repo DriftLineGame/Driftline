@@ -23,6 +23,7 @@
     --panel-solid:#ffffff;
     --line:#d7e6ee;
     --cyan:#0e86c4;
+    --boost:#e8590c;
     --tier-common:#2f9c74;
     --tier-hard:#1c7fc2;
     --tier-rare:#c9860a;
@@ -115,6 +116,16 @@
   #timer-chip svg{width:12px; height:12px; stroke:var(--cyan); fill:none;}
   #timer-chip b{color:var(--ink); font-weight:700;}
 
+  #boost-chip{
+    position:fixed; top:106px; left:14px; z-index:200;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--boost);
+    display:flex; align-items:center; gap:6px;
+    border-color:rgba(232,89,12,0.28) !important;
+    background:rgba(255,255,255,0.85) !important;
+  }
+  #boost-chip .boost-flame{font-size:13px; line-height:1;}
+  #boost-chip b{color:var(--boost); font-weight:800;}
+
   /* ---------- Selected spot / cast panel ---------- */
   #cast-panel{
     position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
@@ -129,6 +140,10 @@
     font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; white-space:nowrap;
   }
   #gps-accuracy{font-size:11px; color:var(--ink-dim); margin-top:6px;}
+  #boost-indicator{
+    font-size:12px; font-weight:700; color:var(--boost); margin-top:8px;
+    background:rgba(232,89,12,0.08); border-radius:10px; padding:7px 10px;
+  }
   #cast-btn{width:100%; margin-top:12px;}
 
   /* ---------- Toast ---------- */
@@ -230,6 +245,14 @@
   .drawer-header .close-x{width:32px; height:32px; border-radius:10px; background:#eaf1f6; display:flex; align-items:center; justify-content:center;}
   .drawer-header .close-x svg{width:15px; height:15px; stroke:var(--ink);}
 
+  #bag-tabs{display:flex; gap:8px; padding:0 16px 14px;}
+  .bag-tab{
+    flex:1; appearance:none; border:1px solid var(--line); background:#f4f9fb; color:var(--ink-dim);
+    font-family:'Inter',sans-serif; font-weight:700; font-size:12.5px; padding:9px 10px;
+    border-radius:999px; cursor:pointer; transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bag-tab.active{background:var(--ink); color:#ffffff; border-color:var(--ink);}
+
   #progress-strip{display:flex; gap:8px; padding:0 16px 14px; overflow-x:auto;}
   .tier-stat{
     flex:0 0 auto; min-width:84px; border-radius:14px; padding:10px 12px; background:#f2f8fb; border:1px solid var(--line);
@@ -250,6 +273,16 @@
   .catch-name{font-weight:700; font-size:14.5px;}
   .catch-meta{font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
   .catch-tier-tag{font-size:9.5px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:999px; flex:0 0 auto;}
+
+  .guide-section-title{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;
+    margin:18px 2px 8px; padding-top:2px;
+  }
+  .guide-section-title:first-child{margin-top:2px;}
+  .guide-section-count{font-size:10.5px; color:var(--ink-dim); font-weight:700; text-transform:none; letter-spacing:0;}
+  .guide-row.uncaught{opacity:0.55;}
+  .guide-row.uncaught .catch-name{color:var(--ink-dim);}
 
   #bag-empty{text-align:center; padding:60px 20px; color:var(--ink-dim);}
   #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
@@ -349,6 +382,9 @@
     <button class="icon-btn glass" id="recenter-btn">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     </button>
+    <button class="icon-btn glass" id="share-btn" title="Share Driftline">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    </button>
     <button class="icon-btn glass" id="bag-btn">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
       <span class="bag-badge hidden" id="bag-count">0</span>
@@ -358,6 +394,10 @@
 <div id="timer-chip" class="glass hidden" style="border-radius:999px;">
   <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
   Hotspots refresh in <b id="timer-value">30:00</b>
+</div>
+<div id="boost-chip" class="glass hidden" style="border-radius:999px;">
+  <span class="boost-flame">🔥</span>
+  Boost active <b id="boost-value">10:00</b>
 </div>
 
 <!-- Cast panel -->
@@ -370,6 +410,7 @@
     <div class="odds-pill" id="odds-pill">— % bite chance</div>
   </div>
   <div id="gps-accuracy"></div>
+  <div id="boost-indicator" class="hidden">🔥 Share boost active — +20% bite chance</div>
   <button class="btn btn-primary" id="cast-btn" disabled>Cast Your Line</button>
 </div>
 
@@ -396,8 +437,12 @@
 <div id="bag-drawer">
   <div class="drawer-handle"></div>
   <div class="drawer-header">
-    <h2>Your Bag</h2>
+    <h2 id="bag-title">Your Bag</h2>
     <button class="close-x" id="bag-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div id="bag-tabs">
+    <button class="bag-tab active" data-mode="catches">Your Catches</button>
+    <button class="bag-tab" data-mode="guide">Field Guide</button>
   </div>
   <div id="progress-strip"></div>
   <div id="bag-list"></div>
@@ -443,6 +488,10 @@ const HOTSPOT_MAX_M = 1000;
 const REFRESH_MS = 5*60*1000;       // 5 minutes
 const BASE_ODDS = 15;
 const CLUSTER_PIXEL_RADIUS = 55;    // spots closer than this on-screen fold into one cluster circle
+const SHARE_COOLDOWN_MS = 48*60*60*1000; // 48 hours between share boosts
+const SHARE_BOOST_MS = 10*60*1000;       // boost lasts 10 minutes
+const SHARE_BOOST_AMOUNT = 20;           // +20% bite chance while boosted
+const SHARE_ODDS_CAP = 98;               // odds can never exceed this, even boosted
 
 let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
 let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
@@ -452,8 +501,11 @@ let liveAccuracy = null;
 let watchId = null;
 let refreshDeadline = null;
 let timerInterval = null;
+let boostInterval = null;
 let pendingResult = null;
 let audioCtx = null;
+let bagViewMode = 'catches';     // 'catches' | 'guide'
+let shareState = loadShareState();
 
 const $ = (id)=>document.getElementById(id);
 
@@ -468,6 +520,13 @@ function loadBag(){
   try{ return JSON.parse(localStorage.getItem('driftline_bag')||'[]'); }catch(e){ return []; }
 }
 function saveBag(bag){ localStorage.setItem('driftline_bag', JSON.stringify(bag)); }
+function loadShareState(){
+  try{
+    const s = JSON.parse(localStorage.getItem('driftline_share')||'null');
+    return s && typeof s==='object' ? s : { lastGrantedAt:0, boostUntil:0 };
+  }catch(e){ return { lastGrantedAt:0, boostUntil:0 }; }
+}
+function saveShareState(){ localStorage.setItem('driftline_share', JSON.stringify(shareState)); }
 
 /* ====================== GEO / MATH HELPERS ====================== */
 function metersToLatDeg(m){ return m/111320; }
@@ -591,7 +650,85 @@ function oddsAtPoint(pt){
       best = h.odds; inHotspot = h;
     }
   });
-  return { odds:best, hotspot:inHotspot };
+  return { odds: applyShareBoost(best), hotspot:inHotspot };
+}
+
+/* ====================== SHARE BOOST ====================== */
+function isBoostActive(){
+  return !!shareState.boostUntil && Date.now() < shareState.boostUntil;
+}
+function applyShareBoost(odds){
+  return isBoostActive() ? Math.min(SHARE_ODDS_CAP, odds + SHARE_BOOST_AMOUNT) : odds;
+}
+function fmtCooldown(ms){
+  const totalMin = Math.max(1, Math.ceil(ms/60000));
+  const h = Math.floor(totalMin/60);
+  const m = totalMin%60;
+  return h>0 ? `${h}h ${m}m` : `${m}m`;
+}
+async function handleShareClick(){
+  const shareData = {
+    title: 'Driftline',
+    text: "I'm fishing real GPS hotspots on Driftline \u{1F3A3} come cast a line:",
+    url: window.location.href
+  };
+  const now = Date.now();
+  const eligible = (now - (shareState.lastGrantedAt||0)) >= SHARE_COOLDOWN_MS;
+  let shared = false;
+
+  if(navigator.share){
+    try{
+      await navigator.share(shareData);
+      shared = true;
+    }catch(e){
+      return; // cancelled or failed — no bonus, no nagging toast
+    }
+  } else if(navigator.clipboard && navigator.clipboard.writeText){
+    try{
+      await navigator.clipboard.writeText(shareData.url);
+      showToast('Link copied \u2014 share it to help more people find Driftline!');
+      shared = true;
+    }catch(e){
+      showToast("Couldn't copy the link \u2014 copy it from your address bar instead.");
+      return;
+    }
+  } else {
+    showToast("Copy this page's link from your browser to share it.");
+    return;
+  }
+
+  if(!shared) return;
+
+  if(eligible){
+    shareState.lastGrantedAt = now;
+    shareState.boostUntil = now + SHARE_BOOST_MS;
+    saveShareState();
+    showToast('Boost activated! +20% bite chance for 10 minutes \u{1F525}');
+    startBoostTicker();
+  } else {
+    const remain = SHARE_COOLDOWN_MS - (now - shareState.lastGrantedAt);
+    showToast(`Thanks for sharing! Your next boost unlocks in ${fmtCooldown(remain)}.`);
+  }
+}
+function startBoostTicker(){
+  clearInterval(boostInterval);
+  tickBoost();
+  boostInterval = setInterval(tickBoost, 1000);
+}
+function tickBoost(){
+  const chip = $('boost-chip');
+  if(!isBoostActive()){
+    chip.classList.add('hidden');
+    clearInterval(boostInterval);
+    updateCastPanel();
+    return;
+  }
+  chip.classList.remove('hidden');
+  const remain = shareState.boostUntil - Date.now();
+  const mm = Math.floor(remain/60000);
+  const ss = Math.floor((remain%60000)/1000);
+  $('boost-value').textContent = `${mm}:${String(ss).padStart(2,'0')}`;
+  updateCastPanel();
 }
 
 /* ====================== MAP SETUP ====================== */
@@ -680,6 +817,7 @@ function updateCastPanel(){
   $('odds-pill').style.background = hotspot ? 'rgba(224,53,111,0.12)' : 'rgba(14,134,196,0.12)';
   $('odds-pill').style.color = hotspot ? '#c2185b' : '#0e73a8';
   $('gps-accuracy').textContent = liveAccuracy ? `GPS accuracy: \u00b1${Math.round(liveAccuracy)}m` : '';
+  $('boost-indicator').classList.toggle('hidden', !isBoostActive());
   btn.disabled = false;
 }
 
@@ -985,6 +1123,11 @@ function renderBag(){
   }).join('');
 
   const list = $('bag-list');
+  if(bagViewMode === 'guide'){
+    renderFieldGuide(list, bag);
+    return;
+  }
+
   if(bag.length===0){
     list.innerHTML = `<div id="bag-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
@@ -1007,6 +1150,36 @@ function renderBag(){
       <div class="catch-tier-tag" style="background:${t.hex}22;color:${t.hex}">${t.label}</div>
     </div>`;
   }).join('');
+}
+
+function renderFieldGuide(list, bag){
+  const caughtNames = new Set(bag.map(c=>c.name));
+  const countByName = {};
+  bag.forEach(c=>{ countByName[c.name] = (countByName[c.name]||0) + 1; });
+
+  let html = '';
+  TIERS.forEach(t=>{
+    const species = FISH_DATA[t.key];
+    const have = species.filter(n=>caughtNames.has(n)).length;
+    html += `<div class="guide-section-title" style="color:${t.hex}">
+      <span>${t.label}</span><span class="guide-section-count">${have}/${species.length}</span>
+    </div>`;
+    html += species.map(name=>{
+      const caught = caughtNames.has(name);
+      const iconColor = caught ? t.hex : '#c7d8e2';
+      return `<div class="catch-row guide-row ${caught?'caught':'uncaught'}" data-name="${name.replace(/"/g,'&quot;')}">
+        <div class="catch-dot" style="background:${caught? t.hex+'22' : '#eef4f8'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${iconColor}"/></svg>
+        </div>
+        <div class="catch-info">
+          <div class="catch-name">${name}</div>
+          <div class="catch-meta">${caught ? `Caught \u00d7${countByName[name]}` : 'Not yet caught'}</div>
+        </div>
+        ${caught ? `<div class="catch-tier-tag" style="background:${t.hex}22;color:${t.hex}">\u2713</div>` : ''}
+      </div>`;
+    }).join('');
+  });
+  list.innerHTML = html;
 }
 
 function openBag(){ renderBag(); $('bag-scrim').classList.add('show'); $('bag-drawer').classList.add('show'); }
@@ -1085,6 +1258,7 @@ function beginGame(pt, accuracy){
   updateBagBadge();
   updateCastPanel();
   startLiveTracking();
+  if(isBoostActive()) startBoostTicker();
 }
 
 function requestLocation(btnEl){
@@ -1158,15 +1332,32 @@ $('bag-scrim').addEventListener('click', closeBag);
 $('bag-list').addEventListener('click', (e)=>{
   const row = e.target.closest('.catch-row');
   if(!row) return;
-  const idx = parseInt(row.dataset.idx, 10);
-  const bag = loadBag();
-  if(bag[idx]) openFishDetail(bag[idx]);
+  if(row.dataset.idx !== undefined){
+    const idx = parseInt(row.dataset.idx, 10);
+    const bag = loadBag();
+    if(bag[idx]) openFishDetail(bag[idx]);
+  } else if(row.dataset.name){
+    if(row.classList.contains('uncaught')){ showToast("You haven't caught one of these yet."); return; }
+    const bag = loadBag();
+    const entry = bag.find(c=>c.name === row.dataset.name);
+    if(entry) openFishDetail(entry);
+  }
+});
+document.querySelectorAll('.bag-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    if(tab.classList.contains('active')) return;
+    document.querySelectorAll('.bag-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    bagViewMode = tab.dataset.mode;
+    renderBag();
+  });
 });
 $('fd-close').addEventListener('click', closeFishDetail);
 $('fish-detail-scrim').addEventListener('click', (e)=>{
   if(e.target.id === 'fish-detail-scrim') closeFishDetail();
 });
 $('fd-share-btn').addEventListener('click', toggleShareMode);
+$('share-btn').addEventListener('click', handleShareClick);
 $('recenter-btn').addEventListener('click', ()=>{
   const pt = liveLatLng || center;
   if(map && pt) map.setView([pt.lat,pt.lng], 14);
