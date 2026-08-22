@@ -127,6 +127,10 @@
   }
   #boost-chip .boost-flame{font-size:13px; line-height:1;}
   #boost-chip b{color:var(--boost); font-weight:800;}
+  #boost-chip.weekly{
+    color:#c9860a !important; border-color:rgba(201,134,10,0.3) !important;
+  }
+  #boost-chip.weekly b{color:#c9860a !important;}
 
   #prawn-chip{
     position:fixed; top:146px; left:14px; z-index:200; cursor:pointer;
@@ -159,6 +163,7 @@
     font-size:12px; font-weight:700; color:var(--boost); margin-top:8px;
     background:rgba(232,89,12,0.08); border-radius:10px; padding:7px 10px;
   }
+  #boost-indicator.weekly{color:#c9860a; background:rgba(201,134,10,0.08);}
   #cast-btn{width:100%; margin-top:12px;}
 
   /* ---------- Leaderboard FAB ---------- */
@@ -996,7 +1001,7 @@
     <div class="odds-pill" id="odds-pill">— % bite chance</div>
   </div>
   <div id="gps-accuracy"></div>
-  <div id="boost-indicator" class="hidden">🔥 Share boost active — +20% bite chance</div>
+  <div id="boost-indicator" class="hidden"></div>
   <button class="btn btn-primary" id="cast-btn" disabled>Cast Your Line</button>
 </div>
 
@@ -1294,10 +1299,10 @@
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
     await setDoc(ref, {
-      displayName, pinHash, points: 0, bag: [], shop: null,
+      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
-    return { uid, displayName, points: 0, bag: [], shop: null };
+    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null };
   }
 
   async function signIn(username, pin){
@@ -1312,7 +1317,7 @@
     if(pinHash !== data.pinHash){
       throw new Error('Incorrect PIN.');
     }
-    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null };
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null };
   }
 
   async function syncBag(uid, bag, points){
@@ -1720,6 +1725,13 @@ function oddsAtPoint(pt){
 }
 
 /* ====================== BOOSTS (generalized: share + shop lures) ====================== */
+const BOOST_SOURCE_LABELS = {
+  share:            { label:'Share Boost',       icon:'\u{1F525}' },
+  weekly_challenge: { label:'Weekly Challenge',  icon:'\u{1F3C6}' },
+  lure_basic:       { label:'Basic Lure',        icon:'\u{1FAB1}' },
+  lure_pro:         { label:'Pro Lure',          icon:'\u{1FA9D}' },
+  lure_legendary:   { label:'Legendary Lure',    icon:'\u2728' }
+};
 function pruneExpiredBoosts(){
   const now = Date.now();
   shopState.activeBoosts = (shopState.activeBoosts||[]).filter(b=>b.until>now);
@@ -1732,6 +1744,26 @@ function soonestBoostExpiry(){
   pruneExpiredBoosts();
   if(!shopState.activeBoosts.length) return null;
   return Math.min(...shopState.activeBoosts.map(b=>b.until));
+}
+function hasWeeklyChallengeBoost(){
+  pruneExpiredBoosts();
+  return shopState.activeBoosts.some(b=>b.source==='weekly_challenge');
+}
+function boostSummaryText(){
+  pruneExpiredBoosts();
+  if(!shopState.activeBoosts.length) return '';
+  const total = activeBoostTotal();
+  const labels = Array.from(new Set(shopState.activeBoosts.map(b=>(BOOST_SOURCE_LABELS[b.source]||{label:'Boost'}).label)));
+  const icon = hasWeeklyChallengeBoost() ? '\u{1F3C6}' : '\u{1F525}';
+  return `${icon} +${total}% bite chance \u2014 ${labels.join(' + ')}`;
+}
+function fmtBoostTime(ms){
+  const totalSec = Math.max(0, Math.floor(ms/1000));
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  if(h>0) return `${h}h ${String(m).padStart(2,'0')}m`;
+  return `${m}:${String(s).padStart(2,'0')}`;
 }
 function isBoostActive(){
   return activeBoostTotal() > 0;
@@ -1811,10 +1843,9 @@ function tickBoost(){
     return;
   }
   chip.classList.remove('hidden');
+  chip.classList.toggle('weekly', hasWeeklyChallengeBoost());
   const remain = soonestBoostExpiry() - Date.now();
-  const mm = Math.floor(remain/60000);
-  const ss = Math.floor((remain%60000)/1000);
-  $('boost-value').textContent = `+${activeBoostTotal()}% \u00b7 ${mm}:${String(ss).padStart(2,'0')}`;
+  $('boost-value').textContent = `+${activeBoostTotal()}% \u00b7 ${fmtBoostTime(remain)}`;
   updateCastPanel();
 }
 
@@ -1906,7 +1937,10 @@ function updateCastPanel(){
   $('odds-pill').style.background = hotspot ? 'rgba(224,53,111,0.12)' : 'rgba(14,134,196,0.12)';
   $('odds-pill').style.color = hotspot ? '#c2185b' : '#0e73a8';
   $('gps-accuracy').textContent = liveAccuracy ? `GPS accuracy: \u00b1${Math.round(liveAccuracy)}m` : '';
-  $('boost-indicator').classList.toggle('hidden', !isBoostActive());
+  const boostActive = isBoostActive();
+  $('boost-indicator').classList.toggle('hidden', !boostActive);
+  $('boost-indicator').classList.toggle('weekly', hasWeeklyChallengeBoost());
+  if(boostActive) $('boost-indicator').textContent = boostSummaryText();
   btn.disabled = false;
 }
 
@@ -3299,21 +3333,39 @@ async function afterAuthSuccess(result){
   session = { uid: result.uid, displayName: result.displayName };
   saveSession(session);
 
-  const localBag = loadBag();
-  const merged = mergeBags(localBag, result.bag || []);
-  saveBag(merged);
-  syncBagToCloud(merged);
+  if(authMode === 'signup'){
+    // Brand new account, cloud side is empty — safe to fold in whatever
+    // was played locally before signing up.
+    const localBag = loadBag();
+    const merged = mergeBags(localBag, result.bag || []);
+    saveBag(merged);
+    syncBagToCloud(merged);
 
-  // Newer shopState wins outright (avoids double-counting spent coins by
-  // trying to field-merge two divergent inventories).
-  const cloudShop = result.shop;
-  if(cloudShop && typeof cloudShop === 'object' && (cloudShop.updatedAt||0) > (shopState.updatedAt||0)){
-    shopState = loadShopState.call(null); // fall through to defaults for any missing fields
-    shopState = Object.assign(defaultShopState(), cloudShop);
+    const cloudShop = result.shop;
+    if(cloudShop && typeof cloudShop === 'object' && (cloudShop.updatedAt||0) > (shopState.updatedAt||0)){
+      shopState = Object.assign(defaultShopState(), cloudShop);
+    }
+    // prawnTrap: keep whatever's local (cloud is null on a new account).
+  } else {
+    // Signing into an EXISTING account — the cloud copy is authoritative.
+    // Replacing (never merging) is what stops two accounts on the same
+    // device from bleeding catches/coins/levels into each other.
+    const cloudBag = result.bag || [];
+    saveBag(cloudBag);
+    syncBagToCloud(cloudBag);
+
+    shopState = (result.shop && typeof result.shop === 'object')
+      ? Object.assign(defaultShopState(), result.shop)
+      : defaultShopState();
+
+    prawnTrap = result.prawn || null;
+    savePrawnTrap();
   }
+
   saveShopState();
   syncShopToCloud();
   updateEquippedVisuals();
+  updatePrawnChip();
 
   updateBagBadge();
   if(bagViewMode) renderBag();
@@ -3325,9 +3377,24 @@ async function afterAuthSuccess(result){
 function handleSignOut(){
   session = null;
   clearSession();
+
+  // Reset local state to zero — the real numbers live on the server tied
+  // to the account you were just using. Without this, whatever's left on
+  // the device would bleed into the next account signed into here.
+  saveBag([]);
+  shopState = defaultShopState();
+  saveShopState();
+  prawnTrap = null;
+  savePrawnTrap();
+  friendsState = { friends:[], incomingRequests:[], outgoingRequests:[] };
+
+  updateBagBadge();
+  updateEquippedVisuals();
+  updatePrawnChip();
+  if(bagViewMode) renderBag();
   renderAccountDrawer();
   checkSigninReminder();
-  showToast('Signed out. Your bag stays saved on this device.');
+  showToast('Signed out \u2014 your stats are safely saved on your account. Sign back in anytime to pick up where you left off.');
 }
 
 /* ====================== FRIENDS ====================== */
