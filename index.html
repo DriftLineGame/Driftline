@@ -65,6 +65,7 @@
   }
   .btn:active{transform:scale(0.96);}
   .btn-primary{background:linear-gradient(160deg,#4fe0ff,#0e86c4); color:#02121e; box-shadow:0 10px 26px rgba(63,214,255,0.32);}
+  .btn-primary:disabled{background:#284a5e; color:#7a97a8; box-shadow:none; cursor:not-allowed; opacity:0.8;}
   .btn-ghost{background:transparent; color:var(--ink-dim); font-weight:600; font-size:13px; text-decoration:underline; padding:10px;}
   #geo-status{margin-top:16px; font-size:13px; color:#ff9c9c; max-width:280px; display:none;}
   #manual-coords{margin-top:14px; display:none; flex-direction:column; gap:8px; width:100%; max-width:280px;}
@@ -125,6 +126,7 @@
   .odds-pill{
     font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; white-space:nowrap;
   }
+  #gps-accuracy{font-size:11px; color:var(--ink-dim); margin-top:6px;}
   #cast-btn{width:100%; margin-top:12px;}
 
   /* ---------- Toast ---------- */
@@ -295,12 +297,13 @@
 <div id="cast-panel" class="glass">
   <div class="cast-row">
     <div>
-      <div class="cast-label" id="cast-label">Selected spot</div>
-      <div class="cast-value" id="cast-value">Open water</div>
+      <div class="cast-label" id="cast-label">Your location</div>
+      <div class="cast-value" id="cast-value">Locating you...</div>
     </div>
-    <div class="odds-pill" id="odds-pill">5% bite chance</div>
+    <div class="odds-pill" id="odds-pill">— % bite chance</div>
   </div>
-  <button class="btn btn-primary" id="cast-btn">Cast Your Line</button>
+  <div id="gps-accuracy"></div>
+  <button class="btn btn-primary" id="cast-btn" disabled>Cast Your Line</button>
 </div>
 
 <div id="toast"></div>
@@ -354,11 +357,12 @@ const HOTSPOT_MAX_M = 20000;
 const REFRESH_MS = 30*60*1000;      // 30 minutes
 const BASE_ODDS = 5;
 
-let map, userMarker, regionCircle, hotspotLayers = [];
-let center = null;               // {lat,lng}
+let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
+let center = null;               // {lat,lng} — region anchor, refreshed every 30 min
 let hotspots = [];               // {lat,lng,radius,odds}
-let selectedLatLng = null;
-let selectedMarker = null;
+let liveLatLng = null;           // {lat,lng} — your real-time GPS position (only valid cast location)
+let liveAccuracy = null;
+let watchId = null;
 let refreshDeadline = null;
 let timerInterval = null;
 let pendingResult = null;
@@ -466,30 +470,80 @@ function initMap(centerPt){
   });
   userMarker = L.marker([centerPt.lat, centerPt.lng], { icon:userIcon, interactive:false }).addTo(map);
 
-  map.on('click', onMapClick);
+  // Map is view-only: you can pan/zoom to scout hotspots, but you can only
+  // cast from your real, live GPS position (handled by watchPosition below).
+  $('cast-panel').classList.add('show');
 }
 
-function onMapClick(e){
-  const pt = { lat:e.latlng.lat, lng:e.latlng.lng };
-  if(distMeters(pt, center) > REGION_RADIUS_M){
-    showToast("That's outside your fishing grounds \u2014 stay inside the dashed circle.");
+/* ====================== LIVE POSITION TRACKING ====================== */
+function startLiveTracking(){
+  if(!navigator.geolocation) return;
+  if(watchId !== null) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(
+    onLivePosition,
+    onLivePositionError,
+    { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
+  );
+}
+
+function onLivePosition(pos){
+  liveLatLng = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+  liveAccuracy = pos.coords.accuracy;
+
+  if(userMarker) userMarker.setLatLng([liveLatLng.lat, liveLatLng.lng]);
+  if(map && accuracyCircle) map.removeLayer(accuracyCircle);
+  if(map){
+    accuracyCircle = L.circle([liveLatLng.lat, liveLatLng.lng], {
+      radius: Math.max(liveAccuracy||20, 15), color:'#3fd6ff', weight:1,
+      fillColor:'#3fd6ff', fillOpacity:0.08, opacity:0.35, interactive:false
+    }).addTo(map);
+  }
+  updateCastPanel();
+}
+
+function onLivePositionError(err){
+  if(!liveLatLng){
+    $('cast-value').textContent = 'Signal unavailable';
+    $('gps-accuracy').textContent = geoErrorMessage(err);
+  } else {
+    showToast('Lost GPS signal \u2014 showing your last known spot.');
+  }
+}
+
+function updateCastPanel(){
+  const btn = $('cast-btn');
+  if(!liveLatLng){
+    $('cast-value').textContent = 'Locating you...';
+    $('odds-pill').textContent = '\u2014 % bite chance';
+    btn.disabled = true;
     return;
   }
-  selectedLatLng = pt;
-  if(selectedMarker) map.removeLayer(selectedMarker);
-  const icon = L.divIcon({
-    className:'', html:`<div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#ffffff;transform:rotate(-45deg);border:2px solid #0b4a75;"></div>`,
-    iconSize:[14,14], iconAnchor:[7,14]
-  });
-  selectedMarker = L.marker([pt.lat,pt.lng], { icon, interactive:false }).addTo(map);
-
-  const {odds, hotspot} = oddsAtPoint(pt);
-  $('cast-label').textContent = hotspot ? 'Hotspot selected' : 'Selected spot';
-  $('cast-value').textContent = hotspot ? `${fmtDistance(hotspot.radius)} hotspot` : 'Open water';
+  if(center && distMeters(liveLatLng, center) > REGION_RADIUS_M){
+    $('cast-label').textContent = 'Your location';
+    $('cast-value').textContent = 'Outside fishing grounds';
+    $('odds-pill').textContent = 'Move back into the circle';
+    $('gps-accuracy').textContent = liveAccuracy ? `GPS accuracy: \u00b1${Math.round(liveAccuracy)}m` : '';
+    btn.disabled = true;
+    return;
+  }
+  const {odds, hotspot} = oddsAtPoint(liveLatLng);
+  $('cast-label').textContent = 'Your location';
+  $('cast-value').textContent = hotspot ? `In a ${fmtDistance(hotspot.radius)} hotspot` : 'Open water';
   $('odds-pill').textContent = `${odds}% bite chance`;
   $('odds-pill').style.background = hotspot ? 'rgba(255,92,138,0.18)' : 'rgba(63,214,255,0.14)';
   $('odds-pill').style.color = hotspot ? '#ff9db8' : '#7fe0ff';
-  $('cast-panel').classList.add('show');
+  $('gps-accuracy').textContent = liveAccuracy ? `GPS accuracy: \u00b1${Math.round(liveAccuracy)}m` : '';
+  btn.disabled = false;
+}
+
+function geoErrorMessage(err){
+  if(!err) return "Couldn't get a location fix. Try again in a moment.";
+  switch(err.code){
+    case 1: return "Location permission is blocked. Check your browser's site settings and allow location for this page, then reload.";
+    case 2: return "Your device can't determine a position right now (no GPS/network fix). Try moving near a window or outdoors.";
+    case 3: return "Location is taking too long to respond. Retrying automatically...";
+    default: return err.message || "Couldn't get your location.";
+  }
 }
 
 /* ====================== TIMER / REFRESH ====================== */
@@ -515,18 +569,24 @@ function tickTimer(){
   $('timer-value').textContent = `${mm}:${String(ss).padStart(2,'0')}`;
 }
 function refreshLocationAndHotspots(){
+  const anchor = liveLatLng || center;
+  if(anchor){
+    center = anchor;
+    regionCircle.setLatLng([center.lat,center.lng]);
+    startRefreshCycle(true);
+    showToast('New hotspots have appeared \u{1F41F}');
+    return;
+  }
   if(!navigator.geolocation){ startRefreshCycle(true); return; }
   navigator.geolocation.getCurrentPosition(
     pos=>{
       center = { lat:pos.coords.latitude, lng:pos.coords.longitude };
-      map.setView([center.lat,center.lng]);
-      userMarker.setLatLng([center.lat,center.lng]);
       regionCircle.setLatLng([center.lat,center.lng]);
       startRefreshCycle(true);
       showToast('New hotspots have appeared \u{1F41F}');
     },
     ()=>{ startRefreshCycle(true); },
-    { enableHighAccuracy:true, timeout:8000 }
+    { enableHighAccuracy:true, timeout:15000 }
   );
 }
 
@@ -546,15 +606,19 @@ function pickFish(tierKey){
 }
 
 function attemptCast(){
-  if(!selectedLatLng) return;
-  const {odds, hotspot} = oddsAtPoint(selectedLatLng);
+  if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
+  if(center && distMeters(liveLatLng, center) > REGION_RADIUS_M){
+    showToast("You're outside your fishing grounds \u2014 move back into the dashed circle.");
+    return;
+  }
+  const {odds, hotspot} = oddsAtPoint(liveLatLng);
   const success = Math.random()*100 < odds;
   let fish=null, tier=null;
   if(success){
     tier = pickTier();
     fish = pickFish(tier.key);
   }
-  pendingResult = { success, fish, tier, hotspot, at: selectedLatLng };
+  pendingResult = { success, fish, tier, hotspot, at: liveLatLng };
   runFishingAnimation();
 }
 
@@ -643,12 +707,14 @@ function closeFishingOverlay(){
     $('cast-status').classList.remove('show');
     $('line-rig').classList.remove('dropped','tug');
   }, 500);
+  updateCastPanel();
+  $('cast-panel').classList.add('show');
 }
 
 /* ====================== BAG ====================== */
 function addToBag(name, tierKey){
   const bag = loadBag();
-  bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:selectedLatLng.lat, lng:selectedLatLng.lng });
+  bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng });
   saveBag(bag);
   updateBagBadge();
 }
@@ -684,7 +750,7 @@ function renderBag(){
   if(bag.length===0){
     list.innerHTML = `<div id="bag-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-      <p>Nothing in your bag yet. Tap a spot on the map and cast your line to start your collection.</p>
+      <p>Nothing in your bag yet. Walk to a hotspot on the map and cast your line to start your collection.</p>
     </div>`;
     return;
   }
@@ -719,8 +785,10 @@ function showToast(msg){
 }
 
 /* ====================== BOOTSTRAP ====================== */
-function beginGame(pt){
+function beginGame(pt, accuracy){
   center = pt;
+  liveLatLng = pt;
+  liveAccuracy = accuracy || null;
   $('start-screen').classList.add('hidden');
   $('topbar').classList.remove('hidden');
   $('timer-chip').classList.remove('hidden');
@@ -735,27 +803,57 @@ function beginGame(pt){
   if(hotspots.length){ drawHotspots(); }
   startRefreshCycle(hotspots.length===0);
   updateBagBadge();
+  updateCastPanel();
+  startLiveTracking();
 }
 
-function requestLocation(){
+function requestLocation(btnEl){
   const statusEl = $('geo-status');
   statusEl.style.display='none';
+
+  if(!window.isSecureContext){
+    statusEl.textContent = "This page isn't running over HTTPS, so browsers block location access. Make sure you're opening the https://\u2026github.io link (not a copied file or http:// address).";
+    statusEl.style.display='block';
+    return;
+  }
   if(!navigator.geolocation){
     statusEl.textContent = "Your browser can't share location. Enter coordinates manually below.";
     statusEl.style.display='block';
     return;
   }
+
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = 'Locating\u2026'; }
+  const restoreBtn = ()=>{ if(btnEl){ btnEl.disabled=false; btnEl.textContent='Find My Fishing Grounds'; } };
+
+  const onSuccess = pos => {
+    restoreBtn();
+    beginGame({ lat:pos.coords.latitude, lng:pos.coords.longitude }, pos.coords.accuracy);
+  };
+
+  const tryLowAccuracy = () => {
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      err => {
+        restoreBtn();
+        statusEl.innerHTML = geoErrorMessage(err) + '<br><br>You can also enter coordinates manually below.';
+        statusEl.style.display='block';
+        $('manual-coords').style.display='flex';
+        $('manual-coords').style.flexDirection='column';
+      },
+      { enableHighAccuracy:false, timeout:20000, maximumAge:60000 }
+    );
+  };
+
+  // Try a fast, high-accuracy fix first; fall back to a longer, low-accuracy
+  // attempt (works better on laptops / weak GPS / indoor Wi-Fi positioning).
   navigator.geolocation.getCurrentPosition(
-    pos => beginGame({ lat:pos.coords.latitude, lng:pos.coords.longitude }),
-    err => {
-      statusEl.textContent = "Couldn't get your location (" + err.message + "). Try again or enter coordinates manually.";
-      statusEl.style.display='block';
-    },
-    { enableHighAccuracy:true, timeout:10000 }
+    onSuccess,
+    () => tryLowAccuracy(),
+    { enableHighAccuracy:true, timeout:12000, maximumAge:0 }
   );
 }
 
-$('use-location-btn').addEventListener('click', requestLocation);
+$('use-location-btn').addEventListener('click', (e)=>requestLocation(e.currentTarget));
 $('manual-toggle').addEventListener('click', ()=>{
   $('manual-coords').style.display = $('manual-coords').style.display==='flex' ? 'none' : 'flex';
   $('manual-coords').style.flexDirection='column';
@@ -777,7 +875,10 @@ $('result-close').addEventListener('click', closeFishingOverlay);
 $('bag-btn').addEventListener('click', openBag);
 $('bag-close').addEventListener('click', closeBag);
 $('bag-scrim').addEventListener('click', closeBag);
-$('recenter-btn').addEventListener('click', ()=>{ if(map && center) map.setView([center.lat,center.lng], 12); });
+$('recenter-btn').addEventListener('click', ()=>{
+  const pt = liveLatLng || center;
+  if(map && pt) map.setView([pt.lat,pt.lng], 14);
+});
 
 </script>
 </body>
