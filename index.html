@@ -128,6 +128,19 @@
   #boost-chip .boost-flame{font-size:13px; line-height:1;}
   #boost-chip b{color:var(--boost); font-weight:800;}
 
+  #prawn-chip{
+    position:fixed; top:146px; left:14px; z-index:200; cursor:pointer;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
+    display:flex; align-items:center; gap:6px;
+    transition:transform .15s ease;
+  }
+  #prawn-chip:active{transform:scale(0.95);}
+  #prawn-chip.ready{
+    color:#04201c; border-color:rgba(57,255,143,0.4) !important;
+    background:linear-gradient(90deg,#39ff8f,#00e5ff) !important;
+    font-weight:800; animation:fabPulse 2.4s ease-in-out infinite;
+  }
+
   /* ---------- Selected spot / cast panel ---------- */
   #cast-panel{
     position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
@@ -378,6 +391,109 @@
   #bag-empty{text-align:center; padding:60px 20px; color:var(--ink-dim);}
   #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
   #bag-empty p{font-size:14px; line-height:1.5; max-width:230px; margin:0 auto;}
+
+  /* ---------- Prawn Trap ---------- */
+  #prawn-overlay{
+    position:fixed; inset:0; z-index:820;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    background:linear-gradient(180deg, var(--deep-0) 0%, var(--deep-1) 22%, var(--deep-2) 46%, var(--deep-3) 68%, var(--deep-4) 86%, var(--deep-5) 100%);
+    background-size:100% 260%; background-position:0% 60%;
+    transition:opacity .4s ease;
+    overflow:hidden; padding:24px;
+  }
+  #prawn-overlay.active{opacity:1; pointer-events:auto;}
+  #prawn-content{position:relative; z-index:2; width:100%; max-width:360px; text-align:center;}
+  .prawn-card{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); border-radius:26px;
+    padding:30px 24px 26px; backdrop-filter:blur(10px); color:#fff;
+  }
+  .prawn-icon-big{font-size:52px; margin-bottom:12px;}
+  .prawn-title{font-family:'Bricolage Grotesque'; font-size:22px; font-weight:800; margin:0 0 10px;}
+  .prawn-desc{font-size:13.5px; color:rgba(255,255,255,0.75); line-height:1.55; margin:0 0 22px;}
+  .prawn-countdown{font-family:'Bricolage Grotesque'; font-size:32px; font-weight:800; color:#4fe0ff; margin-bottom:6px; font-variant-numeric:tabular-nums;}
+  .prawn-sub{font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px;}
+  #prawn-close{
+    position:absolute; top:18px; right:18px; z-index:3; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  #prawn-close svg{width:16px; height:16px; stroke:#fff;}
+  #prawn-trap-icon{
+    position:absolute; left:50%; transform:translate(-50%,-50%); font-size:38px; z-index:2;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+  }
+  .prawn-results-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;}
+  .prawn-result-card{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:12px 8px;
+  }
+  .prawn-result-empty{grid-column:span 2; padding:24px 10px; color:rgba(255,255,255,0.55); font-size:13px;}
+
+  /* ---------- Friends ---------- */
+  #friends-scrim{
+    position:fixed; inset:0; background:rgba(10,25,35,0.45); z-index:900;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #friends-scrim.show{opacity:1; pointer-events:auto;}
+  #friends-drawer{
+    position:fixed; left:0; right:0; bottom:0; z-index:901; max-height:82vh;
+    background:var(--panel-solid); border-radius:26px 26px 0 0; border:1px solid rgba(18,41,58,0.08); border-bottom:none;
+    box-shadow:0 -8px 40px rgba(18,41,58,0.12);
+    transform:translateY(100%); transition:transform .38s cubic-bezier(.2,.9,.25,1);
+    display:flex; flex-direction:column; overflow-y:auto;
+  }
+  #friends-drawer.show{transform:translateY(0);}
+  .friends-add-row{display:flex; gap:8px; padding:4px 20px 18px;}
+  .friends-add-row input{
+    flex:1; background:#f4f9fb; border:1px solid var(--line); color:var(--ink); border-radius:12px;
+    padding:11px 13px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  .friends-add-row button{
+    flex:0 0 auto; appearance:none; border:none; border-radius:999px; padding:0 18px; font-weight:800; font-size:13px;
+    background:linear-gradient(160deg,#4fe0ff,#0e86c4); color:#02121e; cursor:pointer;
+  }
+  #friends-error{color:var(--tier-ultimate); font-size:12px; padding:0 20px 10px; min-height:14px;}
+  .friends-row{
+    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
+    background:#f4f9fb; margin:0 16px 8px; cursor:pointer;
+  }
+  .friends-row-avatar{font-size:22px; flex:0 0 auto;}
+  .friends-row-name{flex:1; font-weight:700; font-size:14px; min-width:0;}
+  .friends-row-actions{display:flex; gap:6px; flex:0 0 auto;}
+  .friends-row-actions button{
+    appearance:none; border:none; border-radius:999px; padding:7px 13px; font-weight:800; font-size:11.5px; cursor:pointer;
+  }
+  .fr-accept{background:linear-gradient(90deg,#39ff8f,#00e5ff); color:#04201c;}
+  .fr-decline{background:#eef2f6; color:var(--ink-dim);}
+  .friends-pending-tag{font-size:11px; color:var(--ink-dim); font-weight:700; flex:0 0 auto;}
+  .friends-empty{text-align:center; padding:30px 20px; color:var(--ink-dim); font-size:13px;}
+
+  #friend-gear-scrim{
+    position:fixed; inset:0; z-index:950; background:rgba(10,25,35,0.55);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #friend-gear-scrim.show{opacity:1; pointer-events:auto;}
+  #friend-gear-card{
+    width:100%; max-width:340px; border-radius:26px; padding:30px 24px 24px; text-align:center;
+    background:#ffffff; box-shadow:0 30px 70px rgba(0,0,0,0.3);
+    transform:translateY(16px) scale(0.96); opacity:0;
+    transition:transform .35s cubic-bezier(.2,.9,.25,1), opacity .3s ease;
+    position:relative;
+  }
+  #friend-gear-scrim.show #friend-gear-card{transform:translateY(0) scale(1); opacity:1;}
+  #friend-gear-close{
+    position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:50%;
+    background:rgba(18,41,58,0.06); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  #friend-gear-close svg{width:14px; height:14px; stroke:var(--ink);}
+  #friend-gear-avatar{font-size:44px; margin-bottom:10px;}
+  #friend-gear-name{font-family:'Bricolage Grotesque'; font-size:19px; font-weight:800; margin-bottom:16px;}
+  #friend-gear-stats{display:flex; justify-content:space-around; padding:14px 4px; border-radius:16px; background:rgba(14,134,196,0.06); margin-bottom:14px;}
+  .fg-stat span{display:block; font-family:'Bricolage Grotesque'; font-size:16px; font-weight:800;}
+  .fg-stat label{display:block; font-size:10px; text-transform:uppercase; color:var(--ink-dim); font-weight:700; margin-top:3px;}
+  #friend-gear-cosmetics{display:flex; flex-direction:column; gap:8px;}
+  .fg-cosmetic-row{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:#f4f9fb; font-size:13px; text-align:left;}
 
   /* ---------- Sign-in reminder ---------- */
   #signin-banner{
@@ -686,6 +802,11 @@
   #rod-progress-bar{height:10px; border-radius:999px; background:#eef2f6; overflow:hidden;}
   #rod-progress-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#ffd23f,#ff8a3f); transition:width .5s ease;}
   #rod-progress-label{font-size:11.5px; color:var(--ink-dim); margin-top:7px; font-weight:600;}
+  #weekly-challenge-card{margin:0 20px 6px; padding:14px 16px; border-radius:16px; background:rgba(255,138,63,0.08); border:1px solid rgba(255,138,63,0.25);}
+  #weekly-challenge-label{font-weight:700; font-size:13.5px; margin-bottom:8px;}
+  #weekly-challenge-bar{height:9px; border-radius:999px; background:#f2e4d8; overflow:hidden;}
+  #weekly-challenge-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#ff8a3f,#ffd23f); transition:width .5s ease;}
+  #weekly-challenge-status{font-size:11.5px; color:var(--ink-dim); margin-top:7px; font-weight:600;}
   .settings-section-title{font-family:'Bricolage Grotesque'; font-size:14px; font-weight:800; margin:4px 20px 10px; color:var(--ink);}
   #rod-milestones{padding:0 16px;}
   .rod-row{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:14px; background:#f4f9fb; margin-bottom:7px;}
@@ -849,6 +970,10 @@
   <span class="boost-flame">🔥</span>
   Boost active <b id="boost-value">10:00</b>
 </div>
+<div id="prawn-chip" class="glass hidden" style="border-radius:999px;">
+  <span class="boost-flame">🦐</span>
+  <span id="prawn-chip-text">Set a Prawn Trap</span>
+</div>
 
 <div id="signin-banner" class="glass">
   <div id="signin-banner-text">
@@ -902,6 +1027,11 @@
   </div>
 </div>
 
+<!-- Prawn Trap -->
+<div id="prawn-overlay">
+  <div id="prawn-content"></div>
+</div>
+
 <!-- Bag drawer -->
 <div id="bag-scrim"></div>
 <div id="bag-drawer">
@@ -953,6 +1083,9 @@
     </div>
     <div id="account-rank"></div>
     <button class="btn btn-primary" id="open-shop-btn">🧰 Tackle Shop</button>
+    <button class="btn btn-primary" id="open-friends-btn" style="position:relative;">👥 Friends
+      <span class="bag-badge hidden" id="friends-alert" style="top:-6px; right:-6px;">0</span>
+    </button>
     <button class="btn btn-primary" id="view-leaderboard-btn">View Leaderboard</button>
     <button class="btn btn-ghost" id="account-signout-btn">Sign Out</button>
   </div>
@@ -971,6 +1104,37 @@
     </div>
   </div>
   <div id="shop-content"></div>
+</div>
+
+<!-- Friends -->
+<div id="friends-scrim"></div>
+<div id="friends-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>Friends</h2>
+    <button class="close-x" id="friends-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="friends-add-row">
+    <input type="text" id="friend-username-input" placeholder="Friend's username" autocomplete="off" autocapitalize="off" autocorrect="off">
+    <button id="friend-add-btn">Add</button>
+  </div>
+  <div id="friends-error"></div>
+  <div id="friends-content"></div>
+</div>
+
+<!-- Friend gear popup -->
+<div id="friend-gear-scrim">
+  <div id="friend-gear-card">
+    <button id="friend-gear-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div id="friend-gear-avatar">🎣</div>
+    <div id="friend-gear-name"></div>
+    <div id="friend-gear-stats">
+      <div class="fg-stat"><span id="fg-points"></span><label>Points</label></div>
+      <div class="fg-stat"><span id="fg-rod"></span><label>Rod Level</label></div>
+      <div class="fg-stat"><span id="fg-catches"></span><label>Catches</label></div>
+    </div>
+    <div id="friend-gear-cosmetics"></div>
+  </div>
 </div>
 
 <!-- Leaderboard: full-screen electric takeover -->
@@ -1035,6 +1199,12 @@
   <div id="rod-progress-wrap">
     <div id="rod-progress-bar"><div id="rod-progress-fill"></div></div>
     <div id="rod-progress-label"></div>
+  </div>
+  <h3 class="settings-section-title">🏆 This Week's Challenge</h3>
+  <div id="weekly-challenge-card">
+    <div id="weekly-challenge-label"></div>
+    <div id="weekly-challenge-bar"><div id="weekly-challenge-fill"></div></div>
+    <div id="weekly-challenge-status"></div>
   </div>
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
   <div id="rod-milestones"></div>
@@ -1155,6 +1325,88 @@
     await updateDoc(ref, { shop: shopState });
   }
 
+  async function syncPrawnTrap(uid, prawnState){
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { prawn: prawnState });
+  }
+
+  function normUidLookup(username){
+    return (username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  }
+
+  async function fetchPlayerByUid(uid){
+    const ref = doc(db, 'players', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return null;
+    const data = snap.data();
+    return {
+      uid: snap.id, displayName: data.displayName, points: data.points || 0,
+      bag: data.bag || [], shop: data.shop || null
+    };
+  }
+
+  async function sendFriendRequest(myUid, myDisplayName, targetUsername){
+    const targetUid = normUidLookup(targetUsername);
+    if(!targetUid) throw new Error('Enter a username.');
+    if(targetUid === myUid) throw new Error("You can't friend yourself.");
+    const targetRef = doc(db, 'players', targetUid);
+    const targetSnap = await getDoc(targetRef);
+    if(!targetSnap.exists()) throw new Error('No account found with that username.');
+    const targetData = targetSnap.data();
+
+    if((targetData.friends||[]).includes(myUid)) throw new Error('You\u2019re already friends.');
+    if((targetData.incomingRequests||[]).some(r=>r.uid===myUid)) throw new Error('Request already sent.');
+
+    const myRef = doc(db, 'players', myUid);
+    const mySnap = await getDoc(myRef);
+    const myData = mySnap.exists() ? mySnap.data() : {};
+
+    const now = Date.now();
+    const newIncoming = [...(targetData.incomingRequests||[]), { uid: myUid, displayName: myDisplayName, sentAt: now }];
+    const newOutgoing = [...(myData.outgoingRequests||[]), { uid: targetUid, displayName: targetData.displayName, sentAt: now }];
+
+    await updateDoc(targetRef, { incomingRequests: newIncoming });
+    await updateDoc(myRef, { outgoingRequests: newOutgoing });
+    return { displayName: targetData.displayName };
+  }
+
+  async function respondFriendRequest(myUid, myDisplayName, requesterUid, accept){
+    const myRef = doc(db, 'players', myUid);
+    const mySnap = await getDoc(myRef);
+    if(!mySnap.exists()) throw new Error('Account not found.');
+    const myData = mySnap.data();
+
+    const remainingIncoming = (myData.incomingRequests||[]).filter(r=>r.uid!==requesterUid);
+
+    if(accept){
+      const newFriends = Array.from(new Set([...(myData.friends||[]), requesterUid]));
+      await updateDoc(myRef, { incomingRequests: remainingIncoming, friends: newFriends });
+
+      const reqRef = doc(db, 'players', requesterUid);
+      const reqSnap = await getDoc(reqRef);
+      if(reqSnap.exists()){
+        const reqData = reqSnap.data();
+        const theirFriends = Array.from(new Set([...(reqData.friends||[]), myUid]));
+        const theirOutgoing = (reqData.outgoingRequests||[]).filter(r=>r.uid!==myUid);
+        await updateDoc(reqRef, { friends: theirFriends, outgoingRequests: theirOutgoing });
+      }
+    } else {
+      await updateDoc(myRef, { incomingRequests: remainingIncoming });
+    }
+  }
+
+  async function fetchFriendsState(uid){
+    const ref = doc(db, 'players', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return { friends:[], incomingRequests:[], outgoingRequests:[] };
+    const data = snap.data();
+    return {
+      friends: data.friends || [],
+      incomingRequests: data.incomingRequests || [],
+      outgoingRequests: data.outgoingRequests || []
+    };
+  }
+
   function avatarIdFromData(data){
     return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
   }
@@ -1183,7 +1435,11 @@
     return out;
   }
 
-  window.DriftlineCloud = { signUp, signIn, syncBag, syncShop, fetchLeaderboard, fetchAllPlayersForPeriods };
+  window.DriftlineCloud = {
+    signUp, signIn, syncBag, syncShop, syncPrawnTrap,
+    fetchLeaderboard, fetchAllPlayersForPeriods,
+    sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid
+  };
 </script>
 
 <script>
@@ -1231,6 +1487,10 @@ let session = loadSession();     // { uid, displayName } | null
 let pendingRodUpgrade = null;    // level number, shown once the fishing overlay closes
 let shopState = loadShopState();
 let shopTab = 'shop';            // 'shop' | 'gear'
+let friendsState = { friends:[], incomingRequests:[], outgoingRequests:[] };
+let friendsProfileCache = {};    // uid -> fetched player summary, for the friends list view
+let prawnTrap = loadPrawnTrap(); // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
+let prawnTickInterval = null;
 let authMode = 'signin';         // 'signin' | 'signup'
 
 const $ = (id)=>document.getElementById(id);
@@ -1266,6 +1526,7 @@ function defaultShopState(){
     ownedCosmetics: { avatars:['default'], hooks:['classic'] },
     equipped: { avatar:'default', hook:'classic' },
     activeBoosts: [],
+    lastChallengeClaimedWeek: null,
     updatedAt: 0
   };
 }
@@ -1284,6 +1545,7 @@ function loadShopState(){
       },
       equipped: { avatar: (s.equipped&&s.equipped.avatar)||'default', hook: (s.equipped&&s.equipped.hook)||'classic' },
       activeBoosts: s.activeBoosts||[],
+      lastChallengeClaimedWeek: s.lastChallengeClaimedWeek||null,
       updatedAt: s.updatedAt||0
     };
   }catch(e){ return defaultShopState(); }
@@ -1292,6 +1554,20 @@ function saveShopState(){ localStorage.setItem('driftline_shop', JSON.stringify(
 function syncShopToCloud(){
   if(!session || !window.DriftlineCloud) return;
   window.DriftlineCloud.syncShop(session.uid, shopState).catch(()=>{});
+}
+function loadPrawnTrap(){
+  try{
+    const t = JSON.parse(localStorage.getItem('driftline_prawn')||'null');
+    return (t && typeof t==='object') ? t : null;
+  }catch(e){ return null; }
+}
+function savePrawnTrap(){
+  if(prawnTrap) localStorage.setItem('driftline_prawn', JSON.stringify(prawnTrap));
+  else localStorage.removeItem('driftline_prawn');
+}
+function syncPrawnTrapToCloud(){
+  if(!session || !window.DriftlineCloud) return;
+  window.DriftlineCloud.syncPrawnTrap(session.uid, prawnTrap).catch(()=>{});
 }
 
 /* ====================== GEO / MATH HELPERS ====================== */
@@ -1779,6 +2055,184 @@ function pickFish(tierKey){
   return list[Math.floor(Math.random()*list.length)];
 }
 
+/* ====================== PRAWN TRAP ====================== */
+const PRAWN_TRAP_MS = 60*60*1000; // 1 hour
+
+function isPrawnTrapReady(){
+  return !!prawnTrap && Date.now() >= prawnTrap.resolveAt;
+}
+function updatePrawnChip(){
+  const chip = $('prawn-chip');
+  const text = $('prawn-chip-text');
+  if(!chip || !text) return;
+  if(!prawnTrap){
+    chip.classList.remove('ready');
+    text.textContent = 'Set a Prawn Trap';
+  } else if(isPrawnTrapReady()){
+    chip.classList.add('ready');
+    text.textContent = 'Trap ready! Tap to collect';
+    if($('prawn-overlay').classList.contains('active')) renderPrawnState();
+  } else {
+    chip.classList.remove('ready');
+    const remain = prawnTrap.resolveAt - Date.now();
+    const mm = Math.floor(remain/60000);
+    const ss = Math.floor((remain%60000)/1000);
+    text.textContent = `Trap: ${mm}:${String(ss).padStart(2,'0')}`;
+    const liveCountdown = $('prawn-live-countdown');
+    if(liveCountdown) liveCountdown.textContent = `${mm}:${String(ss).padStart(2,'0')}`;
+  }
+}
+function startPrawnTicker(){
+  clearInterval(prawnTickInterval);
+  prawnTickInterval = setInterval(updatePrawnChip, 1000);
+}
+function openPrawnOverlay(){
+  $('prawn-overlay').classList.add('active');
+  spawnBubbles('prawn-overlay');
+  renderPrawnState();
+}
+function closePrawnOverlay(){
+  $('prawn-overlay').classList.remove('active');
+}
+function renderPrawnState(){
+  const content = $('prawn-content');
+  if(!prawnTrap){
+    content.innerHTML = `
+      <button id="prawn-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="prawn-card">
+        <div class="prawn-icon-big">\u{1F990}</div>
+        <h3 class="prawn-title">Set a Prawn Trap</h3>
+        <p class="prawn-desc">Drop a trap at your current location. Come back in an hour to pull it up \u2014 it'll make 1\u20135 catch attempts using the same odds as a regular cast right here, right now.</p>
+        <button class="btn btn-primary" id="prawn-deploy-btn" style="width:100%;">Set Trap Here</button>
+      </div>`;
+    wirePrawnContentButtons();
+    return;
+  }
+  if(!isPrawnTrapReady()){
+    const remain = prawnTrap.resolveAt - Date.now();
+    const mm = Math.floor(remain/60000);
+    const ss = Math.floor((remain%60000)/1000);
+    content.innerHTML = `
+      <button id="prawn-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="prawn-card">
+        <div class="prawn-icon-big">\u{1F990}</div>
+        <h3 class="prawn-title">Trap Is Down</h3>
+        <div class="prawn-countdown" id="prawn-live-countdown">${mm}:${String(ss).padStart(2,'0')}</div>
+        <div class="prawn-sub">until you can pull it back up</div>
+        <p class="prawn-desc">Go do something else \u2014 keep fishing, check the leaderboard, whatever. This chip up top will tell you when it's ready.</p>
+      </div>`;
+    wirePrawnContentButtons();
+    return;
+  }
+  content.innerHTML = `
+    <button id="prawn-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="prawn-card">
+      <div class="prawn-icon-big">\u{1F990}</div>
+      <h3 class="prawn-title">Trap Is Ready!</h3>
+      <p class="prawn-desc">Time to pull it up and see what you caught.</p>
+      <button class="btn btn-primary" id="prawn-collect-btn" style="width:100%;">Pull Up Trap</button>
+    </div>`;
+  wirePrawnContentButtons();
+}
+function wirePrawnContentButtons(){
+  const closeBtn = $('prawn-close');
+  if(closeBtn) closeBtn.addEventListener('click', closePrawnOverlay);
+  const deployBtn = $('prawn-deploy-btn');
+  if(deployBtn) deployBtn.addEventListener('click', deployPrawnTrap);
+  const collectBtn = $('prawn-collect-btn');
+  if(collectBtn) collectBtn.addEventListener('click', collectPrawnTrap);
+}
+function deployPrawnTrap(){
+  if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
+  if(prawnTrap){ showToast('You already have a trap out.'); return; }
+  const { odds, hotspot } = oddsAtPoint(liveLatLng);
+  const now = Date.now();
+  prawnTrap = {
+    lat: liveLatLng.lat, lng: liveLatLng.lng,
+    deployedAt: now, resolveAt: now + PRAWN_TRAP_MS,
+    odds, wasHotspot: !!hotspot,
+    attempts: 1 + Math.floor(Math.random()*5)
+  };
+  savePrawnTrap();
+  syncPrawnTrapToCloud();
+  updatePrawnChip();
+  playSplashSound();
+  spawnSplash();
+  showToast('\u{1F990} Trap set! Check back in an hour.');
+  setTimeout(closePrawnOverlay, 900);
+}
+function collectPrawnTrap(){
+  if(!prawnTrap || !isPrawnTrapReady()) return;
+  playSplashSound();
+  spawnSplash();
+  const trap = prawnTrap;
+  const results = [];
+  for(let i=0;i<trap.attempts;i++){
+    const success = Math.random()*100 < trap.odds;
+    if(success){
+      const tier = trap.wasHotspot ? pickTier() : TIERS[0];
+      const fish = pickFish(tier.key);
+      results.push({ fish, tier });
+    }
+  }
+  if(results.length){
+    addCatchesToBagBatch(results, trap.lat, trap.lng);
+  }
+  prawnTrap = null;
+  savePrawnTrap();
+  syncPrawnTrapToCloud();
+  updatePrawnChip();
+  setTimeout(()=>renderPrawnResults(results, trap.attempts), 300);
+}
+function addCatchesToBagBatch(catches, lat, lng){
+  const bag = loadBag();
+  const pointsBefore = computePoints(bag);
+  const now = Date.now();
+  catches.forEach((c,i)=>{
+    bag.unshift({ name:c.fish, tier:c.tier.key, ts: now+i, lat, lng });
+  });
+  saveBag(bag);
+  updateBagBadge();
+  syncBagToCloud(bag);
+
+  const pointsAfter = computePoints(bag);
+  const levelBefore = rodLevelForPoints(pointsBefore);
+  const levelAfter = rodLevelForPoints(pointsAfter);
+  if(levelAfter > levelBefore) pendingRodUpgrade = levelAfter;
+  checkWeeklyChallenge();
+}
+function renderPrawnResults(results, attempts){
+  const content = $('prawn-content');
+  const cardsHtml = results.length
+    ? results.map(r=>`
+        <div class="prawn-result-card">
+          <div style="font-size:22px; margin-bottom:4px; color:${r.tier.hex}">\u{1F990}</div>
+          <div style="font-weight:700; font-size:12px; color:#fff;">${r.fish}</div>
+          <div class="tier-tag" style="background:${r.tier.hex}22;color:${r.tier.hex}; margin-top:6px; display:inline-block;">${r.tier.label}</div>
+        </div>`).join('')
+    : `<div class="prawn-result-empty">The trap came up empty this time \u2014 ${attempts} attempt${attempts===1?'':'s'}, no luck. Try again in an hour.</div>`;
+
+  content.innerHTML = `
+    <button id="prawn-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="prawn-card">
+      <div class="prawn-icon-big">\u{1F990}</div>
+      <h3 class="prawn-title">${results.length ? `Caught ${results.length}!` : 'Empty Trap'}</h3>
+      <p class="prawn-desc">${attempts} attempt${attempts===1?'':'s'} rolled, using the bite chance from when you set the trap.</p>
+      <div class="prawn-results-grid">${cardsHtml}</div>
+      <button class="btn btn-primary" id="prawn-done-btn" style="width:100%;">Nice</button>
+    </div>`;
+  const closeBtn = $('prawn-close');
+  if(closeBtn) closeBtn.addEventListener('click', closePrawnOverlay);
+  $('prawn-done-btn').addEventListener('click', ()=>{
+    closePrawnOverlay();
+    if(pendingRodUpgrade){
+      const level = pendingRodUpgrade;
+      pendingRodUpgrade = null;
+      setTimeout(()=>showRodUpgrade(level), 400);
+    }
+  });
+}
+
 function attemptCast(){
   ensureAudioCtx(); // must happen inside the click gesture for audio to be allowed
   if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
@@ -1963,9 +2417,9 @@ function spawnStrikeShockwave(x, y, color){
   setTimeout(()=>flash.remove(), 400);
 }
 
-function spawnBubbles(){
-  const overlay = $('fishing-overlay');
-  document.querySelectorAll('.bubble').forEach(b=>b.remove());
+function spawnBubbles(overlayId){
+  const overlay = $(overlayId || 'fishing-overlay');
+  overlay.querySelectorAll('.bubble').forEach(b=>b.remove());
   const n = 30;
   for(let i=0;i<n;i++){
     const b = document.createElement('div');
@@ -2086,6 +2540,7 @@ function addToBag(name, tierKey){
   if(levelAfter > levelBefore){
     pendingRodUpgrade = levelAfter;
   }
+  checkWeeklyChallenge();
 }
 function tierIndexOf(tierKey){
   return TIERS.findIndex(t=>t.key===tierKey);
@@ -2122,6 +2577,56 @@ const HOOK_COSMETICS = [
   { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:90 },
   { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:125 }
 ];
+
+/* ====================== WEEKLY CHALLENGE ====================== */
+const WEEKLY_CHALLENGE_BOOST = 15;      // +15% bite chance
+const WEEKLY_CHALLENGE_MS = 24*60*60*1000; // for 24 hours
+const WEEKLY_CHALLENGE_TEMPLATES = [
+  { id:'catch5',   label:'Catch 5 fish this week',                     target:5,  minTierIdx:0, distinct:false },
+  { id:'catch10',  label:'Catch 10 fish this week',                    target:10, minTierIdx:0, distinct:false },
+  { id:'hard3',    label:'Catch 3 Hard-tier or better fish this week', target:3,  minTierIdx:1, distinct:false },
+  { id:'rare1',    label:'Catch a Rare-tier or better fish this week', target:1,  minTierIdx:2, distinct:false },
+  { id:'species5', label:'Catch 5 different species this week',        target:5,  minTierIdx:0, distinct:true }
+];
+function isoWeekId(d){
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (date.getUTCDay()+6)%7;
+  date.setUTCDate(date.getUTCDate()-dayNum+3);
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(),0,4));
+  const week = 1 + Math.round(((date-firstThursday)/86400000 - 3 + ((firstThursday.getUTCDay()+6)%7))/7);
+  return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function currentWeekId(){ return isoWeekId(new Date()); }
+function weekStartMs(){
+  const now = new Date();
+  const day = (now.getDay()+6)%7; // Monday=0
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-day, 0,0,0,0);
+  return start.getTime();
+}
+function currentWeeklyChallenge(){
+  const wid = currentWeekId();
+  let hash = 0;
+  for(let i=0;i<wid.length;i++) hash = (hash*31 + wid.charCodeAt(i)) >>> 0;
+  const template = WEEKLY_CHALLENGE_TEMPLATES[hash % WEEKLY_CHALLENGE_TEMPLATES.length];
+  return { weekId: wid, ...template };
+}
+function weeklyChallengeProgress(){
+  const challenge = currentWeeklyChallenge();
+  const start = weekStartMs();
+  const bag = loadBag().filter(c=>c.ts >= start);
+  const eligible = bag.filter(c=> tierIndexOf(c.tier) >= challenge.minTierIdx);
+  const progress = challenge.distinct ? new Set(eligible.map(c=>c.name)).size : eligible.length;
+  return { challenge, progress: Math.min(progress, challenge.target), claimed: shopState.lastChallengeClaimedWeek === challenge.weekId };
+}
+function checkWeeklyChallenge(){
+  const { challenge, progress, claimed } = weeklyChallengeProgress();
+  if(claimed || progress < challenge.target) return;
+  shopState.lastChallengeClaimedWeek = challenge.weekId;
+  saveShopState();
+  syncShopToCloud();
+  grantBoost('weekly_challenge', WEEKLY_CHALLENGE_BOOST, WEEKLY_CHALLENGE_MS);
+  showToast(`\u{1F3C6} Weekly Challenge complete! +${WEEKLY_CHALLENGE_BOOST}% bite chance for 24 hours!`);
+}
 
 /* ====================== ROD UPGRADES ====================== */
 // Explicit early milestones, then the pattern keeps extending forever so
@@ -2517,12 +3022,22 @@ function equippedHookColor(){
 /* ---- Settings / rod roadmap ---- */
 function openSettingsDrawer(){
   renderRodSettings();
+  renderWeeklyChallengeSettings();
   $('settings-scrim').classList.add('show');
   $('settings-drawer').classList.add('show');
 }
 function closeSettingsDrawer(){
   $('settings-scrim').classList.remove('show');
   $('settings-drawer').classList.remove('show');
+}
+function renderWeeklyChallengeSettings(){
+  const { challenge, progress, claimed } = weeklyChallengeProgress();
+  $('weekly-challenge-label').textContent = challenge.label;
+  const pct = Math.round(progress/challenge.target*100);
+  $('weekly-challenge-fill').style.width = pct+'%';
+  $('weekly-challenge-status').textContent = claimed
+    ? `\u2713 Completed \u2014 enjoy your +${WEEKLY_CHALLENGE_BOOST}% boost!`
+    : `${progress} / ${challenge.target} \u2014 complete for +${WEEKLY_CHALLENGE_BOOST}% bite chance for 24 hours`;
 }
 function renderRodSettings(){
   const points = computePoints(loadBag());
@@ -2578,8 +3093,11 @@ const TUTORIAL_STEPS = [
   { title:'The Shop', desc:'Buy a Rod Token for an instant permanent level, or grab a Lure for a temporary boost. Chum Coins come from your points \u2014 1 coin per point earned.', target:'shop-tabs', action:'open-shop' },
   { title:'My Gear', desc:'Switch here to see your rod level, any active boosts counting down, your lure inventory, and your equipped cosmetics.', target:'shop-tabs', action:'open-shop-gear' },
   { title:'Settings & Rod Upgrades', desc:'See your full rod upgrade roadmap here \u2014 every level is a permanent bite-chance boost, whether you earn it or buy it. You can always replay this tour from this screen too.', target:'settings-btn', action:'open-settings' },
+  { title:"This Week's Challenge", desc:'A new challenge appears every week, same for everyone. Complete it and you get +15% bite chance for a full 24 hours \u2014 check your progress right here in Settings.', target:'weekly-challenge-card' },
   { title:'Your Bag', desc:'Every fish you\u2019ve ever caught, organized by rarity.', target:'bag-btn', action:'open-bag' },
   { title:'Field Guide', desc:'Switch tabs here to browse every catchable species in Driftline, caught or not \u2014 tap the tier counts up top to jump straight to a section.', target:'bag-tabs' },
+  { title:'Friends', desc:"Add friends by username from your Account. Once they accept, you can check out each other's gear \u2014 rod level, cosmetics, everything.", target:'open-friends-btn', action:'open-friends' },
+  { title:'Prawn Trap', desc:'A slower way to fish: set a trap at your location, then come back in an hour to pull it up. It rolls 1\u20135 catch attempts using the bite chance from when you set it \u2014 keep an eye on this chip.', target:'prawn-chip', action:'open-prawn' },
   { title:'You\u2019re All Set! \u{1F3A3}', desc:'That covers everything. Go stand somewhere real, find a hotspot, and cast your line.', target:null, action:'close-all' }
 ];
 
@@ -2627,6 +3145,9 @@ function closeAllOverlaysForTutorial(){
   closeShop();
   closeLeaderboard();
   closeFishDetail();
+  closeFriendsDrawer();
+  closeFriendGear();
+  closePrawnOverlay();
 }
 function applyTutorialAction(action){
   switch(action){
@@ -2635,6 +3156,8 @@ function applyTutorialAction(action){
     case 'open-shop-gear': closeAllOverlaysForTutorial(); openShop(); setShopTab('gear'); break;
     case 'open-settings': closeAllOverlaysForTutorial(); openSettingsDrawer(); break;
     case 'open-bag': closeAllOverlaysForTutorial(); openBag(); break;
+    case 'open-friends': closeAllOverlaysForTutorial(); openAccountDrawer(); break;
+    case 'open-prawn': closeAllOverlaysForTutorial(); openPrawnOverlay(); break;
     case 'close-all': closeAllOverlaysForTutorial(); break;
   }
 }
@@ -2687,7 +3210,25 @@ function positionTutorialSpotlight(targetId){
 function updateAccountBadge(){
   const dot = $('account-alert');
   if(!dot) return;
-  dot.classList.toggle('hidden', !!session);
+  if(!session){ dot.classList.remove('hidden'); dot.textContent='!'; return; }
+  const count = friendsState.incomingRequests.length;
+  if(count>0){ dot.classList.remove('hidden'); dot.textContent = count>9?'9+':String(count); }
+  else dot.classList.add('hidden');
+  updateFriendsBadge();
+}
+function updateFriendsBadge(){
+  const dot = $('friends-alert');
+  if(!dot) return;
+  const count = friendsState.incomingRequests.length;
+  if(count>0){ dot.classList.remove('hidden'); dot.textContent = count>9?'9+':String(count); }
+  else dot.classList.add('hidden');
+}
+async function refreshFriendsState(){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    friendsState = await window.DriftlineCloud.fetchFriendsState(session.uid);
+  }catch(e){ /* keep previous cached state on failure */ }
+  updateAccountBadge();
 }
 function checkSigninReminder(){
   updateAccountBadge();
@@ -2777,6 +3318,7 @@ async function afterAuthSuccess(result){
   updateBagBadge();
   if(bagViewMode) renderBag();
   checkSigninReminder();
+  refreshFriendsState();
   showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
   renderAccountDrawer();
 }
@@ -2787,6 +3329,143 @@ function handleSignOut(){
   checkSigninReminder();
   showToast('Signed out. Your bag stays saved on this device.');
 }
+
+/* ====================== FRIENDS ====================== */
+function openFriendsDrawer(){
+  $('friend-username-input').value = '';
+  $('friends-error').textContent = '';
+  $('friends-scrim').classList.add('show');
+  $('friends-drawer').classList.add('show');
+  renderFriendsDrawer();
+  refreshFriendsState().then(renderFriendsDrawer);
+}
+function closeFriendsDrawer(){
+  $('friends-scrim').classList.remove('show');
+  $('friends-drawer').classList.remove('show');
+}
+function renderFriendsDrawer(){
+  if(!session){
+    $('friends-content').innerHTML = `<div class="friends-empty">Sign in to add friends and see who's fishing.</div>`;
+    return;
+  }
+  let html = '';
+
+  if(friendsState.incomingRequests.length){
+    html += `<h3 class="settings-section-title" style="margin-top:6px;">Friend Requests</h3>`;
+    html += friendsState.incomingRequests.map(r=>`
+      <div class="friends-row">
+        <div class="friends-row-avatar">\u{1F3A3}</div>
+        <div class="friends-row-name">${r.displayName}</div>
+        <div class="friends-row-actions">
+          <button class="fr-accept" data-fr-action="accept" data-uid="${r.uid}">Accept</button>
+          <button class="fr-decline" data-fr-action="decline" data-uid="${r.uid}">Decline</button>
+        </div>
+      </div>`).join('');
+  }
+
+  html += `<h3 class="settings-section-title">Your Friends</h3>`;
+  if(friendsState.friends.length){
+    html += friendsState.friends.map(uid=>`
+      <div class="friends-row" data-fr-view="${uid}">
+        <div class="friends-row-avatar">\u{1F41F}</div>
+        <div class="friends-row-name" id="friend-name-${uid}">Loading\u2026</div>
+      </div>`).join('');
+  } else {
+    html += `<div class="friends-empty">No friends yet \u2014 add someone by username above.</div>`;
+  }
+
+  if(friendsState.outgoingRequests.length){
+    html += `<h3 class="settings-section-title">Pending</h3>`;
+    html += friendsState.outgoingRequests.map(r=>`
+      <div class="friends-row">
+        <div class="friends-row-avatar">\u{23F3}</div>
+        <div class="friends-row-name">${r.displayName}</div>
+        <div class="friends-pending-tag">Request sent</div>
+      </div>`).join('');
+  }
+
+  $('friends-content').innerHTML = html;
+
+  // Fill in real friend names asynchronously (we only stored uids).
+  friendsState.friends.forEach(uid=>{
+    getFriendProfile(uid).then(p=>{
+      const el = document.getElementById('friend-name-'+uid);
+      if(el && p) el.textContent = p.displayName;
+    });
+  });
+}
+async function getFriendProfile(uid){
+  if(friendsProfileCache[uid]) return friendsProfileCache[uid];
+  if(!window.DriftlineCloud) return null;
+  try{
+    const p = await window.DriftlineCloud.fetchPlayerByUid(uid);
+    if(p) friendsProfileCache[uid] = p;
+    return p;
+  }catch(e){ return null; }
+}
+async function handleAddFriend(){
+  const input = $('friend-username-input');
+  const errEl = $('friends-error');
+  errEl.textContent = '';
+  if(!session){ errEl.textContent = 'Sign in first.'; return; }
+  const username = input.value.trim();
+  if(!username){ errEl.textContent = 'Enter a username.'; return; }
+  if(!window.DriftlineCloud){ errEl.textContent = 'Still connecting \u2014 try again in a moment.'; return; }
+  try{
+    const result = await window.DriftlineCloud.sendFriendRequest(session.uid, session.displayName, username);
+    input.value = '';
+    showToast(`Friend request sent to ${result.displayName}!`);
+    await refreshFriendsState();
+    renderFriendsDrawer();
+  }catch(e){
+    errEl.textContent = (e && e.message) ? e.message : 'Something went wrong.';
+  }
+}
+async function handleFriendRequestAction(uid, accept){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    await window.DriftlineCloud.respondFriendRequest(session.uid, session.displayName, uid, accept);
+    showToast(accept ? 'Friend added! \u{1F41F}' : 'Request declined.');
+    delete friendsProfileCache[uid];
+    await refreshFriendsState();
+    renderFriendsDrawer();
+  }catch(e){
+    showToast("Couldn't update that request \u2014 try again.");
+  }
+}
+async function openFriendGear(uid){
+  const card = $('friend-gear-card');
+  $('friend-gear-name').textContent = 'Loading\u2026';
+  $('friend-gear-avatar').textContent = '\u{1F41F}';
+  $('fg-points').textContent = '\u2014';
+  $('fg-rod').textContent = '\u2014';
+  $('fg-catches').textContent = '\u2014';
+  $('friend-gear-cosmetics').innerHTML = '';
+  $('friend-gear-scrim').classList.add('show');
+
+  const p = await getFriendProfile(uid);
+  if(!p){
+    $('friend-gear-name').textContent = 'Could not load this angler.';
+    return;
+  }
+  const shop = p.shop || defaultShopState();
+  const points = p.points || computePoints(p.bag||[]);
+  const rodLevel = rodLevelForPoints(points) + (shop.bonusRodLevels||0);
+  const avatar = AVATAR_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.avatar)) || AVATAR_COSMETICS[0];
+  const hook = HOOK_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.hook)) || HOOK_COSMETICS[0];
+
+  $('friend-gear-avatar').textContent = avatar.emoji;
+  $('friend-gear-name').textContent = p.displayName;
+  $('fg-points').textContent = points.toLocaleString();
+  $('fg-rod').textContent = rodLevel;
+  $('fg-catches').textContent = (p.bag||[]).length.toLocaleString();
+  $('friend-gear-cosmetics').innerHTML = `
+    <div class="fg-cosmetic-row"><span>${avatar.emoji}</span><span>Avatar: <strong>${avatar.name}</strong></span></div>
+    <div class="fg-cosmetic-row"><span style="color:${hook.color}">\u2014</span><span>Hook: <strong>${hook.name}</strong></span></div>
+  `;
+}
+function closeFriendGear(){ $('friend-gear-scrim').classList.remove('show'); }
+
 const LB_WINDOWS = { day:24*60*60*1000, week:7*24*60*60*1000, month:30*24*60*60*1000, all:null };
 const LB_EMPTY_MSG = {
   day: 'No one\u2019s landed a catch today yet \u2014 be the first!',
@@ -2940,6 +3619,7 @@ function beginGame(pt, accuracy){
   $('start-screen').classList.add('hidden');
   $('topbar').classList.remove('hidden');
   $('timer-chip').classList.remove('hidden');
+  $('prawn-chip').classList.remove('hidden');
 
   const saved = loadState();
   if(saved && saved.center && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
@@ -2957,6 +3637,10 @@ function beginGame(pt, accuracy){
   checkSigninReminder();
   startSignoutReminderTimer();
   updateEquippedVisuals();
+  checkWeeklyChallenge();
+  updatePrawnChip();
+  startPrawnTicker();
+  if(session) refreshFriendsState();
   maybeAutoStartTutorial();
 }
 
@@ -3148,6 +3832,37 @@ $('replay-tutorial-btn').addEventListener('click', ()=>{
 $('tutorial-next').addEventListener('click', tutorialNext);
 $('tutorial-back').addEventListener('click', tutorialBack);
 $('tutorial-skip').addEventListener('click', endTutorial);
+
+/* ---- Friends listeners ---- */
+$('open-friends-btn').addEventListener('click', ()=>{
+  closeAccountDrawer();
+  openFriendsDrawer();
+});
+$('friends-close').addEventListener('click', closeFriendsDrawer);
+$('friends-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'friends-scrim') closeFriendsDrawer();
+});
+$('friend-add-btn').addEventListener('click', handleAddFriend);
+$('friend-username-input').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') handleAddFriend();
+});
+$('friends-content').addEventListener('click', (e)=>{
+  const actionBtn = e.target.closest('[data-fr-action]');
+  if(actionBtn){
+    const uid = actionBtn.dataset.uid;
+    handleFriendRequestAction(uid, actionBtn.dataset.frAction === 'accept');
+    return;
+  }
+  const row = e.target.closest('[data-fr-view]');
+  if(row) openFriendGear(row.dataset.frView);
+});
+$('friend-gear-close').addEventListener('click', closeFriendGear);
+$('friend-gear-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'friend-gear-scrim') closeFriendGear();
+});
+
+/* ---- Prawn Trap listeners ---- */
+$('prawn-chip').addEventListener('click', openPrawnOverlay);
 
 </script>
 </body>
