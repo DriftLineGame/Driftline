@@ -29,6 +29,7 @@
     --tier-rare:#c9860a;
     --tier-superrare:#9455e0;
     --tier-ultimate:#e0356f;
+    --tier-abyssal:#2b1150;
     --radius-lg:22px;
     --radius-md:14px;
   }
@@ -283,6 +284,12 @@
   .guide-section-count{font-size:10.5px; color:var(--ink-dim); font-weight:700; text-transform:none; letter-spacing:0;}
   .guide-row.uncaught{opacity:0.55;}
   .guide-row.uncaught .catch-name{color:var(--ink-dim);}
+  .guide-locked-note{
+    border:1px dashed; border-radius:16px; padding:14px 16px; margin-bottom:16px;
+    background:rgba(43,17,80,0.04);
+  }
+  .guide-locked-title{font-weight:800; font-size:13.5px; margin-bottom:4px;}
+  .guide-locked-note p{margin:0; font-size:12.5px; color:var(--ink-dim); line-height:1.5;}
 
   #bag-empty{text-align:center; padding:60px 20px; color:var(--ink-dim);}
   #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
@@ -470,14 +477,15 @@
 
 <script>
 /* ====================== FISH DATA ====================== */
-const FISH_DATA = {"common": ["Bluegill", "Pumpkinseed Sunfish", "Redear Sunfish", "Green Sunfish", "Longear Sunfish", "Warmouth", "Rock Bass", "Yellow Perch", "White Perch", "Black Crappie", "White Crappie", "Common Carp", "Grass Carp", "Bighead Carp", "Silver Carp", "Goldfish", "Fathead Minnow", "Golden Shiner", "Emerald Shiner", "Spottail Shiner", "Creek Chub", "Longnose Dace", "Blacknose Dace", "White Sucker", "Redhorse Sucker", "Quillback", "Brown Bullhead", "Yellow Bullhead", "Black Bullhead", "Channel Catfish", "White Catfish", "Bowfin", "Longnose Gar", "Spotted Gar", "Gizzard Shad", "Threadfin Shad", "Alewife", "Rainbow Smelt", "Brook Trout", "Brown Trout", "Rainbow Trout", "Lake Whitefish", "Round Whitefish", "Mountain Whitefish", "Burbot", "Northern Pikeminnow", "Mottled Sculpin", "Banded Killifish", "Mummichog", "Sheepshead Minnow", "Sailfin Molly", "Guppy", "Mosquitofish", "Fantail Darter", "Rainbow Darter", "Johnny Darter", "Logperch", "Stonecat", "Freshwater Drum", "Smallmouth Buffalo", "Bigmouth Buffalo", "River Carpsucker", "Longnose Sucker", "Common Shiner", "Bluntnose Minnow", "Blacknose Shiner", "Spotfin Shiner", "Rosyface Shiner", "Silver Redhorse", "Golden Redhorse", "Shorthead Redhorse", "Grass Pickerel", "Redfin Pickerel", "Banded Sunfish", "Bantam Sunfish", "Flier", "Mud Sunfish", "Tadpole Madtom", "Brindled Madtom", "Atlantic Silverside", "Bay Anchovy", "Striped Killifish", "Pinfish", "Pigfish", "Atlantic Croaker", "Spot Croaker", "Northern Kingfish", "Silver Perch", "White Mullet", "Striped Mullet", "Sand Perch", "Sea Bream", "Porgy", "Scup", "Tomtate", "Blue Runner", "Atlantic Bumper", "Ballyhoo", "Halfbeak", "Atlantic Menhaden", "Gulf Menhaden", "Round Herring", "Spanish Sardine", "Atlantic Herring", "Sand Lance", "Northern Puffer", "Striped Burrfish", "Cocoa Damselfish", "Sergeant Major", "Slippery Dick", "Bluehead Wrasse", "Mangrove Snapper", "Grey Snapper", "Schoolmaster Snapper", "Squirrelfish", "Cardinal Fish", "Sailfin Blenny", "Feather Blenny", "Frillfin Goby", "Naked Goby", "Code Goby", "Sand Diver", "Inshore Lizardfish", "Striped Mojarra", "Silver Jenny", "Spotfin Mojarra", "Sheepshead", "Northern Sea Robin", "Striped Sea Robin", "Oyster Toadfish", "Skilletfish", "Rainwater Killifish", "Diamond Killifish", "Atlantic Needlefish", "Keeltail Needlefish", "Houndfish", "Lookdown", "Atlantic Moonfish", "Silver Seatrout", "Sand Seatrout", "Pinfish Perch", "Striped Anchovy", "Bay Pipefish", "Gulf Pipefish", "Dusky Pipefish", "Rock Gunnel", "Grubby Sculpin", "Cunner", "Tautog Juvenile", "Skipjack Herring", "Blueback Herring", "Hickory Shad", "American Shad", "Fourspine Stickleback", "Threespine Stickleback", "Ninespine Stickleback", "Brook Silverside", "Pirate Perch", "European Perch", "European Chub", "European Barbel", "European Bleak", "Rudd", "Tench", "Zander", "Ide", "Nase", "Gudgeon", "Ruffe", "Vendace", "Pollan", "Powan", "Crucian Carp", "Asp", "Vimba Bream", "Common Bream", "Silver Bream", "Danube Bleak", "Sunbleak", "Topmouth Gudgeon", "Stone Loach", "Spined Loach", "Weatherfish", "Bitterling", "European Minnow", "Sand Smelt", "Garfish", "Thicklip Grey Mullet", "Thinlip Grey Mullet", "Golden Grey Mullet", "Corkwing Wrasse", "Goldsinny Wrasse", "Rock Cook Wrasse", "Ballan Wrasse", "Shanny", "Tompot Blenny", "Butterfish", "Sand Goby", "Common Goby", "Painted Goby", "Two-Spotted Goby", "Lesser Weever", "Greater Weever", "Pouting", "Poor Cod", "Bib", "Five-Bearded Rockling", "Three-Bearded Rockling", "Snake Pipefish", "Greater Pipefish", "Worm Pipefish"], "hard": ["Largemouth Bass", "Smallmouth Bass", "Spotted Bass", "Striped Bass", "White Bass", "Walleye", "Sauger", "Northern Pike", "Chain Pickerel", "Flathead Catfish", "Blue Catfish", "Muskellunge Hybrid Tiger Musky", "Yellow Bass", "Crappie Hybrid", "Longnose Gar Trophy", "Redbreast Sunfish", "Shoal Bass", "Suwannee Bass", "Guadalupe Bass", "Kentucky Spotted Bass", "Bluefish", "Spanish Mackerel", "King Mackerel", "Cero Mackerel", "Black Sea Bass", "Red Grouper", "Gag Grouper", "Snook", "Common Snook", "Fat Snook", "Redfish", "Black Drum", "Sheepshead Bream", "Cobia", "Spotted Seatrout Gator", "Flounder", "Southern Flounder", "Summer Flounder", "Winter Flounder", "Halibut", "California Halibut", "Yellowtail Amberjack", "Greater Amberjack", "Lesser Amberjack", "Almaco Jack", "Horse-Eye Jack", "Permit", "Pompano", "African Pompano", "Ladyfish", "Tarpon Juvenile", "Bonefish", "Triggerfish", "Grey Triggerfish", "Ocean Triggerfish", "Hogfish", "Mutton Snapper", "Lane Snapper", "Vermilion Snapper", "Red Snapper", "Cubera Snapper", "Dog Snapper", "Yellowtail Snapper", "Grunt", "White Grunt", "Bluestriped Grunt", "Sea Trout", "Weakfish Trophy", "Kelp Bass", "Barred Sand Bass", "Rockfish", "Vermillion Rockfish", "Lingcod", "Cabezon", "Greenling", "Wolf Eel", "Sablefish", "Pacific Cod", "Pacific Halibut", "Yelloweye Rockfish", "Bocaccio", "Copper Rockfish", "Steelhead Juvenile", "Coho Salmon", "Chum Salmon", "Pink Salmon", "Sockeye Salmon", "Golden Trout", "Cutthroat Trout", "Tiger Trout", "Splake", "Arctic Char", "Dolly Varden", "Grayling", "European Seabass", "Gilt-Head Bream", "Meagre", "Common Dentex", "Common Pandora", "Blackspot Seabream", "Red Porgy", "White Seabream", "Bogue", "Picarel", "Leerfish", "Brown Meagre", "Shi Drum", "European Hake", "European Conger", "Mediterranean Moray", "Common Stingray", "Thornback Ray", "Small-Spotted Catshark", "Nursehound", "Tope Shark", "Smooth-Hound", "Starry Smooth-Hound", "Spurdog", "Blonde Ray", "Cuckoo Ray", "Undulate Ray", "Painted Ray", "Common Eagle Ray", "Bull Huss", "Turbot", "Brill"], "rare": ["King Salmon", "Steelhead Trout", "Chinook Salmon", "Lake Trout", "Muskellunge", "Tiger Muskie", "Peacock Bass", "Speckled Peacock Bass", "Butterfly Peacock Bass", "Nile Perch", "Barramundi", "Golden Dorado", "Payara", "Redtail Catfish", "Wahoo", "Mahi Mahi", "Yellowfin Tuna", "Blackfin Tuna", "Little Tunny", "Skipjack Tuna", "Albacore Tuna", "Bigeye Tuna", "Sailfish", "Roosterfish", "Giant Trevally", "Bluefin Trevally", "Golden Trevally", "African Pompano Trophy", "Wahoo Trophy", "Spanish Flag Snapper", "Warsaw Grouper", "Snowy Grouper", "Goliath Grouper", "Jewfish", "Nassau Grouper", "Yellowedge Grouper", "Scamp Grouper", "Amberjack Giant", "Broadbill Swordfish Juvenile", "Opah", "Escolar", "Oilfish", "Pacific Bonito", "Atlantic Bonito", "Dogtooth Tuna", "Giant Snakehead", "Northern Snakehead", "Bull Trout", "Apache Trout", "Gila Trout", "Bonneville Cutthroat", "African Tigerfish", "Zambezi Yellowfish", "Murray Cod", "Australian Bass", "Mangrove Jack", "Coral Trout", "Nile Tilapia", "Electric Eel", "Bull Shark", "Lemon Shark", "Blacktip Shark", "Sandbar Shark", "Threadfin Bream", "Vundu Catfish", "Piraiba", "Tambaqui", "Pacu"], "superrare": ["Broadbill Swordfish", "Blue Marlin", "White Marlin", "Striped Marlin", "Black Marlin", "Atlantic Sailfish", "Pacific Sailfish", "Bluefin Tuna", "Giant Bluefin Tuna", "Southern Bluefin Tuna", "Tarpon", "Arapaima", "Wels Catfish", "Mekong Giant Catfish", "Alligator Gar", "Sturgeon", "Lake Sturgeon", "White Sturgeon", "Paddlefish", "Nile Tigerfish", "Hammerhead Shark", "Great Hammerhead", "Thresher Shark", "Silky Shark", "Giant Manta Ray", "Ocean Sunfish", "Taimen"], "ultimate": ["Beluga Sturgeon", "Great White Shark", "Whale Shark", "Coelacanth", "Giant Pacific Octopus", "Frilled Shark"]};
+const FISH_DATA = {"common": ["Bluegill", "Pumpkinseed Sunfish", "Redear Sunfish", "Green Sunfish", "Longear Sunfish", "Warmouth", "Rock Bass", "Yellow Perch", "White Perch", "Black Crappie", "White Crappie", "Common Carp", "Grass Carp", "Bighead Carp", "Silver Carp", "Goldfish", "Fathead Minnow", "Golden Shiner", "Emerald Shiner", "Spottail Shiner", "Creek Chub", "Longnose Dace", "Blacknose Dace", "White Sucker", "Redhorse Sucker", "Quillback", "Brown Bullhead", "Yellow Bullhead", "Black Bullhead", "Channel Catfish", "White Catfish", "Bowfin", "Longnose Gar", "Spotted Gar", "Gizzard Shad", "Threadfin Shad", "Alewife", "Rainbow Smelt", "Brook Trout", "Brown Trout", "Rainbow Trout", "Lake Whitefish", "Round Whitefish", "Mountain Whitefish", "Burbot", "Northern Pikeminnow", "Mottled Sculpin", "Banded Killifish", "Mummichog", "Sheepshead Minnow", "Sailfin Molly", "Guppy", "Mosquitofish", "Fantail Darter", "Rainbow Darter", "Johnny Darter", "Logperch", "Stonecat", "Freshwater Drum", "Smallmouth Buffalo", "Bigmouth Buffalo", "River Carpsucker", "Longnose Sucker", "Common Shiner", "Bluntnose Minnow", "Blacknose Shiner", "Spotfin Shiner", "Rosyface Shiner", "Silver Redhorse", "Golden Redhorse", "Shorthead Redhorse", "Grass Pickerel", "Redfin Pickerel", "Banded Sunfish", "Bantam Sunfish", "Flier", "Mud Sunfish", "Tadpole Madtom", "Brindled Madtom", "Atlantic Silverside", "Bay Anchovy", "Striped Killifish", "Pinfish", "Pigfish", "Atlantic Croaker", "Spot Croaker", "Northern Kingfish", "Silver Perch", "White Mullet", "Striped Mullet", "Sand Perch", "Sea Bream", "Porgy", "Scup", "Tomtate", "Blue Runner", "Atlantic Bumper", "Ballyhoo", "Halfbeak", "Atlantic Menhaden", "Gulf Menhaden", "Round Herring", "Spanish Sardine", "Atlantic Herring", "Sand Lance", "Northern Puffer", "Striped Burrfish", "Cocoa Damselfish", "Sergeant Major", "Slippery Dick", "Bluehead Wrasse", "Mangrove Snapper", "Grey Snapper", "Schoolmaster Snapper", "Squirrelfish", "Cardinal Fish", "Sailfin Blenny", "Feather Blenny", "Frillfin Goby", "Naked Goby", "Code Goby", "Sand Diver", "Inshore Lizardfish", "Striped Mojarra", "Silver Jenny", "Spotfin Mojarra", "Sheepshead", "Northern Sea Robin", "Striped Sea Robin", "Oyster Toadfish", "Skilletfish", "Rainwater Killifish", "Diamond Killifish", "Atlantic Needlefish", "Keeltail Needlefish", "Houndfish", "Lookdown", "Atlantic Moonfish", "Silver Seatrout", "Sand Seatrout", "Pinfish Perch", "Striped Anchovy", "Bay Pipefish", "Gulf Pipefish", "Dusky Pipefish", "Rock Gunnel", "Grubby Sculpin", "Cunner", "Tautog Juvenile", "Skipjack Herring", "Blueback Herring", "Hickory Shad", "American Shad", "Fourspine Stickleback", "Threespine Stickleback", "Ninespine Stickleback", "Brook Silverside", "Pirate Perch", "European Perch", "European Chub", "European Barbel", "European Bleak", "Rudd", "Tench", "Zander", "Ide", "Nase", "Gudgeon", "Ruffe", "Vendace", "Pollan", "Powan", "Crucian Carp", "Asp", "Vimba Bream", "Common Bream", "Silver Bream", "Danube Bleak", "Sunbleak", "Topmouth Gudgeon", "Stone Loach", "Spined Loach", "Weatherfish", "Bitterling", "European Minnow", "Sand Smelt", "Garfish", "Thicklip Grey Mullet", "Thinlip Grey Mullet", "Golden Grey Mullet", "Corkwing Wrasse", "Goldsinny Wrasse", "Rock Cook Wrasse", "Ballan Wrasse", "Shanny", "Tompot Blenny", "Butterfish", "Sand Goby", "Common Goby", "Painted Goby", "Two-Spotted Goby", "Lesser Weever", "Greater Weever", "Pouting", "Poor Cod", "Bib", "Five-Bearded Rockling", "Three-Bearded Rockling", "Snake Pipefish", "Greater Pipefish", "Worm Pipefish", "European Eel", "American Eel", "Sea Lamprey", "River Lamprey", "Brook Lamprey", "Kokanee Salmon", "Landlocked Salmon", "Splittail", "Sacramento Perch", "Tule Perch", "Prickly Sculpin", "Riffle Sculpin", "Torrent Sculpin", "Bridgelip Sucker", "Tui Chub", "Lahontan Redside", "Speckled Dace", "Roundtail Chub", "Flannelmouth Sucker", "Utah Chub", "June Sucker", "Least Chub", "Plains Killifish", "Rio Grande Silvery Minnow", "Roach", "Orfe", "Souffie", "Spirlin", "Streber", "Zingel", "Schraetzer", "Volga Zander", "Blue Bream", "White-Eye Bream", "Danube Roach", "Sprat", "Boarfish", "Pilchard", "Whitebait", "Capelin", "Eulachon", "Longfin Smelt", "Surf Smelt", "Pond Smelt", "Delta Smelt", "Wakasagi", "Inland Silverside", "Tidewater Goby", "Shimofuri Goby", "Yellowfin Goby", "Convict Cichlid", "Jack Dempsey Cichlid"], "hard": ["Largemouth Bass", "Smallmouth Bass", "Spotted Bass", "Striped Bass", "White Bass", "Walleye", "Sauger", "Northern Pike", "Chain Pickerel", "Flathead Catfish", "Blue Catfish", "Muskellunge Hybrid Tiger Musky", "Yellow Bass", "Crappie Hybrid", "Longnose Gar Trophy", "Redbreast Sunfish", "Shoal Bass", "Suwannee Bass", "Guadalupe Bass", "Kentucky Spotted Bass", "Bluefish", "Spanish Mackerel", "King Mackerel", "Cero Mackerel", "Black Sea Bass", "Red Grouper", "Gag Grouper", "Snook", "Common Snook", "Fat Snook", "Redfish", "Black Drum", "Sheepshead Bream", "Cobia", "Spotted Seatrout Gator", "Flounder", "Southern Flounder", "Summer Flounder", "Winter Flounder", "Halibut", "California Halibut", "Yellowtail Amberjack", "Greater Amberjack", "Lesser Amberjack", "Almaco Jack", "Horse-Eye Jack", "Permit", "Pompano", "African Pompano", "Ladyfish", "Tarpon Juvenile", "Bonefish", "Triggerfish", "Grey Triggerfish", "Ocean Triggerfish", "Hogfish", "Mutton Snapper", "Lane Snapper", "Vermilion Snapper", "Red Snapper", "Cubera Snapper", "Dog Snapper", "Yellowtail Snapper", "Grunt", "White Grunt", "Bluestriped Grunt", "Sea Trout", "Weakfish Trophy", "Kelp Bass", "Barred Sand Bass", "Rockfish", "Vermillion Rockfish", "Lingcod", "Cabezon", "Greenling", "Wolf Eel", "Sablefish", "Pacific Cod", "Pacific Halibut", "Yelloweye Rockfish", "Bocaccio", "Copper Rockfish", "Steelhead Juvenile", "Coho Salmon", "Chum Salmon", "Pink Salmon", "Sockeye Salmon", "Golden Trout", "Cutthroat Trout", "Tiger Trout", "Splake", "Arctic Char", "Dolly Varden", "Grayling", "European Seabass", "Gilt-Head Bream", "Meagre", "Common Dentex", "Common Pandora", "Blackspot Seabream", "Red Porgy", "White Seabream", "Bogue", "Picarel", "Leerfish", "Brown Meagre", "Shi Drum", "European Hake", "European Conger", "Mediterranean Moray", "Common Stingray", "Thornback Ray", "Small-Spotted Catshark", "Nursehound", "Tope Shark", "Smooth-Hound", "Starry Smooth-Hound", "Spurdog", "Blonde Ray", "Cuckoo Ray", "Undulate Ray", "Painted Ray", "Common Eagle Ray", "Bull Huss", "Turbot", "Brill", "Shovelnose Sturgeon", "Longnose Skate", "Big Skate", "Bonnethead Shark", "Atlantic Sharpnose Shark", "Finetooth Shark", "Blacknose Shark", "Dusky Shark", "Copper Shark", "Galapagos Shark", "Caribbean Reef Shark", "Whitetip Reef Shark", "Blacktip Reef Shark", "Grey Reef Shark", "Zebra Shark", "Leopard Shark", "Horn Shark", "Port Jackson Shark", "Tasselled Wobbegong", "Common Angel Shark", "Common Guitarfish", "Cownose Ray", "Spotted Eagle Ray", "Butterfly Ray", "Torpedo Ray", "Bat Ray", "Roughtail Stingray", "Pelagic Stingray", "Diamond Stingray", "Round Stingray", "Yellow Stingray"], "rare": ["King Salmon", "Steelhead Trout", "Chinook Salmon", "Lake Trout", "Muskellunge", "Tiger Muskie", "Peacock Bass", "Speckled Peacock Bass", "Butterfly Peacock Bass", "Nile Perch", "Barramundi", "Golden Dorado", "Payara", "Redtail Catfish", "Wahoo", "Mahi Mahi", "Yellowfin Tuna", "Blackfin Tuna", "Little Tunny", "Skipjack Tuna", "Albacore Tuna", "Bigeye Tuna", "Sailfish", "Roosterfish", "Giant Trevally", "Bluefin Trevally", "Golden Trevally", "African Pompano Trophy", "Wahoo Trophy", "Spanish Flag Snapper", "Warsaw Grouper", "Snowy Grouper", "Goliath Grouper", "Jewfish", "Nassau Grouper", "Yellowedge Grouper", "Scamp Grouper", "Amberjack Giant", "Broadbill Swordfish Juvenile", "Opah", "Escolar", "Oilfish", "Pacific Bonito", "Atlantic Bonito", "Dogtooth Tuna", "Giant Snakehead", "Northern Snakehead", "Bull Trout", "Apache Trout", "Gila Trout", "Bonneville Cutthroat", "African Tigerfish", "Zambezi Yellowfish", "Murray Cod", "Australian Bass", "Mangrove Jack", "Coral Trout", "Nile Tilapia", "Electric Eel", "Bull Shark", "Lemon Shark", "Blacktip Shark", "Sandbar Shark", "Threadfin Bream", "Vundu Catfish", "Piraiba", "Tambaqui", "Pacu", "Atlantic Sturgeon", "Shortnose Sturgeon", "Pallid Sturgeon", "Green Sturgeon", "Gulf Sturgeon", "Smalltooth Sawfish", "Largetooth Sawfish", "Chilean Devil Ray", "Spotted Ratfish", "Pacific Angel Shark", "Leafy Seadragon"], "superrare": ["Broadbill Swordfish", "Blue Marlin", "White Marlin", "Striped Marlin", "Black Marlin", "Atlantic Sailfish", "Pacific Sailfish", "Bluefin Tuna", "Giant Bluefin Tuna", "Southern Bluefin Tuna", "Tarpon", "Arapaima", "Wels Catfish", "Mekong Giant Catfish", "Alligator Gar", "Sturgeon", "Lake Sturgeon", "White Sturgeon", "Paddlefish", "Nile Tigerfish", "Hammerhead Shark", "Great Hammerhead", "Thresher Shark", "Silky Shark", "Giant Manta Ray", "Ocean Sunfish", "Taimen", "Oarfish", "Megamouth Shark", "Goblin Shark", "Sixgill Shark", "Deep Sea Anglerfish"], "ultimate": ["Beluga Sturgeon", "Great White Shark", "Whale Shark", "Coelacanth", "Giant Pacific Octopus", "Frilled Shark", "Greenland Shark"], "abyssal": ["Kraken", "Leviathan", "Jörmungandr"]};
 
 const TIERS = [
-  { key:'common',     label:'Common',     weight:50, color:'var(--tier-common)',    hex:'#2f9c74' },
-  { key:'hard',        label:'Hard Catch', weight:30, color:'var(--tier-hard)',      hex:'#1c7fc2' },
-  { key:'rare',        label:'Rare',       weight:10, color:'var(--tier-rare)',      hex:'#c9860a' },
-  { key:'superrare',   label:'Super Rare', weight:5,  color:'var(--tier-superrare)', hex:'#9455e0' },
-  { key:'ultimate',    label:'Ultimate',   weight:1,  color:'var(--tier-ultimate)',  hex:'#e0356f' },
+  { key:'common',     label:'Common',     weight:50,  color:'var(--tier-common)',    hex:'#2f9c74' },
+  { key:'hard',        label:'Hard Catch', weight:30,  color:'var(--tier-hard)',      hex:'#1c7fc2' },
+  { key:'rare',        label:'Rare',       weight:10,  color:'var(--tier-rare)',      hex:'#c9860a' },
+  { key:'superrare',   label:'Super Rare', weight:5,   color:'var(--tier-superrare)', hex:'#9455e0' },
+  { key:'ultimate',    label:'Ultimate',   weight:1,   color:'var(--tier-ultimate)',  hex:'#e0356f' },
+  { key:'abyssal',     label:'Abyssal',    weight:0.5, color:'var(--tier-abyssal)',   hex:'#2b1150' },
 ];
 const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
 
@@ -917,12 +925,15 @@ function playSplashSound(){
   noise.start();
 }
 function playCatchSound(tierKey){
-  const base = { common:440, hard:494, rare:523, superrare:587, ultimate:659 }[tierKey] || 440;
+  const base = { common:440, hard:494, rare:523, superrare:587, ultimate:659, abyssal:698 }[tierKey] || 440;
   playTone(base, 0, 0.18, 'triangle', 0.16);
   playTone(base*1.25, 0.11, 0.18, 'triangle', 0.16);
   playTone(base*1.5, 0.22, 0.32, 'triangle', 0.18);
-  if(tierKey==='superrare' || tierKey==='ultimate'){
+  if(tierKey==='superrare' || tierKey==='ultimate' || tierKey==='abyssal'){
     playTone(base*2, 0.34, 0.42, 'sine', 0.15);
+  }
+  if(tierKey==='abyssal'){
+    playTone(base*2.5, 0.52, 0.55, 'sine', 0.13);
   }
 }
 function playMissSound(){
@@ -936,20 +947,26 @@ function hapticBuzz(tierKey){
     hard:[45],
     rare:[60,40,60],
     superrare:[80,50,80,50,80],
-    ultimate:[120,60,120,60,120,60,170]
+    ultimate:[120,60,120,60,120,60,170],
+    abyssal:[150,80,150,80,150,80,150,80,220]
   };
   navigator.vibrate(patterns[tierKey] || [30]);
 }
 
 /* ====================== FISHING FLOW ====================== */
+function isAbyssalUnlocked(){
+  const caught = new Set(loadBag().map(c=>c.name));
+  return FISH_DATA.ultimate.every(name=>caught.has(name));
+}
 function pickTier(){
-  const totalWeight = TIERS.reduce((a,t)=>a+t.weight,0);
+  const pool = TIERS.filter(t => t.key !== 'abyssal' || isAbyssalUnlocked());
+  const totalWeight = pool.reduce((a,t)=>a+t.weight,0);
   let r = Math.random()*totalWeight;
-  for(const t of TIERS){
+  for(const t of pool){
     if(r < t.weight) return t;
     r -= t.weight;
   }
-  return TIERS[0];
+  return pool[0];
 }
 function pickFish(tierKey){
   const list = FISH_DATA[tierKey];
@@ -1156,11 +1173,24 @@ function renderFieldGuide(list, bag){
   const caughtNames = new Set(bag.map(c=>c.name));
   const countByName = {};
   bag.forEach(c=>{ countByName[c.name] = (countByName[c.name]||0) + 1; });
+  const abyssalUnlocked = isAbyssalUnlocked();
 
   let html = '';
   TIERS.forEach(t=>{
     const species = FISH_DATA[t.key];
     const have = species.filter(n=>caughtNames.has(n)).length;
+
+    if(t.key === 'abyssal' && !abyssalUnlocked){
+      html += `<div class="guide-section-title" style="color:${t.hex}">
+        <span>${t.label}</span><span class="guide-section-count">\u{1F512} Locked</span>
+      </div>`;
+      html += `<div class="guide-locked-note" style="border-color:${t.hex}33">
+        <div class="guide-locked-title" style="color:${t.hex}">\u{1F512} ${species.length} unknown catches</div>
+        <p>Something waits below every Ultimate fish. Catch all ${FISH_DATA.ultimate.length} Ultimate species to reveal the Abyssal tier.</p>
+      </div>`;
+      return;
+    }
+
     html += `<div class="guide-section-title" style="color:${t.hex}">
       <span>${t.label}</span><span class="guide-section-count">${have}/${species.length}</span>
     </div>`;
@@ -1191,7 +1221,8 @@ const TIER_FLAVOR = {
   hard:     "Took a bit of work \u2014 nicely done.",
   rare:     'A genuinely rare find.',
   superrare:'Once-in-a-blue-moon catch.',
-  ultimate: 'The stuff of legend.'
+  ultimate: 'The stuff of legend.',
+  abyssal:  'A myth made real. Almost no one will ever see this.'
 };
 
 function openFishDetail(entry){
