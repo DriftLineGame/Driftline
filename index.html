@@ -33,7 +33,7 @@
     --radius-lg:22px;
     --radius-md:14px;
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation;}
   html,body{height:100%; margin:0; overflow:hidden; background:var(--page-bg); font-family:'Inter',sans-serif; color:var(--ink);}
   .display{font-family:'Bricolage Grotesque', 'Inter', sans-serif;}
 
@@ -343,8 +343,11 @@
   .drawer-handle{width:38px; height:4px; border-radius:2px; background:#c3d8e3; margin:10px auto 4px;}
   .drawer-header{padding:6px 20px 14px; display:flex; align-items:center; justify-content:space-between;}
   .drawer-header h2{font-family:'Bricolage Grotesque'; font-size:19px; margin:0; font-weight:800;}
-  .drawer-header .close-x{width:32px; height:32px; border-radius:10px; background:#eaf1f6; display:flex; align-items:center; justify-content:center;}
-  .drawer-header .close-x svg{width:15px; height:15px; stroke:var(--ink);}
+  .close-x{
+    width:44px; height:44px; border-radius:12px; background:#eaf1f6; display:flex; align-items:center; justify-content:center;
+    touch-action:manipulation; cursor:pointer; border:none; flex:0 0 auto;
+  }
+  .close-x svg{width:16px; height:16px; stroke:var(--ink);}
 
   #bag-tabs, #account-tabs{display:flex; gap:8px; padding:0 16px 14px;}
   .bag-tab, .seg-tab{
@@ -419,9 +422,9 @@
   .prawn-countdown{font-family:'Bricolage Grotesque'; font-size:32px; font-weight:800; color:#4fe0ff; margin-bottom:6px; font-variant-numeric:tabular-nums;}
   .prawn-sub{font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px;}
   #prawn-close{
-    position:absolute; top:18px; right:18px; z-index:3; width:40px; height:40px; border-radius:50%;
+    position:absolute; top:14px; right:14px; z-index:3; width:46px; height:46px; border-radius:50%;
     background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
   }
   #prawn-close svg{width:16px; height:16px; stroke:#fff;}
   #prawn-trap-icon{
@@ -488,8 +491,8 @@
   }
   #friend-gear-scrim.show #friend-gear-card{transform:translateY(0) scale(1); opacity:1;}
   #friend-gear-close{
-    position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:50%;
-    background:rgba(18,41,58,0.06); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    position:absolute; top:10px; right:10px; width:44px; height:44px; border-radius:50%;
+    background:rgba(18,41,58,0.06); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
   }
   #friend-gear-close svg{width:14px; height:14px; stroke:var(--ink);}
   #friend-gear-avatar{font-size:44px; margin-bottom:10px;}
@@ -514,10 +517,10 @@
   #signin-banner-text span{color:var(--ink-dim);}
   #signin-banner .btn-primary{padding:9px 14px; font-size:12.5px; flex:0 0 auto;}
   #signin-banner-dismiss{
-    flex:0 0 auto; width:26px; height:26px; border-radius:8px; border:none; background:rgba(18,41,58,0.06);
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    flex:0 0 auto; width:40px; height:40px; border-radius:10px; border:none; background:rgba(18,41,58,0.06);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
   }
-  #signin-banner-dismiss svg{width:12px; height:12px; stroke:var(--ink-dim);}
+  #signin-banner-dismiss svg{width:13px; height:13px; stroke:var(--ink-dim);}
 
   /* ---------- Account drawer ---------- */
   #account-scrim{
