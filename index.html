@@ -174,6 +174,21 @@
     font-weight:800; animation:fabPulse 2.4s ease-in-out infinite;
   }
 
+  #battle-chip{
+    cursor:pointer;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; color:#9455e0;
+    display:flex; align-items:center; gap:6px;
+    border-color:rgba(148,85,224,0.3) !important;
+    background:rgba(255,255,255,0.85) !important;
+    transition:transform .15s ease;
+  }
+  #battle-chip:active{transform:scale(0.95);}
+  #battle-chip.ready{
+    color:#fff; border-color:transparent !important;
+    background:linear-gradient(90deg,#9455e0,#e0356f) !important;
+    animation:fabPulse 2.4s ease-in-out infinite;
+  }
+
   /* ---------- Selected spot / cast panel ---------- */
   #cast-panel{
     position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
@@ -426,6 +441,18 @@
   #bag-empty svg{width:44px; height:44px; margin-bottom:14px; opacity:0.5;}
   #bag-empty p{font-size:14px; line-height:1.5; max-width:230px; margin:0 auto;}
 
+  /* ---------- Trap map markers ---------- */
+  .trap-marker{
+    width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:18px; background:#ffffff; border:3px solid var(--trap-color, #ff8a3f);
+    box-shadow:0 4px 10px rgba(0,0,0,0.25); cursor:pointer;
+  }
+  .trap-marker.ready{animation:trapMarkerPulse 1.3s ease-in-out infinite;}
+  @keyframes trapMarkerPulse{
+    0%,100%{box-shadow:0 4px 10px rgba(0,0,0,0.25), 0 0 0 0 var(--trap-color, #ff8a3f);}
+    50%{box-shadow:0 4px 14px rgba(0,0,0,0.3), 0 0 0 8px transparent;}
+  }
+
   /* ---------- Prawn Trap ---------- */
   #prawn-overlay{
     position:fixed; inset:0; z-index:820;
@@ -514,6 +541,114 @@
     background:radial-gradient(circle at 30% 30%, #8a6a45, #4a3620 75%);
   }
 
+  /* ---------- Battle Challenge duration picker ---------- */
+  #battle-challenge-scrim{
+    position:fixed; inset:0; z-index:950; background:rgba(10,25,35,0.55);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #battle-challenge-scrim.show{opacity:1; pointer-events:auto;}
+  #battle-challenge-card{
+    width:100%; max-width:340px; border-radius:26px; padding:30px 24px 24px; text-align:center;
+    background:#ffffff; box-shadow:0 30px 70px rgba(0,0,0,0.3);
+    transform:translateY(16px) scale(0.96); opacity:0;
+    transition:transform .35s cubic-bezier(.2,.9,.25,1), opacity .3s ease;
+    position:relative;
+  }
+  #battle-challenge-scrim.show #battle-challenge-card{transform:translateY(0) scale(1); opacity:1;}
+  #battle-challenge-close{
+    position:absolute; top:10px; right:10px; width:44px; height:44px; border-radius:50%;
+    background:rgba(18,41,58,0.06); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #battle-challenge-close svg{width:14px; height:14px; stroke:var(--ink);}
+  .bc-icon{font-size:40px; margin-bottom:10px;}
+  #battle-challenge-name{font-family:'Bricolage Grotesque'; font-size:18px; font-weight:800; margin-bottom:10px;}
+  .bc-desc{font-size:12.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 18px;}
+  .bc-duration-row{display:flex; gap:8px;}
+  .bc-duration-btn{
+    flex:1; appearance:none; border:1.5px solid var(--line); background:#f4f9fb; color:var(--ink);
+    border-radius:14px; padding:14px 0; font-weight:800; font-size:14px; cursor:pointer; touch-action:manipulation;
+  }
+  .bc-duration-btn:active{transform:scale(0.96);}
+
+  /* ---------- Battle Arena ---------- */
+  #battle-overlay{
+    position:fixed; inset:0; z-index:822;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    background:
+      radial-gradient(120% 55% at 50% 0%, rgba(148,85,224,0.22), transparent 60%),
+      linear-gradient(180deg, #1a0f2e 0%, #150822 45%, #0a0515 100%);
+    transition:opacity .4s ease; overflow:hidden; padding:24px;
+  }
+  #battle-overlay.active{opacity:1; pointer-events:auto;}
+  #battle-content{position:relative; z-index:3; width:100%; max-width:360px; text-align:center;}
+  #battle-close{
+    position:fixed; top:14px; right:14px; z-index:5; width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #battle-close svg{width:16px; height:16px; stroke:#fff;}
+  .battle-card{
+    background:rgba(255,255,255,0.06); border:1px solid rgba(148,85,224,0.3); border-radius:26px;
+    padding:30px 24px 26px; backdrop-filter:blur(10px); color:#fff;
+  }
+  .battle-icon-big{font-size:48px; margin-bottom:10px;}
+  .battle-title{font-family:'Bricolage Grotesque'; font-size:21px; font-weight:800; margin:0 0 10px;}
+  .battle-desc{font-size:13px; color:rgba(255,255,255,0.68); line-height:1.5; margin:0 0 20px;}
+  .battle-card .btn-primary{background:linear-gradient(160deg,#9455e0,#e0356f); color:#fff;}
+  .battle-vs-live{display:flex; align-items:center; justify-content:space-around; margin-bottom:20px;}
+  .battle-side{flex:1; text-align:center;}
+  .battle-side-avatar{font-size:34px; margin-bottom:6px;}
+  .battle-side-name{font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:4px;}
+  .battle-side-score{font-family:'Bricolage Grotesque'; font-size:26px; font-weight:800; color:#fff;}
+  .battle-vs-mid{font-size:13px; font-weight:800; color:#e0356f; padding:0 8px;}
+  .battle-countdown{font-family:'Bricolage Grotesque'; font-size:24px; font-weight:800; color:#9455e0; margin-bottom:6px; font-variant-numeric:tabular-nums;}
+  .battle-record-row{display:flex; justify-content:space-around; padding:14px 4px; border-radius:16px; background:rgba(148,85,224,0.1); margin-top:16px;}
+  .battle-record-stat{text-align:center;}
+  .battle-record-stat span{display:block; font-family:'Bricolage Grotesque'; font-size:16px; font-weight:800; color:#fff;}
+  .battle-record-stat label{display:block; font-size:9.5px; text-transform:uppercase; color:rgba(255,255,255,0.5); font-weight:700; margin-top:2px;}
+
+  /* ---------- Battle start: VS reveal ---------- */
+  #battle-start-overlay{
+    position:fixed; inset:0; z-index:995; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(148,85,224,0.35), transparent 60%),
+      linear-gradient(180deg, #1a0f2e 0%, #150822 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #battle-start-overlay.show{opacity:1; pointer-events:auto;}
+  #battle-start-card{position:relative; z-index:2; width:100%; max-width:360px; text-align:center;}
+  #bs-vs-row{display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:22px;}
+  .bs-fighter{flex:1; display:flex; flex-direction:column; align-items:center; opacity:0;}
+  .bs-fighter-avatar{
+    width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:8px;
+  }
+  .bs-fighter-name{color:#fff; font-weight:700; font-size:13px;}
+  #bs-vs-badge{
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px; color:#fff;
+    background:linear-gradient(160deg,#9455e0,#e0356f); width:44px; height:44px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+    box-shadow:0 0 30px rgba(224,53,113,0.6); transform:scale(0); opacity:0;
+  }
+  #battle-start-card h2{font-family:'Bricolage Grotesque'; font-size:24px; font-weight:800; color:#fff; margin:0 0 8px; opacity:0;}
+  #battle-start-card p{font-size:13px; color:rgba(255,255,255,0.65); margin:0 0 22px; opacity:0;}
+  #battle-start-card .btn-primary{background:linear-gradient(160deg,#9455e0,#e0356f); color:#fff; width:100%; opacity:0;}
+
+  /* ---------- Battle result reveal ---------- */
+  #battle-result-overlay{
+    position:fixed; inset:0; z-index:996; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; pointer-events:none; transition:opacity .4s ease;
+  }
+  #battle-result-overlay.show{opacity:1; pointer-events:auto;}
+  #battle-result-overlay.win{background:radial-gradient(60% 45% at 50% 10%, rgba(57,255,143,0.3), transparent 60%), linear-gradient(180deg, #05261a 0%, #031810 55%, #05030f 100%);}
+  #battle-result-overlay.loss{background:radial-gradient(60% 45% at 50% 10%, rgba(224,53,113,0.22), transparent 60%), linear-gradient(180deg, #260514 0%, #180310 55%, #05030f 100%);}
+  #battle-result-overlay.draw{background:radial-gradient(60% 45% at 50% 10%, rgba(255,210,63,0.25), transparent 60%), linear-gradient(180deg, #261c05 0%, #181203 55%, #05030f 100%);}
+  #br-content{position:relative; z-index:2; width:100%; max-width:360px; text-align:center;}
+
   /* ---------- Friends ---------- */
   #friends-scrim{
     position:fixed; inset:0; background:rgba(10,25,35,0.45); z-index:900;
@@ -550,6 +685,8 @@
   }
   .fr-accept{background:linear-gradient(90deg,#39ff8f,#00e5ff); color:#04201c;}
   .fr-decline{background:#eef2f6; color:var(--ink-dim);}
+  .fr-battle{background:linear-gradient(90deg,#9455e0,#e0356f); color:#fff; font-size:15px; padding:8px 12px !important;}
+  .fr-battle.disabled{background:#eef2f6; color:#c3cdd4; cursor:not-allowed;}
   .friends-pending-tag{font-size:11px; color:var(--ink-dim); font-weight:700; flex:0 0 auto;}
   .friends-empty{text-align:center; padding:30px 20px; color:var(--ink-dim); font-size:13px;}
 
@@ -1117,6 +1254,10 @@
     <span class="boost-flame">🦀</span>
     <span id="crab-chip-text">Set a Crab Trap</span>
   </div>
+  <div id="battle-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">⚔️</span>
+    <span id="battle-chip-text">Battle: 23h 59m</span>
+  </div>
 </div>
 
 <div id="signin-banner" class="glass">
@@ -1291,6 +1432,55 @@
   </div>
 </div>
 
+<!-- Battle: duration picker -->
+<div id="battle-challenge-scrim">
+  <div id="battle-challenge-card">
+    <button id="battle-challenge-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="bc-icon">⚔️</div>
+    <div id="battle-challenge-name">Challenge someone</div>
+    <p class="bc-desc">Whoever earns more points before time runs out wins. Pick a length:</p>
+    <div class="bc-duration-row">
+      <button class="bc-duration-btn" data-hours="24">24h</button>
+      <button class="bc-duration-btn" data-hours="48">48h</button>
+      <button class="bc-duration-btn" data-hours="72">72h</button>
+    </div>
+  </div>
+</div>
+
+<!-- Battle Arena -->
+<div id="battle-overlay">
+  <div class="ru-blob" style="width:280px;height:280px;top:-70px;left:-60px;background:#9455e0;"></div>
+  <div class="ru-blob" style="width:250px;height:250px;bottom:-80px;right:-60px;background:#e0356f;animation-delay:-4s;"></div>
+  <button id="battle-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <div id="battle-content"></div>
+</div>
+
+<!-- Battle start: VS reveal -->
+<div id="battle-start-overlay">
+  <div class="ru-blob" style="width:300px;height:300px;top:-60px;left:50%;transform:translateX(-50%);background:#9455e0;"></div>
+  <div id="battle-start-card">
+    <div id="bs-vs-row">
+      <div class="bs-fighter">
+        <div class="bs-fighter-avatar" id="bs-my-avatar">🎣</div>
+        <div class="bs-fighter-name" id="bs-my-name">You</div>
+      </div>
+      <div id="bs-vs-badge">VS</div>
+      <div class="bs-fighter">
+        <div class="bs-fighter-avatar" id="bs-opp-avatar">🎣</div>
+        <div class="bs-fighter-name" id="bs-opp-name">Opponent</div>
+      </div>
+    </div>
+    <h2>Battle Begins!</h2>
+    <p id="bs-duration-text">Most points in 24 hours wins.</p>
+    <button class="btn btn-primary" id="battle-start-close">Let's Fish</button>
+  </div>
+</div>
+
+<!-- Battle result reveal -->
+<div id="battle-result-overlay">
+  <div id="br-content"></div>
+</div>
+
 <!-- Leaderboard: full-screen electric takeover -->
 <div id="leaderboard-fullscreen">
   <div class="lb-blob" style="width:280px;height:280px;top:-60px;left:-60px;background:#00e5ff;"></div>
@@ -1306,6 +1496,7 @@
       <button class="lb-period-tab" data-period="week">This Week</button>
       <button class="lb-period-tab" data-period="month">This Month</button>
       <button class="lb-period-tab active" data-period="all">All Time</button>
+      <button class="lb-period-tab" data-period="battles">⚔️ Battles</button>
     </div>
   </div>
   <div id="leaderboard-list"></div>
@@ -1421,7 +1612,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, setDoc, updateDoc,
+    getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction,
     collection, query, orderBy, limit, getDocs
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -1463,10 +1654,10 @@
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
     await setDoc(ref, {
-      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null,
+      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null, battles: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
-    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null, crab: null };
+    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null, crab: null, battles: null };
   }
 
   async function signIn(username, pin){
@@ -1481,7 +1672,7 @@
     if(pinHash !== data.pinHash){
       throw new Error('Incorrect PIN.');
     }
-    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null, crab: data.crab || null };
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null, crab: data.crab || null, battles: data.battles || null };
   }
 
   async function syncBag(uid, bag, points){
@@ -1581,6 +1772,177 @@
     };
   }
 
+  function defaultBattleState(){
+    return { incoming:[], outgoing:[], active:null, record:{ wins:0, losses:0, draws:0, gamesPlayed:0 } };
+  }
+
+  async function fetchBattleState(uid){
+    const ref = doc(db, 'players', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return defaultBattleState();
+    const data = snap.data();
+    const b = data.battles || {};
+    return {
+      incoming: b.incoming || [],
+      outgoing: b.outgoing || [],
+      active: b.active || null,
+      record: b.record || { wins:0, losses:0, draws:0, gamesPlayed:0 }
+    };
+  }
+
+  async function sendBattleChallenge(myUid, myDisplayName, targetUid, targetDisplayName, durationHours){
+    const battleId = `${[myUid, targetUid].sort().join('_')}_${Date.now()}`;
+    const battleRef = doc(db, 'battles', battleId);
+    await setDoc(battleRef, {
+      player1Uid: myUid, player1DisplayName: myDisplayName,
+      player2Uid: targetUid, player2DisplayName: targetDisplayName,
+      durationHours, status: 'pending',
+      createdAt: Date.now(), acceptedAt: null, endAt: null,
+      player1StartPoints: null, player2StartPoints: null,
+      player1FinalPoints: null, player2FinalPoints: null,
+      result: null
+    });
+
+    const myRef = doc(db, 'players', myUid);
+    const mySnap = await getDoc(myRef);
+    const myBattles = (mySnap.exists() && mySnap.data().battles) || defaultBattleState();
+    myBattles.outgoing = [...(myBattles.outgoing||[]), { battleId, opponentUid: targetUid, opponentDisplayName: targetDisplayName, durationHours, sentAt: Date.now() }];
+    await updateDoc(myRef, { battles: myBattles });
+
+    const targetRef = doc(db, 'players', targetUid);
+    const targetSnap = await getDoc(targetRef);
+    const targetBattles = (targetSnap.exists() && targetSnap.data().battles) || defaultBattleState();
+    targetBattles.incoming = [...(targetBattles.incoming||[]), { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, durationHours, sentAt: Date.now() }];
+    await updateDoc(targetRef, { battles: targetBattles });
+
+    return { battleId };
+  }
+
+  async function respondBattleChallenge(myUid, myDisplayName, battleId, accept){
+    const myRef = doc(db, 'players', myUid);
+    const mySnap = await getDoc(myRef);
+    if(!mySnap.exists()) throw new Error('Account not found.');
+    const myData = mySnap.data();
+    const myBattles = myData.battles || defaultBattleState();
+    const incomingEntry = (myBattles.incoming||[]).find(b=>b.battleId===battleId);
+    if(!incomingEntry) throw new Error('That challenge is no longer available.');
+    myBattles.incoming = (myBattles.incoming||[]).filter(b=>b.battleId!==battleId);
+
+    const battleRef = doc(db, 'battles', battleId);
+    const oppRef = doc(db, 'players', incomingEntry.opponentUid);
+    const oppSnap = await getDoc(oppRef);
+    const oppData = oppSnap.exists() ? oppSnap.data() : {};
+
+    if(!accept){
+      await updateDoc(battleRef, { status:'declined' });
+      await updateDoc(myRef, { battles: myBattles });
+      const oppBattles = oppData.battles || defaultBattleState();
+      oppBattles.outgoing = (oppBattles.outgoing||[]).filter(b=>b.battleId!==battleId);
+      await updateDoc(oppRef, { battles: oppBattles });
+      return { accepted:false };
+    }
+
+    const battleSnap = await getDoc(battleRef);
+    if(!battleSnap.exists()) throw new Error('That challenge no longer exists.');
+    const battleData = battleSnap.data();
+    const isPlayer1 = battleData.player1Uid === myUid;
+    const myPoints = myData.points || 0;
+    const oppPoints = oppData.points || 0;
+
+    const now = Date.now();
+    const endAt = now + battleData.durationHours*3600000;
+
+    await updateDoc(battleRef, {
+      status:'active', acceptedAt: now, endAt,
+      player1StartPoints: isPlayer1 ? myPoints : oppPoints,
+      player2StartPoints: isPlayer1 ? oppPoints : myPoints
+    });
+
+    myBattles.active = { battleId, opponentUid: incomingEntry.opponentUid, opponentDisplayName: incomingEntry.opponentDisplayName, startAt: now, endAt, myStartPoints: myPoints, opponentStartPoints: oppPoints };
+    await updateDoc(myRef, { battles: myBattles });
+
+    const oppBattles = oppData.battles || defaultBattleState();
+    oppBattles.outgoing = (oppBattles.outgoing||[]).filter(b=>b.battleId!==battleId);
+    oppBattles.active = { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, startAt: now, endAt, myStartPoints: oppPoints, opponentStartPoints: myPoints };
+    await updateDoc(oppRef, { battles: oppBattles });
+
+    return { accepted:true, endAt, opponentDisplayName: incomingEntry.opponentDisplayName };
+  }
+
+  async function completeBattle(battleId){
+    // Transaction-guarded so two players finishing at the same moment can't
+    // double-record the result -- whichever commits first wins; the other
+    // just reads back the already-completed outcome.
+    const battleRef = doc(db, 'battles', battleId);
+    return await runTransaction(db, async (tx)=>{
+      const battleSnap = await tx.get(battleRef);
+      if(!battleSnap.exists()) throw new Error('Battle not found.');
+      const b = battleSnap.data();
+      if(b.status === 'completed'){
+        return {
+          alreadyCompleted:true, player1Uid:b.player1Uid, player2Uid:b.player2Uid,
+          player1DisplayName:b.player1DisplayName, player2DisplayName:b.player2DisplayName,
+          player1FinalPoints:b.player1FinalPoints, player2FinalPoints:b.player2FinalPoints, result:b.result
+        };
+      }
+      if(b.status !== 'active') throw new Error('This battle isn\u2019t active.');
+
+      const p1Ref = doc(db, 'players', b.player1Uid);
+      const p2Ref = doc(db, 'players', b.player2Uid);
+      const p1Snap = await tx.get(p1Ref);
+      const p2Snap = await tx.get(p2Ref);
+      const p1Points = (p1Snap.exists() ? p1Snap.data().points : 0) || 0;
+      const p2Points = (p2Snap.exists() ? p2Snap.data().points : 0) || 0;
+
+      const p1Final = p1Points - (b.player1StartPoints||0);
+      const p2Final = p2Points - (b.player2StartPoints||0);
+      let result;
+      if(p1Final > p2Final) result = 'player1';
+      else if(p2Final > p1Final) result = 'player2';
+      else result = 'draw';
+
+      tx.update(battleRef, {
+        status:'completed', player1FinalPoints:p1Final, player2FinalPoints:p2Final, result, completedAt: Date.now()
+      });
+
+      const p1Data = p1Snap.exists() ? p1Snap.data() : {};
+      const p1Battles = p1Data.battles || defaultBattleState();
+      const p1Record = p1Battles.record || { wins:0, losses:0, draws:0, gamesPlayed:0 };
+      if(result==='player1') p1Record.wins++; else if(result==='player2') p1Record.losses++; else p1Record.draws++;
+      p1Record.gamesPlayed++;
+      p1Battles.record = p1Record;
+      p1Battles.active = null;
+      tx.update(p1Ref, { battles: p1Battles });
+
+      const p2Data = p2Snap.exists() ? p2Snap.data() : {};
+      const p2Battles = p2Data.battles || defaultBattleState();
+      const p2Record = p2Battles.record || { wins:0, losses:0, draws:0, gamesPlayed:0 };
+      if(result==='player2') p2Record.wins++; else if(result==='player1') p2Record.losses++; else p2Record.draws++;
+      p2Record.gamesPlayed++;
+      p2Battles.record = p2Record;
+      p2Battles.active = null;
+      tx.update(p2Ref, { battles: p2Battles });
+
+      return {
+        alreadyCompleted:false, player1Uid:b.player1Uid, player2Uid:b.player2Uid,
+        player1DisplayName:b.player1DisplayName, player2DisplayName:b.player2DisplayName,
+        player1FinalPoints:p1Final, player2FinalPoints:p2Final, result
+      };
+    });
+  }
+
+  async function fetchBattleLeaderboard(max){
+    const q = query(collection(db, 'players'), orderBy('updatedAt', 'desc'), limit(max || 50));
+    const snap = await getDocs(q);
+    const out = [];
+    snap.forEach(d=>{
+      const data = d.data();
+      const record = (data.battles && data.battles.record) || { wins:0, losses:0, draws:0, gamesPlayed:0 };
+      out.push({ uid: d.id, displayName: data.displayName, avatar: avatarIdFromData(data), ...record });
+    });
+    return out;
+  }
+
   function avatarIdFromData(data){
     return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
   }
@@ -1612,7 +1974,8 @@
   window.DriftlineCloud = {
     signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap,
     fetchLeaderboard, fetchAllPlayersForPeriods,
-    sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid
+    sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid,
+    sendBattleChallenge, respondBattleChallenge, completeBattle, fetchBattleState, fetchBattleLeaderboard
   };
 </script>
 
@@ -1632,8 +1995,8 @@ const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
 
 /* ====================== STATE ====================== */
 const REGION_RADIUS_M = 10000;      // 10km play area
-const HOTSPOT_MIN_M = 50;
-const HOTSPOT_MAX_M = 1000;
+const HOTSPOT_MIN_M = 10;
+const HOTSPOT_MAX_M = 500;
 const PINPOINT_RADIUS_M = 10;       // a handful of ultra-precise 10m fishing holes
 const PINPOINT_ODDS = 95;
 const REFRESH_MS = 5*60*1000;       // 5 minutes
@@ -1645,6 +2008,8 @@ const SHARE_BOOST_AMOUNT = 20;           // +20% bite chance while boosted
 const SHARE_ODDS_CAP = 98;               // odds can never exceed this, even boosted
 
 let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
+let prawnTrapMarker = null, crabTrapMarker = null;
+let prawnTrapMarkerReady = false, crabTrapMarkerReady = false;
 let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
 let hotspots = [];               // {lat,lng,radius,odds}
 let liveLatLng = null;           // {lat,lng} — your real-time GPS position (only valid cast location)
@@ -1663,6 +2028,10 @@ let shopState = loadShopState();
 let shopTab = 'shop';            // 'shop' | 'gear'
 let friendsState = { friends:[], incomingRequests:[], outgoingRequests:[] };
 let friendsProfileCache = {};    // uid -> fetched player summary, for the friends list view
+let battleState = { incoming:[], outgoing:[], active:null, record:{ wins:0, losses:0, draws:0, gamesPlayed:0 } };
+let battleTickInterval = null;
+let lastKnownBattleId = undefined; // undefined = "haven't checked this session yet" -- prevents the VS reveal from firing just because the app loaded while a battle was already in progress
+let battleChallengeTarget = null; // { uid, displayName } currently picking a duration for
 let prawnTrap = loadPrawnTrap(); // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
 let prawnTickInterval = null;
 let crabTrap = loadCrabTrap();   // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
@@ -1812,7 +2181,7 @@ function hotspotColor(odds){
 
 /* ====================== HOTSPOT GENERATION ====================== */
 function generateHotspots(centerPt){
-  const count = 60 + Math.floor(Math.random()*41); // 60-100 (~10x the old count)
+  const count = 120 + Math.floor(Math.random()*81); // 120-200 (2x the previous 60-100)
   const list = [];
   // Skew radius toward the larger/lower-odds end so high-percentage spots
   // are genuinely rare on the map, and common, low-odds spots dominate.
@@ -1825,7 +2194,7 @@ function generateHotspots(centerPt){
   }
   // A rare handful of pinpoint 10m fishing holes — the best odds on the
   // whole map, but you have to be standing almost exactly on top of one.
-  const pinpointCount = 2 + Math.floor(Math.random()*2); // 2-3
+  const pinpointCount = 4 + Math.floor(Math.random()*3); // 4-6 (2x the previous 2-3)
   for(let i=0;i<pinpointCount;i++){
     const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.9);
     list.push({ lat:pt.lat, lng:pt.lng, radius:PINPOINT_RADIUS_M, odds:PINPOINT_ODDS, pinpoint:true });
@@ -2082,6 +2451,52 @@ function initMap(centerPt){
   // Map is view-only: you can pan/zoom to scout hotspots, but you can only
   // cast from your real, live GPS position (handled by watchPosition below).
   $('cast-panel').classList.add('show');
+
+  // Restore any trap already in progress from before a reload.
+  renderPrawnTrapMarker();
+  renderCrabTrapMarker();
+}
+function renderPrawnTrapMarker(){
+  if(prawnTrapMarker){ map.removeLayer(prawnTrapMarker); prawnTrapMarker = null; }
+  if(!prawnTrap || !map) return;
+  prawnTrapMarkerReady = isPrawnTrapReady();
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="trap-marker ${prawnTrapMarkerReady?'ready':''}" style="--trap-color:#ff8a3f;">\u{1F990}</div>`,
+    iconSize:[36,36], iconAnchor:[18,18]
+  });
+  prawnTrapMarker = L.marker([prawnTrap.lat, prawnTrap.lng], { icon, zIndexOffset:500 }).addTo(map);
+  prawnTrapMarker.on('click', openPrawnOverlay);
+}
+function renderCrabTrapMarker(){
+  if(crabTrapMarker){ map.removeLayer(crabTrapMarker); crabTrapMarker = null; }
+  if(!crabTrap || !map) return;
+  crabTrapMarkerReady = isCrabTrapReady();
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="trap-marker ${crabTrapMarkerReady?'ready':''}" style="--trap-color:#c9860a;">\u{1F980}</div>`,
+    iconSize:[36,36], iconAnchor:[18,18]
+  });
+  crabTrapMarker = L.marker([crabTrap.lat, crabTrap.lng], { icon, zIndexOffset:500 }).addTo(map);
+  crabTrapMarker.on('click', openCrabOverlay);
+}
+function refreshPrawnTrapMarkerReadyState(){
+  if(!prawnTrapMarker) return;
+  const ready = isPrawnTrapReady();
+  if(ready === prawnTrapMarkerReady) return;
+  prawnTrapMarkerReady = ready;
+  const el = prawnTrapMarker.getElement();
+  const inner = el && el.querySelector('.trap-marker');
+  if(inner) inner.classList.toggle('ready', ready);
+}
+function refreshCrabTrapMarkerReadyState(){
+  if(!crabTrapMarker) return;
+  const ready = isCrabTrapReady();
+  if(ready === crabTrapMarkerReady) return;
+  crabTrapMarkerReady = ready;
+  const el = crabTrapMarker.getElement();
+  const inner = el && el.querySelector('.trap-marker');
+  if(inner) inner.classList.toggle('ready', ready);
 }
 
 /* ====================== LIVE POSITION TRACKING ====================== */
@@ -2324,6 +2739,7 @@ function updatePrawnChip(){
   const chip = $('prawn-chip');
   const text = $('prawn-chip-text');
   if(!chip || !text) return;
+  refreshPrawnTrapMarkerReadyState();
   if(!prawnTrap){
     chip.classList.remove('ready');
     text.textContent = 'Set a Prawn Trap';
@@ -2415,6 +2831,7 @@ function deployPrawnTrap(){
   savePrawnTrap();
   syncPrawnTrapToCloud();
   updatePrawnChip();
+  renderPrawnTrapMarker();
   playSplashSound();
   spawnSplash();
   showToast('\u{1F990} Trap set! Check back in an hour.');
@@ -2441,6 +2858,7 @@ function collectPrawnTrap(){
   savePrawnTrap();
   syncPrawnTrapToCloud();
   updatePrawnChip();
+  renderPrawnTrapMarker();
   shopState.trapsCollected = (shopState.trapsCollected||0) + 1;
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -2510,6 +2928,7 @@ function updateCrabChip(){
   const chip = $('crab-chip');
   const text = $('crab-chip-text');
   if(!chip || !text) return;
+  refreshCrabTrapMarkerReadyState();
   if(!crabTrap){
     chip.classList.remove('ready');
     text.textContent = 'Set a Crab Trap';
@@ -2701,6 +3120,7 @@ function deployCrabTrap(){
   saveCrabTrap();
   syncCrabTrapToCloud();
   updateCrabChip();
+  renderCrabTrapMarker();
 
   $('crab-content').innerHTML = '';
   animateCrabTrapDrop(()=>{
@@ -2729,6 +3149,7 @@ function collectCrabTrap(){
     saveCrabTrap();
     syncCrabTrapToCloud();
     updateCrabChip();
+    renderCrabTrapMarker();
     shopState.crabsCollected = (shopState.crabsCollected||0) + 1;
     shopState.updatedAt = Date.now();
     saveShopState();
@@ -3877,6 +4298,9 @@ function closeAllOverlaysForTutorial(){
   closeFriendGear();
   closePrawnOverlay();
   closeCrabOverlay();
+  closeBattleOverlay();
+  closeBattleChallengeModal();
+  closeBattleStartOverlay();
 }
 function applyTutorialAction(action){
   switch(action){
@@ -3941,7 +4365,7 @@ function updateAccountBadge(){
   const dot = $('account-alert');
   if(!dot) return;
   if(!session){ dot.classList.remove('hidden'); dot.textContent='!'; return; }
-  const count = friendsState.incomingRequests.length;
+  const count = friendsState.incomingRequests.length + battleState.incoming.length;
   if(count>0){ dot.classList.remove('hidden'); dot.textContent = count>9?'9+':String(count); }
   else dot.classList.add('hidden');
   updateFriendsBadge();
@@ -3949,7 +4373,7 @@ function updateAccountBadge(){
 function updateFriendsBadge(){
   const dot = $('friends-alert');
   if(!dot) return;
-  const count = friendsState.incomingRequests.length;
+  const count = friendsState.incomingRequests.length + battleState.incoming.length;
   if(count>0){ dot.classList.remove('hidden'); dot.textContent = count>9?'9+':String(count); }
   else dot.classList.add('hidden');
 }
@@ -3960,6 +4384,294 @@ async function refreshFriendsState(){
   }catch(e){ /* keep previous cached state on failure */ }
   updateAccountBadge();
 }
+
+/* ====================== BATTLES ====================== */
+async function refreshBattleState(){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    const fresh = await window.DriftlineCloud.fetchBattleState(session.uid);
+    const newActiveId = fresh.active ? fresh.active.battleId : null;
+    const isFirstCheckThisSession = (lastKnownBattleId === undefined);
+    const hadDifferentBattle = !isFirstCheckThisSession && newActiveId && newActiveId !== lastKnownBattleId;
+    battleState = fresh;
+    updateBattleChip();
+    updateAccountBadge();
+    if(hadDifferentBattle){
+      // A challenge we sent (or that just got accepted) is now active and
+      // we haven't shown the VS reveal for it yet -- show it now. The first
+      // check of a session never triggers this, so opening the app while a
+      // battle is already mid-flight doesn't replay the reveal.
+      showBattleStartAnimation(fresh.active);
+    }
+    lastKnownBattleId = newActiveId;
+  }catch(e){ /* keep previous cached state on failure */ }
+}
+function updateBattleChip(){
+  const chip = $('battle-chip');
+  const text = $('battle-chip-text');
+  if(!chip || !text) return;
+  if(!battleState.active){
+    chip.classList.add('hidden');
+    chip.classList.remove('ready');
+    return;
+  }
+  chip.classList.remove('hidden');
+  const remain = battleState.active.endAt - Date.now();
+  if(remain <= 0){
+    chip.classList.add('ready');
+    text.textContent = 'Battle over \u2014 tap to see the result!';
+  } else {
+    chip.classList.remove('ready');
+    const h = Math.floor(remain/3600000);
+    const m = Math.floor((remain%3600000)/60000);
+    text.textContent = h>0 ? `Battle: ${h}h ${String(m).padStart(2,'0')}m` : `Battle: ${m}m`;
+  }
+  if($('battle-overlay').classList.contains('active')) renderBattleArena();
+}
+function startBattleTicker(){
+  clearInterval(battleTickInterval);
+  battleTickInterval = setInterval(updateBattleChip, 1000);
+}
+
+function openBattleChallengeModal(targetUid){
+  const el = document.getElementById('friend-name-'+targetUid);
+  battleChallengeTarget = { uid: targetUid, displayName: el ? el.textContent : 'this angler' };
+  $('battle-challenge-name').textContent = `Challenge ${battleChallengeTarget.displayName}`;
+  $('battle-challenge-scrim').classList.add('show');
+}
+function closeBattleChallengeModal(){
+  $('battle-challenge-scrim').classList.remove('show');
+  battleChallengeTarget = null;
+}
+async function sendBattleChallengeAction(hours){
+  if(!battleChallengeTarget || !session || !window.DriftlineCloud) return;
+  const target = battleChallengeTarget;
+  closeBattleChallengeModal();
+  try{
+    await window.DriftlineCloud.sendBattleChallenge(session.uid, session.displayName, target.uid, target.displayName, hours);
+    showToast(`\u2694\uFE0F Challenge sent to ${target.displayName}!`);
+    await refreshBattleState();
+    renderFriendsDrawer();
+  }catch(e){
+    showToast("Couldn't send that challenge \u2014 try again.");
+  }
+}
+async function handleBattleRequestAction(battleId, accept){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    const result = await window.DriftlineCloud.respondBattleChallenge(session.uid, session.displayName, battleId, accept);
+    if(accept){
+      showToast('Battle accepted \u2014 good luck! \u{1F3A3}');
+    } else {
+      showToast('Challenge declined.');
+    }
+    await refreshBattleState();
+    renderFriendsDrawer();
+  }catch(e){
+    showToast("Couldn't update that challenge \u2014 try again.");
+  }
+}
+
+function showBattleStartAnimation(active){
+  const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+  $('bs-my-avatar').textContent = avatar.emoji;
+  $('bs-my-name').textContent = 'You';
+  $('bs-opp-avatar').textContent = '\u{1F41F}';
+  $('bs-opp-name').textContent = active.opponentDisplayName;
+  $('bs-duration-text').textContent = `Most points in ${active.endAt - active.startAt >= 3600000 ? Math.round((active.endAt-active.startAt)/3600000)+'h' : 'a little while'} wins.`;
+  $('battle-start-overlay').classList.add('show');
+
+  const fighters = document.querySelectorAll('.bs-fighter');
+  const badge = $('bs-vs-badge');
+  const h2 = document.querySelector('#battle-start-card h2');
+  const p = document.querySelector('#battle-start-card p');
+  const btn = $('battle-start-close');
+  [fighters[0], fighters[1], badge, h2, p, btn].forEach(el=>{ if(el) el.style.opacity = '0'; });
+
+  fighters[0] && fighters[0].animate([{transform:'translateX(-60px)',opacity:0},{transform:'translateX(0)',opacity:1}], {duration:450, easing:'cubic-bezier(.2,.9,.25,1)', fill:'forwards'});
+  fighters[1] && fighters[1].animate([{transform:'translateX(60px)',opacity:0},{transform:'translateX(0)',opacity:1}], {duration:450, easing:'cubic-bezier(.2,.9,.25,1)', fill:'forwards'});
+  setTimeout(()=>{
+    if(badge){
+      badge.style.opacity = '1';
+      badge.animate([{transform:'scale(0) rotate(-45deg)'},{transform:'scale(1.3) rotate(0deg)'},{transform:'scale(1) rotate(0deg)'}], {duration:400, easing:'ease-out', fill:'forwards'});
+    }
+    ensureAudioCtx();
+    [220,330,440].forEach((f,i)=> playTone(f, i*0.08, 0.18, 'sawtooth', 0.12));
+    if('vibrate' in navigator) navigator.vibrate([40,30,40,30,80]);
+  }, 400);
+  setTimeout(()=>{
+    if(h2){ h2.style.opacity='1'; h2.animate([{transform:'translateY(10px)',opacity:0},{transform:'translateY(0)',opacity:1}],{duration:300,fill:'forwards'}); }
+  }, 700);
+  setTimeout(()=>{
+    if(p){ p.style.opacity='1'; }
+    if(btn){ btn.style.opacity='1'; }
+  }, 950);
+}
+function closeBattleStartOverlay(){
+  $('battle-start-overlay').classList.remove('show');
+}
+
+function openBattleOverlay(){
+  $('battle-overlay').classList.add('active');
+  renderBattleArena();
+}
+function closeBattleOverlay(){
+  $('battle-overlay').classList.remove('active');
+}
+async function renderBattleArena(){
+  const content = $('battle-content');
+  const r = battleState.record || { wins:0, losses:0, draws:0, gamesPlayed:0 };
+  const recordHtml = `
+    <div class="battle-record-row">
+      <div class="battle-record-stat"><span>${r.wins}</span><label>Wins</label></div>
+      <div class="battle-record-stat"><span>${r.losses}</span><label>Losses</label></div>
+      <div class="battle-record-stat"><span>${r.draws}</span><label>Draws</label></div>
+      <div class="battle-record-stat"><span>${r.gamesPlayed>0 ? Math.round(r.wins/r.gamesPlayed*100) : 0}%</span><label>Win Rate</label></div>
+    </div>`;
+
+  if(!battleState.active){
+    content.innerHTML = `
+      <div class="battle-card">
+        <div class="battle-icon-big">\u2694\uFE0F</div>
+        <h3 class="battle-title">No Active Battle</h3>
+        <p class="battle-desc">Challenge a friend from the Friends screen to start a head-to-head battle \u2014 most points wins.</p>
+        <button class="btn btn-primary" id="battle-open-friends-btn" style="width:100%;">View Friends</button>
+        ${recordHtml}
+      </div>`;
+    $('battle-open-friends-btn').addEventListener('click', ()=>{
+      closeBattleOverlay();
+      openFriendsDrawer();
+    });
+    return;
+  }
+
+  const b = battleState.active;
+  const now = Date.now();
+  const myPoints = computePoints(loadBag());
+  const myScore = Math.max(0, myPoints - (b.myStartPoints||0));
+
+  if(now < b.endAt){
+    const remain = b.endAt - now;
+    const h = Math.floor(remain/3600000);
+    const m = Math.floor((remain%3600000)/60000);
+    const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+    content.innerHTML = `
+      <div class="battle-card">
+        <h3 class="battle-title">Battle In Progress</h3>
+        <div class="battle-countdown">${h>0?h+'h ':''}${m}m</div>
+        <div class="battle-desc">until the result is revealed</div>
+        <div class="battle-vs-live">
+          <div class="battle-side">
+            <div class="battle-side-avatar">${avatar.emoji}</div>
+            <div class="battle-side-name">You</div>
+            <div class="battle-side-score">${myScore}</div>
+          </div>
+          <div class="battle-vs-mid">VS</div>
+          <div class="battle-side">
+            <div class="battle-side-avatar">\u{1F41F}</div>
+            <div class="battle-side-name">${b.opponentDisplayName}</div>
+            <div class="battle-side-score">?</div>
+          </div>
+        </div>
+        <p class="battle-desc" style="margin-bottom:0;">Their live score stays hidden until time's up \u2014 keep fishing!</p>
+        ${recordHtml}
+      </div>`;
+    return;
+  }
+
+  // Time's up -- ready to reveal.
+  content.innerHTML = `
+    <div class="battle-card">
+      <div class="battle-icon-big">\u2694\uFE0F</div>
+      <h3 class="battle-title">Battle Complete!</h3>
+      <p class="battle-desc">Your battle with ${b.opponentDisplayName} has ended. Ready to see who won?</p>
+      <button class="btn btn-primary" id="battle-reveal-btn" style="width:100%;">Reveal Result</button>
+      ${recordHtml}
+    </div>`;
+  $('battle-reveal-btn').addEventListener('click', ()=>revealBattleResult(b.battleId));
+}
+
+async function revealBattleResult(battleId){
+  if(!window.DriftlineCloud) return;
+  const content = $('battle-content');
+  content.innerHTML = `<div class="battle-card"><div class="battle-icon-big">\u2694\uFE0F</div><h3 class="battle-title">Tallying scores\u2026</h3></div>`;
+  try{
+    const outcome = await window.DriftlineCloud.completeBattle(battleId);
+    await refreshBattleState();
+    closeBattleOverlay();
+    showBattleResultReveal(outcome);
+  }catch(e){
+    showToast("Couldn't reveal the result right now \u2014 try again in a moment.");
+    renderBattleArena();
+  }
+}
+
+function showBattleResultReveal(outcome){
+  const isPlayer1 = session.uid === outcome.player1Uid;
+  const myScore = isPlayer1 ? outcome.player1FinalPoints : outcome.player2FinalPoints;
+  const oppScore = isPlayer1 ? outcome.player2FinalPoints : outcome.player1FinalPoints;
+  const oppName = isPlayer1 ? outcome.player2DisplayName : outcome.player1DisplayName;
+  const iWon = (outcome.result === 'player1' && isPlayer1) || (outcome.result === 'player2' && !isPlayer1);
+  const isDraw = outcome.result === 'draw';
+  const resultClass = isDraw ? 'draw' : (iWon ? 'win' : 'loss');
+  const resultLabel = isDraw ? 'DRAW' : (iWon ? 'VICTORY!' : 'DEFEAT');
+  const resultColor = isDraw ? '#ffd23f' : (iWon ? '#39ff8f' : '#e0356f');
+
+  const overlay = $('battle-result-overlay');
+  overlay.className = resultClass;
+  const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+  $('br-content').innerHTML = `
+    <div style="font-size:46px; margin-bottom:8px;">${isDraw ? '\u{1F91D}' : (iWon ? '\u{1F3C6}' : '\u{1F41F}')}</div>
+    <div style="font-family:'Bricolage Grotesque'; font-weight:800; font-size:30px; color:${resultColor}; margin-bottom:20px; letter-spacing:0.02em;">${resultLabel}</div>
+    <div class="battle-vs-live" style="margin-bottom:24px;">
+      <div class="battle-side">
+        <div class="battle-side-avatar">${avatar.emoji}</div>
+        <div class="battle-side-name" style="color:rgba(255,255,255,0.8);">You</div>
+        <div class="battle-side-score" id="br-my-score" data-target="${myScore}">0</div>
+      </div>
+      <div class="battle-vs-mid" style="color:${resultColor};">VS</div>
+      <div class="battle-side">
+        <div class="battle-side-avatar">\u{1F41F}</div>
+        <div class="battle-side-name" style="color:rgba(255,255,255,0.8);">${oppName}</div>
+        <div class="battle-side-score" id="br-opp-score" data-target="${oppScore}">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="battle-result-close" style="width:100%; background:linear-gradient(160deg,${resultColor},#9455e0); color:#04201c;">Nice</button>
+  `;
+  overlay.classList.add('show');
+  ensureAudioCtx();
+  if(iWon){
+    [523,659,784,1046].forEach((f,i)=> playTone(f, i*0.1, 0.2, 'triangle', 0.15));
+    if('vibrate' in navigator) navigator.vibrate([50,40,50,40,50,40,120]);
+    spawnRodSparks('battle-result-overlay');
+  } else if(isDraw){
+    [440,440].forEach((f,i)=> playTone(f, i*0.15, 0.25, 'sine', 0.12));
+    if('vibrate' in navigator) navigator.vibrate([60,50,60]);
+  } else {
+    playTone(220, 0, 0.4, 'sine', 0.12);
+    if('vibrate' in navigator) navigator.vibrate(80);
+  }
+  animateDuelingScore('br-my-score');
+  animateDuelingScore('br-opp-score');
+  $('battle-result-close').addEventListener('click', ()=>{
+    overlay.classList.remove('show');
+  });
+}
+function animateDuelingScore(elId){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const target = parseInt(el.dataset.target, 10) || 0;
+  const start = performance.now();
+  const duration = 900;
+  function tick(now){
+    const t = Math.min(1, (now-start)/duration);
+    const eased = 1 - Math.pow(1-t, 3);
+    el.textContent = Math.round(target*eased);
+    if(t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 function checkSigninReminder(){
   updateAccountBadge();
   $('signin-banner').classList.toggle('show', !session);
@@ -4069,12 +4781,16 @@ async function afterAuthSuccess(result){
   updateEquippedVisuals();
   updatePrawnChip();
   updateCrabChip();
+  renderPrawnTrapMarker();
+  renderCrabTrapMarker();
 
   updateBagBadge();
   if(bagViewMode) renderBag();
   checkSigninReminder();
   silentlyBackfillAchievements();
   refreshFriendsState();
+  lastKnownBattleId = undefined; // treat this as a fresh session check -- no spurious VS reveal on sign-in
+  refreshBattleState();
   showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
   renderAccountDrawer();
 }
@@ -4090,11 +4806,19 @@ function handleSignOut(){
   saveShopState();
   prawnTrap = null;
   savePrawnTrap();
+  crabTrap = null;
+  saveCrabTrap();
   friendsState = { friends:[], incomingRequests:[], outgoingRequests:[] };
+  battleState = { incoming:[], outgoing:[], active:null, record:{ wins:0, losses:0, draws:0, gamesPlayed:0 } };
+  lastKnownBattleId = undefined;
 
   updateBagBadge();
   updateEquippedVisuals();
   updatePrawnChip();
+  updateCrabChip();
+  updateBattleChip();
+  renderPrawnTrapMarker();
+  renderCrabTrapMarker();
   if(bagViewMode) renderBag();
   renderAccountDrawer();
   checkSigninReminder();
@@ -4109,6 +4833,7 @@ function openFriendsDrawer(){
   $('friends-drawer').classList.add('show');
   renderFriendsDrawer();
   refreshFriendsState().then(renderFriendsDrawer);
+  refreshBattleState().then(renderFriendsDrawer);
 }
 function closeFriendsDrawer(){
   $('friends-scrim').classList.remove('show');
@@ -4120,6 +4845,19 @@ function renderFriendsDrawer(){
     return;
   }
   let html = '';
+
+  if(battleState.incoming.length){
+    html += `<h3 class="settings-section-title" style="margin-top:6px;">\u2694\uFE0F Battle Challenges</h3>`;
+    html += battleState.incoming.map(b=>`
+      <div class="friends-row">
+        <div class="friends-row-avatar">\u2694\uFE0F</div>
+        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours}h</div>
+        <div class="friends-row-actions">
+          <button class="fr-accept" data-battle-action="accept" data-battle-id="${b.battleId}">Accept</button>
+          <button class="fr-decline" data-battle-action="decline" data-battle-id="${b.battleId}">Decline</button>
+        </div>
+      </div>`).join('');
+  }
 
   if(friendsState.incomingRequests.length){
     html += `<h3 class="settings-section-title" style="margin-top:6px;">Friend Requests</h3>`;
@@ -4136,22 +4874,36 @@ function renderFriendsDrawer(){
 
   html += `<h3 class="settings-section-title">Your Friends</h3>`;
   if(friendsState.friends.length){
+    const hasActiveBattle = !!battleState.active;
     html += friendsState.friends.map(uid=>`
-      <div class="friends-row" data-fr-view="${uid}">
-        <div class="friends-row-avatar">\u{1F41F}</div>
-        <div class="friends-row-name" id="friend-name-${uid}">Loading\u2026</div>
+      <div class="friends-row">
+        <div class="friends-row-avatar" data-fr-view="${uid}">\u{1F41F}</div>
+        <div class="friends-row-name" id="friend-name-${uid}" data-fr-view="${uid}">Loading\u2026</div>
+        <div class="friends-row-actions">
+          <button class="fr-battle ${hasActiveBattle?'disabled':''}" data-battle-target="${uid}" title="${hasActiveBattle?'Finish your current battle first':'Challenge to a battle'}">\u2694\uFE0F</button>
+        </div>
       </div>`).join('');
   } else {
     html += `<div class="friends-empty">No friends yet \u2014 add someone by username above.</div>`;
   }
 
   if(friendsState.outgoingRequests.length){
-    html += `<h3 class="settings-section-title">Pending</h3>`;
+    html += `<h3 class="settings-section-title">Pending Friend Requests</h3>`;
     html += friendsState.outgoingRequests.map(r=>`
       <div class="friends-row">
         <div class="friends-row-avatar">\u{23F3}</div>
         <div class="friends-row-name">${r.displayName}</div>
         <div class="friends-pending-tag">Request sent</div>
+      </div>`).join('');
+  }
+
+  if(battleState.outgoing.length){
+    html += `<h3 class="settings-section-title">Pending Battle Challenges</h3>`;
+    html += battleState.outgoing.map(b=>`
+      <div class="friends-row">
+        <div class="friends-row-avatar">\u2694\uFE0F</div>
+        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours}h</div>
+        <div class="friends-pending-tag">Sent</div>
       </div>`).join('');
   }
 
@@ -4295,9 +5047,61 @@ function computePeriodPoints(bag, startMs){
   }, 0);
 }
 
+let lbBattleCache = null;
+function compareBattleRecord(a, b){
+  const aWinPct = a.gamesPlayed>0 ? a.wins/a.gamesPlayed : -1;
+  const bWinPct = b.gamesPlayed>0 ? b.wins/b.gamesPlayed : -1;
+  if(bWinPct !== aWinPct) return bWinPct - aWinPct;
+  if(b.wins !== a.wins) return b.wins - a.wins;
+  if(a.losses !== b.losses) return a.losses - b.losses;
+  if(b.draws !== a.draws) return b.draws - a.draws;
+  return b.gamesPlayed - a.gamesPlayed;
+}
+async function loadBattleLeaderboard(){
+  $('leaderboard-list').innerHTML = '<div class="lb-loading">Loading battle standings\u2026</div>';
+  if(!window.DriftlineCloud){
+    $('leaderboard-list').innerHTML = '<div class="lb-loading">Still connecting \u2014 try again in a moment.</div>';
+    return;
+  }
+  try{
+    lbBattleCache = await window.DriftlineCloud.fetchBattleLeaderboard(50);
+    renderBattleLeaderboardList();
+  }catch(e){
+    $('leaderboard-list').innerHTML = '<div class="lb-loading">Couldn\u2019t load battle standings. Try again in a moment.</div>';
+  }
+}
+function renderBattleLeaderboardList(){
+  if(!lbBattleCache) return;
+  const ranked = lbBattleCache.filter(p=>p.gamesPlayed>0).sort(compareBattleRecord).slice(0,50);
+  if(!ranked.length){
+    $('leaderboard-list').innerHTML = `<div class="lb-loading">No battles fought yet \u2014 challenge a friend to get on the board!</div>`;
+    return;
+  }
+  const medals = ['\u{1F947}','\u{1F948}','\u{1F949}'];
+  const topClass = ['lb-top1','lb-top2','lb-top3'];
+  $('leaderboard-list').innerHTML = ranked.map((p,i)=>{
+    const isMe = session && p.uid === session.uid;
+    const cls = ['lb-row'];
+    if(isMe) cls.push('lb-me');
+    if(topClass[i]) cls.push(topClass[i]);
+    const avatarObj = AVATAR_COSMETICS.find(c=>c.id===p.avatar) || AVATAR_COSMETICS[0];
+    const winPct = p.gamesPlayed>0 ? Math.round(p.wins/p.gamesPlayed*100) : 0;
+    return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
+      <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
+      <div class="lb-avatar">${avatarObj.emoji}</div>
+      <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
+      <div class="lb-points">${winPct}% <span style="opacity:0.6; font-weight:600;">(${p.wins}-${p.losses}-${p.draws})</span></div>
+    </div>`;
+  }).join('');
+}
+
 function renderLeaderboardForPeriod(period){
   lbPeriod = period;
   document.querySelectorAll('.lb-period-tab').forEach(t=>t.classList.toggle('active', t.dataset.period===period));
+  if(period === 'battles'){
+    loadBattleLeaderboard();
+    return;
+  }
   if(!lbCache){ return; }
   const startMs = LB_PERIOD_START[period]();
   let ranked = lbCache.map(p=>({
@@ -4434,7 +5238,11 @@ function beginGame(pt, accuracy){
   startPrawnTicker();
   updateCrabChip();
   startCrabTicker();
-  if(session) refreshFriendsState();
+  startBattleTicker();
+  if(session){
+    refreshFriendsState();
+    refreshBattleState();
+  }
   maybeAutoStartTutorial();
 }
 
@@ -4650,6 +5458,19 @@ $('friends-content').addEventListener('click', (e)=>{
     handleFriendRequestAction(uid, actionBtn.dataset.frAction === 'accept');
     return;
   }
+  const battleActionBtn = e.target.closest('[data-battle-action]');
+  if(battleActionBtn){
+    const battleId = battleActionBtn.dataset.battleId;
+    handleBattleRequestAction(battleId, battleActionBtn.dataset.battleAction === 'accept');
+    return;
+  }
+  const battleTargetBtn = e.target.closest('[data-battle-target]');
+  if(battleTargetBtn){
+    if(battleTargetBtn.classList.contains('disabled')) return;
+    const uid = battleTargetBtn.dataset.battleTarget;
+    openBattleChallengeModal(uid);
+    return;
+  }
   const row = e.target.closest('[data-fr-view]');
   if(row) openFriendGear(row.dataset.frView);
 });
@@ -4657,6 +5478,18 @@ $('friend-gear-close').addEventListener('click', closeFriendGear);
 $('friend-gear-scrim').addEventListener('click', (e)=>{
   if(e.target.id === 'friend-gear-scrim') closeFriendGear();
 });
+
+/* ---- Battle listeners ---- */
+$('battle-chip').addEventListener('click', openBattleOverlay);
+$('battle-close').addEventListener('click', closeBattleOverlay);
+$('battle-challenge-close').addEventListener('click', closeBattleChallengeModal);
+$('battle-challenge-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'battle-challenge-scrim') closeBattleChallengeModal();
+});
+document.querySelectorAll('.bc-duration-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> sendBattleChallengeAction(parseInt(btn.dataset.hours, 10)));
+});
+$('battle-start-close').addEventListener('click', closeBattleStartOverlay);
 
 /* ---- Prawn Trap listeners ---- */
 $('prawn-chip').addEventListener('click', openPrawnOverlay);
