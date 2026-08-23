@@ -563,13 +563,25 @@
   #battle-challenge-close svg{width:14px; height:14px; stroke:var(--ink);}
   .bc-icon{font-size:40px; margin-bottom:10px;}
   #battle-challenge-name{font-family:'Bricolage Grotesque'; font-size:18px; font-weight:800; margin-bottom:10px;}
-  .bc-desc{font-size:12.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 18px;}
-  .bc-duration-row{display:flex; gap:8px;}
+  .bc-desc{font-size:12.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 14px;}
+  .bc-label{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-dim); text-align:left; margin:0 0 8px;}
+  .bc-duration-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;}
   .bc-duration-btn{
-    flex:1; appearance:none; border:1.5px solid var(--line); background:#f4f9fb; color:var(--ink);
-    border-radius:14px; padding:14px 0; font-weight:800; font-size:14px; cursor:pointer; touch-action:manipulation;
+    appearance:none; border:1.5px solid var(--line); background:#f4f9fb; color:var(--ink);
+    border-radius:14px; padding:12px 0; font-weight:800; font-size:13px; cursor:pointer; touch-action:manipulation;
   }
   .bc-duration-btn:active{transform:scale(0.96);}
+  .bc-duration-btn.selected{border-color:#9455e0; background:rgba(148,85,224,0.1); color:#9455e0;}
+  .bc-visibility-row{display:flex; flex-direction:column; gap:8px;}
+  .bc-visibility-btn{
+    appearance:none; border:1.5px solid var(--line); background:#f4f9fb; color:var(--ink);
+    border-radius:14px; padding:11px 14px; cursor:pointer; touch-action:manipulation;
+    display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
+  }
+  .bc-visibility-btn:active{transform:scale(0.98);}
+  .bc-visibility-btn.selected{border-color:#9455e0; background:rgba(148,85,224,0.1);}
+  .bc-vis-title{font-weight:800; font-size:13px;}
+  .bc-vis-desc{font-size:11px; color:var(--ink-dim);}
 
   /* ---------- Battle Arena ---------- */
   #battle-overlay{
@@ -1438,12 +1450,32 @@
     <button id="battle-challenge-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <div class="bc-icon">⚔️</div>
     <div id="battle-challenge-name">Challenge someone</div>
-    <p class="bc-desc">Whoever earns more points before time runs out wins. Pick a length:</p>
+    <p class="bc-desc">Whoever earns more points before time runs out wins.</p>
+    <p class="bc-label">Battle length</p>
     <div class="bc-duration-row">
-      <button class="bc-duration-btn" data-hours="24">24h</button>
+      <button class="bc-duration-btn" data-hours="0.5">30m</button>
+      <button class="bc-duration-btn" data-hours="1">1h</button>
+      <button class="bc-duration-btn" data-hours="6">6h</button>
+      <button class="bc-duration-btn selected" data-hours="24">24h</button>
       <button class="bc-duration-btn" data-hours="48">48h</button>
       <button class="bc-duration-btn" data-hours="72">72h</button>
     </div>
+    <p class="bc-label">Score visibility</p>
+    <div class="bc-visibility-row">
+      <button class="bc-visibility-btn selected" data-visibility="hidden">
+        <span class="bc-vis-title">Hidden</span>
+        <span class="bc-vis-desc">Only revealed at the end</span>
+      </button>
+      <button class="bc-visibility-btn" data-visibility="halfway">
+        <span class="bc-vis-title">Halfway</span>
+        <span class="bc-vis-desc">Unlocks partway through</span>
+      </button>
+      <button class="bc-visibility-btn" data-visibility="transparent">
+        <span class="bc-vis-title">Live</span>
+        <span class="bc-vis-desc">Both scores visible always</span>
+      </button>
+    </div>
+    <button class="btn btn-primary" id="battle-send-challenge-btn" style="width:100%; margin-top:16px;">Send Challenge</button>
   </div>
 </div>
 
@@ -1790,29 +1822,30 @@
     };
   }
 
-  async function sendBattleChallenge(myUid, myDisplayName, targetUid, targetDisplayName, durationHours){
+  async function sendBattleChallenge(myUid, myDisplayName, targetUid, targetDisplayName, durationHours, visibility){
+    visibility = visibility || 'hidden';
     const battleId = `${[myUid, targetUid].sort().join('_')}_${Date.now()}`;
     const battleRef = doc(db, 'battles', battleId);
     await setDoc(battleRef, {
       player1Uid: myUid, player1DisplayName: myDisplayName,
       player2Uid: targetUid, player2DisplayName: targetDisplayName,
-      durationHours, status: 'pending',
+      durationHours, visibility, status: 'pending',
       createdAt: Date.now(), acceptedAt: null, endAt: null,
       player1StartPoints: null, player2StartPoints: null,
       player1FinalPoints: null, player2FinalPoints: null,
-      result: null
+      result: null, forfeitedBy: null
     });
 
     const myRef = doc(db, 'players', myUid);
     const mySnap = await getDoc(myRef);
     const myBattles = (mySnap.exists() && mySnap.data().battles) || defaultBattleState();
-    myBattles.outgoing = [...(myBattles.outgoing||[]), { battleId, opponentUid: targetUid, opponentDisplayName: targetDisplayName, durationHours, sentAt: Date.now() }];
+    myBattles.outgoing = [...(myBattles.outgoing||[]), { battleId, opponentUid: targetUid, opponentDisplayName: targetDisplayName, durationHours, visibility, sentAt: Date.now() }];
     await updateDoc(myRef, { battles: myBattles });
 
     const targetRef = doc(db, 'players', targetUid);
     const targetSnap = await getDoc(targetRef);
     const targetBattles = (targetSnap.exists() && targetSnap.data().battles) || defaultBattleState();
-    targetBattles.incoming = [...(targetBattles.incoming||[]), { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, durationHours, sentAt: Date.now() }];
+    targetBattles.incoming = [...(targetBattles.incoming||[]), { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, durationHours, visibility, sentAt: Date.now() }];
     await updateDoc(targetRef, { battles: targetBattles });
 
     return { battleId };
@@ -1848,6 +1881,7 @@
     const isPlayer1 = battleData.player1Uid === myUid;
     const myPoints = myData.points || 0;
     const oppPoints = oppData.points || 0;
+    const visibility = battleData.visibility || 'hidden';
 
     const now = Date.now();
     const endAt = now + battleData.durationHours*3600000;
@@ -1858,20 +1892,22 @@
       player2StartPoints: isPlayer1 ? oppPoints : myPoints
     });
 
-    myBattles.active = { battleId, opponentUid: incomingEntry.opponentUid, opponentDisplayName: incomingEntry.opponentDisplayName, startAt: now, endAt, myStartPoints: myPoints, opponentStartPoints: oppPoints };
+    myBattles.active = { battleId, opponentUid: incomingEntry.opponentUid, opponentDisplayName: incomingEntry.opponentDisplayName, startAt: now, endAt, visibility, myStartPoints: myPoints, opponentStartPoints: oppPoints };
     await updateDoc(myRef, { battles: myBattles });
 
     const oppBattles = oppData.battles || defaultBattleState();
     oppBattles.outgoing = (oppBattles.outgoing||[]).filter(b=>b.battleId!==battleId);
-    oppBattles.active = { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, startAt: now, endAt, myStartPoints: oppPoints, opponentStartPoints: myPoints };
+    oppBattles.active = { battleId, opponentUid: myUid, opponentDisplayName: myDisplayName, startAt: now, endAt, visibility, myStartPoints: oppPoints, opponentStartPoints: myPoints };
     await updateDoc(oppRef, { battles: oppBattles });
 
     return { accepted:true, endAt, opponentDisplayName: incomingEntry.opponentDisplayName };
   }
 
-  async function completeBattle(battleId){
-    // Transaction-guarded so two players finishing at the same moment can't
-    // double-record the result -- whichever commits first wins; the other
+  async function resolveBattleTransaction(battleId, forcedResult, forfeiterUid){
+    // Shared by completeBattle (normal reveal) and forfeitBattle (forced
+    // outcome). Transaction-guarded so two players finishing -- or one
+    // forfeiting while the other reveals -- at the same moment can't
+    // double-record the result; whichever commits first wins, the other
     // just reads back the already-completed outcome.
     const battleRef = doc(db, 'battles', battleId);
     return await runTransaction(db, async (tx)=>{
@@ -1882,7 +1918,8 @@
         return {
           alreadyCompleted:true, player1Uid:b.player1Uid, player2Uid:b.player2Uid,
           player1DisplayName:b.player1DisplayName, player2DisplayName:b.player2DisplayName,
-          player1FinalPoints:b.player1FinalPoints, player2FinalPoints:b.player2FinalPoints, result:b.result
+          player1FinalPoints:b.player1FinalPoints, player2FinalPoints:b.player2FinalPoints,
+          result:b.result, forfeited: !!b.forfeitedBy
         };
       }
       if(b.status !== 'active') throw new Error('This battle isn\u2019t active.');
@@ -1897,13 +1934,19 @@
       const p1Final = p1Points - (b.player1StartPoints||0);
       const p2Final = p2Points - (b.player2StartPoints||0);
       let result;
-      if(p1Final > p2Final) result = 'player1';
-      else if(p2Final > p1Final) result = 'player2';
-      else result = 'draw';
+      if(forcedResult){
+        result = forcedResult;
+      } else if(p1Final > p2Final){
+        result = 'player1';
+      } else if(p2Final > p1Final){
+        result = 'player2';
+      } else {
+        result = 'draw';
+      }
 
-      tx.update(battleRef, {
-        status:'completed', player1FinalPoints:p1Final, player2FinalPoints:p2Final, result, completedAt: Date.now()
-      });
+      const updatePayload = { status:'completed', player1FinalPoints:p1Final, player2FinalPoints:p2Final, result, completedAt: Date.now() };
+      if(forfeiterUid) updatePayload.forfeitedBy = forfeiterUid;
+      tx.update(battleRef, updatePayload);
 
       const p1Data = p1Snap.exists() ? p1Snap.data() : {};
       const p1Battles = p1Data.battles || defaultBattleState();
@@ -1926,9 +1969,22 @@
       return {
         alreadyCompleted:false, player1Uid:b.player1Uid, player2Uid:b.player2Uid,
         player1DisplayName:b.player1DisplayName, player2DisplayName:b.player2DisplayName,
-        player1FinalPoints:p1Final, player2FinalPoints:p2Final, result
+        player1FinalPoints:p1Final, player2FinalPoints:p2Final, result, forfeited: !!forfeiterUid
       };
     });
+  }
+
+  async function completeBattle(battleId){
+    return resolveBattleTransaction(battleId, null, null);
+  }
+
+  async function forfeitBattle(battleId, forfeiterUid){
+    const battleRef = doc(db, 'battles', battleId);
+    const snap = await getDoc(battleRef);
+    if(!snap.exists()) throw new Error('Battle not found.');
+    const b = snap.data();
+    const forcedResult = (b.player1Uid === forfeiterUid) ? 'player2' : 'player1';
+    return resolveBattleTransaction(battleId, forcedResult, forfeiterUid);
   }
 
   async function fetchBattleLeaderboard(max){
@@ -1975,7 +2031,7 @@
     signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap,
     fetchLeaderboard, fetchAllPlayersForPeriods,
     sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid,
-    sendBattleChallenge, respondBattleChallenge, completeBattle, fetchBattleState, fetchBattleLeaderboard
+    sendBattleChallenge, respondBattleChallenge, completeBattle, forfeitBattle, fetchBattleState, fetchBattleLeaderboard
   };
 </script>
 
@@ -4435,20 +4491,22 @@ function startBattleTicker(){
 
 function openBattleChallengeModal(targetUid){
   const el = document.getElementById('friend-name-'+targetUid);
-  battleChallengeTarget = { uid: targetUid, displayName: el ? el.textContent : 'this angler' };
+  battleChallengeTarget = { uid: targetUid, displayName: el ? el.textContent : 'this angler', hours: 24, visibility: 'hidden' };
   $('battle-challenge-name').textContent = `Challenge ${battleChallengeTarget.displayName}`;
+  document.querySelectorAll('.bc-duration-btn').forEach(b=> b.classList.toggle('selected', parseFloat(b.dataset.hours)===24));
+  document.querySelectorAll('.bc-visibility-btn').forEach(b=> b.classList.toggle('selected', b.dataset.visibility==='hidden'));
   $('battle-challenge-scrim').classList.add('show');
 }
 function closeBattleChallengeModal(){
   $('battle-challenge-scrim').classList.remove('show');
   battleChallengeTarget = null;
 }
-async function sendBattleChallengeAction(hours){
+async function sendBattleChallengeAction(){
   if(!battleChallengeTarget || !session || !window.DriftlineCloud) return;
   const target = battleChallengeTarget;
   closeBattleChallengeModal();
   try{
-    await window.DriftlineCloud.sendBattleChallenge(session.uid, session.displayName, target.uid, target.displayName, hours);
+    await window.DriftlineCloud.sendBattleChallenge(session.uid, session.displayName, target.uid, target.displayName, target.hours, target.visibility);
     showToast(`\u2694\uFE0F Challenge sent to ${target.displayName}!`);
     await refreshBattleState();
     renderFriendsDrawer();
@@ -4555,6 +4613,23 @@ async function renderBattleArena(){
     const h = Math.floor(remain/3600000);
     const m = Math.floor((remain%3600000)/60000);
     const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
+
+    const visibility = b.visibility || 'hidden';
+    const halfwayAt = b.startAt + (b.endAt - b.startAt)/2;
+    const showOpponentNow = visibility === 'transparent' || (visibility === 'halfway' && now >= halfwayAt);
+
+    let visibilityNote = "Their live score stays hidden until time's up \u2014 keep fishing!";
+    if(visibility === 'halfway' && !showOpponentNow){
+      const untilReveal = halfwayAt - now;
+      const hh = Math.floor(untilReveal/3600000);
+      const mm = Math.floor((untilReveal%3600000)/60000);
+      visibilityNote = `Scores unlock in ${hh>0?hh+'h ':''}${mm}m \u2014 halfway through the battle.`;
+    } else if(visibility === 'halfway' && showOpponentNow){
+      visibilityNote = "You're past the halfway point \u2014 live scores unlocked for the rest of the battle.";
+    } else if(visibility === 'transparent'){
+      visibilityNote = 'Live scores \u2014 no surprises, just the race.';
+    }
+
     content.innerHTML = `
       <div class="battle-card">
         <h3 class="battle-title">Battle In Progress</h3>
@@ -4570,12 +4645,23 @@ async function renderBattleArena(){
           <div class="battle-side">
             <div class="battle-side-avatar">\u{1F41F}</div>
             <div class="battle-side-name">${b.opponentDisplayName}</div>
-            <div class="battle-side-score">?</div>
+            <div class="battle-side-score" id="battle-opp-live-score">${showOpponentNow ? '\u2026' : '?'}</div>
           </div>
         </div>
-        <p class="battle-desc" style="margin-bottom:0;">Their live score stays hidden until time's up \u2014 keep fishing!</p>
+        <p class="battle-desc" style="margin-bottom:0;">${visibilityNote}</p>
         ${recordHtml}
+        <button class="btn btn-ghost" id="battle-forfeit-btn" style="width:100%; margin-top:14px; background:rgba(224,53,113,0.12); color:#ff8a9f;">Forfeit Battle</button>
       </div>`;
+
+    if(showOpponentNow && window.DriftlineCloud){
+      window.DriftlineCloud.fetchPlayerByUid(b.opponentUid).then(p=>{
+        const el = document.getElementById('battle-opp-live-score');
+        if(el && p){
+          el.textContent = Math.max(0, (p.points||0) - (b.opponentStartPoints||0));
+        }
+      }).catch(()=>{});
+    }
+    wireBattleForfeitButton(b.battleId);
     return;
   }
 
@@ -4589,6 +4675,35 @@ async function renderBattleArena(){
       ${recordHtml}
     </div>`;
   $('battle-reveal-btn').addEventListener('click', ()=>revealBattleResult(b.battleId));
+}
+function wireBattleForfeitButton(battleId){
+  const btn = $('battle-forfeit-btn');
+  if(!btn) return;
+  let confirming = false;
+  let confirmTimeout = null;
+  btn.addEventListener('click', ()=>{
+    if(!confirming){
+      confirming = true;
+      btn.textContent = 'Tap again to confirm forfeit';
+      confirmTimeout = setTimeout(()=>{ confirming = false; if(btn) btn.textContent = 'Forfeit Battle'; }, 3000);
+      return;
+    }
+    clearTimeout(confirmTimeout);
+    executeForfeit(battleId);
+  });
+}
+async function executeForfeit(battleId){
+  if(!session || !window.DriftlineCloud) return;
+  $('battle-content').innerHTML = `<div class="battle-card"><div class="battle-icon-big">\u{1F3F3}\uFE0F</div><h3 class="battle-title">Forfeiting\u2026</h3></div>`;
+  try{
+    const outcome = await window.DriftlineCloud.forfeitBattle(battleId, session.uid);
+    await refreshBattleState();
+    closeBattleOverlay();
+    showBattleResultReveal(outcome);
+  }catch(e){
+    showToast("Couldn't forfeit right now \u2014 try again.");
+    renderBattleArena();
+  }
 }
 
 async function revealBattleResult(battleId){
@@ -4614,7 +4729,8 @@ function showBattleResultReveal(outcome){
   const iWon = (outcome.result === 'player1' && isPlayer1) || (outcome.result === 'player2' && !isPlayer1);
   const isDraw = outcome.result === 'draw';
   const resultClass = isDraw ? 'draw' : (iWon ? 'win' : 'loss');
-  const resultLabel = isDraw ? 'DRAW' : (iWon ? 'VICTORY!' : 'DEFEAT');
+  let resultLabel = isDraw ? 'DRAW' : (iWon ? 'VICTORY!' : 'DEFEAT');
+  if(outcome.forfeited) resultLabel = iWon ? 'WIN BY FORFEIT' : (isDraw ? 'DRAW' : 'YOU FORFEITED');
   const resultColor = isDraw ? '#ffd23f' : (iWon ? '#39ff8f' : '#e0356f');
 
   const overlay = $('battle-result-overlay');
@@ -5487,8 +5603,20 @@ $('battle-challenge-scrim').addEventListener('click', (e)=>{
   if(e.target.id === 'battle-challenge-scrim') closeBattleChallengeModal();
 });
 document.querySelectorAll('.bc-duration-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> sendBattleChallengeAction(parseInt(btn.dataset.hours, 10)));
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.bc-duration-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    if(battleChallengeTarget) battleChallengeTarget.hours = parseFloat(btn.dataset.hours);
+  });
 });
+document.querySelectorAll('.bc-visibility-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.bc-visibility-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    if(battleChallengeTarget) battleChallengeTarget.visibility = btn.dataset.visibility;
+  });
+});
+$('battle-send-challenge-btn').addEventListener('click', sendBattleChallengeAction);
 $('battle-start-close').addEventListener('click', closeBattleStartOverlay);
 
 /* ---- Prawn Trap listeners ---- */
