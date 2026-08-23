@@ -781,6 +781,36 @@
   #rod-upgrade-card p strong{color:#ffd23f;}
   #rod-upgrade-card .btn-primary{width:100%; background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f2e;}
 
+  /* ---------- Achievement celebration ---------- */
+  #achievement-overlay{
+    position:fixed; inset:0; z-index:990; overflow:hidden;
+    background:
+      radial-gradient(60% 45% at 50% 15%, rgba(0,229,255,0.3), transparent 60%),
+      radial-gradient(70% 55% at 50% 100%, rgba(148,85,224,0.3), transparent 65%),
+      linear-gradient(180deg, #0a0f2e 0%, #150822 55%, #05030f 100%);
+    display:flex; align-items:center; justify-content:center; padding:26px;
+    opacity:0; pointer-events:none; transition:opacity .4s ease;
+  }
+  #achievement-overlay.show{opacity:1; pointer-events:auto;}
+  #achievement-card{
+    position:relative; z-index:2; width:100%; max-width:340px; text-align:center;
+    padding:38px 26px 30px; border-radius:28px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(0,229,255,0.35);
+    backdrop-filter:blur(10px);
+    box-shadow:0 0 60px rgba(0,200,255,0.22);
+    transform:translateY(18px) scale(0.94); opacity:0;
+    transition:transform .4s cubic-bezier(.2,.9,.25,1), opacity .35s ease;
+  }
+  #achievement-overlay.show #achievement-card{transform:translateY(0) scale(1); opacity:1;}
+  #achievement-card .ru-icon{filter:drop-shadow(0 0 16px rgba(0,229,255,0.6));}
+  #achievement-badge{
+    display:inline-block; font-family:'Bricolage Grotesque'; font-weight:800; font-size:12px; letter-spacing:0.1em;
+    color:#04201c; background:linear-gradient(90deg,#00e5ff,#9455e0); padding:5px 14px; border-radius:999px; margin-bottom:14px;
+  }
+  #achievement-card h2{font-family:'Bricolage Grotesque'; font-size:23px; font-weight:800; color:#fff; margin:0 0 10px;}
+  #achievement-card p{font-size:13.5px; color:rgba(255,255,255,0.75); line-height:1.55; margin:0 0 24px;}
+  #achievement-card .btn-primary{width:100%; background:linear-gradient(160deg,#00e5ff,#9455e0); color:#04201c;}
+
   /* ---------- Settings drawer ---------- */
   #settings-scrim{
     position:fixed; inset:0; background:rgba(10,25,35,0.45); z-index:900;
@@ -824,6 +854,18 @@
   .rod-row.achieved .rod-row-badge{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f2e;}
   .rod-row-title{font-weight:700; font-size:13.5px;}
   .rod-row-sub{font-size:11.5px; color:var(--ink-dim); margin-top:1px;}
+  #achievements-count-label{font-size:12px; color:var(--ink-dim); font-weight:700; text-transform:none; letter-spacing:0;}
+  #achievements-list{padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;}
+  .ach-row{
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;
+    padding:14px 8px; border-radius:14px; background:#f4f9fb; border:1px solid transparent;
+  }
+  .ach-row.unlocked{background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.3);}
+  .ach-row-icon{font-size:24px; opacity:0.35;}
+  .ach-row.unlocked .ach-row-icon{opacity:1; filter:drop-shadow(0 0 6px rgba(0,200,255,0.4));}
+  .ach-row-name{font-weight:700; font-size:11.5px; color:var(--ink-dim);}
+  .ach-row.unlocked .ach-row-name{color:var(--ink);}
+  .ach-row-desc{font-size:10px; color:var(--ink-dim); line-height:1.3;}
   .settings-footnote{padding:14px 20px 26px; margin:4px 0 0; font-size:12px; color:var(--ink-dim); line-height:1.55;}
 
   /* ---------- Interactive tutorial ---------- */
@@ -1137,6 +1179,7 @@
       <div class="fg-stat"><span id="fg-points"></span><label>Points</label></div>
       <div class="fg-stat"><span id="fg-rod"></span><label>Rod Level</label></div>
       <div class="fg-stat"><span id="fg-catches"></span><label>Catches</label></div>
+      <div class="fg-stat"><span id="fg-achievements"></span><label>Achievements</label></div>
     </div>
     <div id="friend-gear-cosmetics"></div>
   </div>
@@ -1186,6 +1229,19 @@
   </div>
 </div>
 
+<!-- Achievement celebration -->
+<div id="achievement-overlay">
+  <div class="ru-blob" style="width:300px;height:300px;top:-80px;left:50%;transform:translateX(-60%);background:#00e5ff;"></div>
+  <div class="ru-blob" style="width:260px;height:260px;bottom:-90px;right:-60px;background:#9455e0;animation-delay:-4s;"></div>
+  <div id="achievement-card">
+    <div class="ru-icon" id="achievement-icon">⭐</div>
+    <div id="achievement-badge">ACHIEVEMENT UNLOCKED</div>
+    <h2 id="achievement-name"></h2>
+    <p id="achievement-desc"></p>
+    <button class="btn btn-primary" id="achievement-close">Nice!</button>
+  </div>
+</div>
+
 <!-- Settings drawer -->
 <div id="settings-scrim"></div>
 <div id="settings-drawer">
@@ -1211,6 +1267,8 @@
     <div id="weekly-challenge-bar"><div id="weekly-challenge-fill"></div></div>
     <div id="weekly-challenge-status"></div>
   </div>
+  <h3 class="settings-section-title">🏆 Achievements <span id="achievements-count-label"></span></h3>
+  <div id="achievements-list"></div>
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
   <div id="rod-milestones"></div>
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
@@ -1528,31 +1586,51 @@ function defaultShopState(){
     coinsSpent: 0,
     bonusRodLevels: 0,
     inventory: {},
-    ownedCosmetics: { avatars:['default'], hooks:['classic'] },
-    equipped: { avatar:'default', hook:'classic' },
+    ownedCosmetics: { avatars:['default'], hooks:['classic'], markers:['classic'] },
+    equipped: { avatar:'default', hook:'classic', marker:'classic' },
     activeBoosts: [],
     lastChallengeClaimedWeek: null,
+    trapsCollected: 0,
+    lastPlayDate: null,
+    dailyStreak: 0,
+    unlockedAchievements: [],
     updatedAt: 0
+  };
+}
+function normalizeShopState(s){
+  // Works on ANY raw shop object -- from localStorage OR from an older
+  // cloud document that predates newer fields (markers, achievements,
+  // traps, streaks). A shallow merge would silently drop those and break
+  // shopState.ownedCosmetics.markers.includes(...) calls elsewhere.
+  const d = defaultShopState();
+  if(!s || typeof s !== 'object') return d;
+  return {
+    coinsSpent: s.coinsSpent||0,
+    bonusRodLevels: s.bonusRodLevels||0,
+    inventory: s.inventory||{},
+    ownedCosmetics: {
+      avatars: (s.ownedCosmetics && s.ownedCosmetics.avatars) || d.ownedCosmetics.avatars,
+      hooks: (s.ownedCosmetics && s.ownedCosmetics.hooks) || d.ownedCosmetics.hooks,
+      markers: (s.ownedCosmetics && s.ownedCosmetics.markers) || d.ownedCosmetics.markers
+    },
+    equipped: {
+      avatar: (s.equipped&&s.equipped.avatar)||'default',
+      hook: (s.equipped&&s.equipped.hook)||'classic',
+      marker: (s.equipped&&s.equipped.marker)||'classic'
+    },
+    activeBoosts: s.activeBoosts||[],
+    lastChallengeClaimedWeek: s.lastChallengeClaimedWeek||null,
+    trapsCollected: s.trapsCollected||0,
+    lastPlayDate: s.lastPlayDate||null,
+    dailyStreak: s.dailyStreak||0,
+    unlockedAchievements: s.unlockedAchievements||[],
+    updatedAt: s.updatedAt||0
   };
 }
 function loadShopState(){
   try{
     const s = JSON.parse(localStorage.getItem('driftline_shop')||'null');
-    if(!s || typeof s !== 'object') return defaultShopState();
-    const d = defaultShopState();
-    return {
-      coinsSpent: s.coinsSpent||0,
-      bonusRodLevels: s.bonusRodLevels||0,
-      inventory: s.inventory||{},
-      ownedCosmetics: {
-        avatars: (s.ownedCosmetics && s.ownedCosmetics.avatars) || d.ownedCosmetics.avatars,
-        hooks: (s.ownedCosmetics && s.ownedCosmetics.hooks) || d.ownedCosmetics.hooks
-      },
-      equipped: { avatar: (s.equipped&&s.equipped.avatar)||'default', hook: (s.equipped&&s.equipped.hook)||'classic' },
-      activeBoosts: s.activeBoosts||[],
-      lastChallengeClaimedWeek: s.lastChallengeClaimedWeek||null,
-      updatedAt: s.updatedAt||0
-    };
+    return normalizeShopState(s);
   }catch(e){ return defaultShopState(); }
 }
 function saveShopState(){ localStorage.setItem('driftline_shop', JSON.stringify(shopState)); }
@@ -1863,7 +1941,7 @@ function initMap(centerPt){
   }).addTo(map);
 
   const userIcon = L.divIcon({
-    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:#0e86c4;border:3px solid #ffffff;box-shadow:0 0 0 6px rgba(14,134,196,0.22)"></div>`,
+    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:${equippedMarkerColor()};border:3px solid #ffffff;box-shadow:0 0 0 6px ${equippedMarkerColor()}38"></div>`,
     iconSize:[16,16], iconAnchor:[8,8]
   });
   userMarker = L.marker([centerPt.lat, centerPt.lng], { icon:userIcon, interactive:false }).addTo(map);
@@ -1895,9 +1973,10 @@ function onLivePosition(pos){
   if(userMarker) userMarker.setLatLng([liveLatLng.lat, liveLatLng.lng]);
   if(map && accuracyCircle) map.removeLayer(accuracyCircle);
   if(map){
+    const markerColor = equippedMarkerColor();
     accuracyCircle = L.circle([liveLatLng.lat, liveLatLng.lng], {
-      radius: Math.max(liveAccuracy||20, 15), color:'#0e86c4', weight:1,
-      fillColor:'#0e86c4', fillOpacity:0.08, opacity:0.35, interactive:false
+      radius: Math.max(liveAccuracy||20, 15), color:markerColor, weight:1,
+      fillColor:markerColor, fillOpacity:0.08, opacity:0.35, interactive:false
     }).addTo(map);
   }
   updateCastPanel();
@@ -2216,6 +2295,11 @@ function collectPrawnTrap(){
   savePrawnTrap();
   syncPrawnTrapToCloud();
   updatePrawnChip();
+  shopState.trapsCollected = (shopState.trapsCollected||0) + 1;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  checkAchievements();
   setTimeout(()=>renderPrawnResults(results, trap.attempts), 300);
 }
 function addCatchesToBagBatch(catches, lat, lng){
@@ -2234,6 +2318,7 @@ function addCatchesToBagBatch(catches, lat, lng){
   const levelAfter = rodLevelForPoints(pointsAfter);
   if(levelAfter > levelBefore) pendingRodUpgrade = levelAfter;
   checkWeeklyChallenge();
+  checkAchievements();
 }
 function renderPrawnResults(results, attempts){
   const content = $('prawn-content');
@@ -2259,11 +2344,7 @@ function renderPrawnResults(results, attempts){
   if(closeBtn) closeBtn.addEventListener('click', closePrawnOverlay);
   $('prawn-done-btn').addEventListener('click', ()=>{
     closePrawnOverlay();
-    if(pendingRodUpgrade){
-      const level = pendingRodUpgrade;
-      pendingRodUpgrade = null;
-      setTimeout(()=>showRodUpgrade(level), 400);
-    }
+    setTimeout(showPendingCelebrations, 400);
   });
 }
 
@@ -2541,6 +2622,20 @@ function revealResult(fishEl){
   }
 }
 
+function showPendingCelebrations(){
+  if(pendingRodUpgrade){
+    const level = pendingRodUpgrade;
+    pendingRodUpgrade = null;
+    showRodUpgrade(level);
+    // Achievements (if any) show after the rod overlay is closed --
+    // closeRodUpgrade() itself calls showPendingCelebrations() again.
+    return;
+  }
+  if(pendingAchievements.length){
+    showNextAchievement();
+  }
+}
+
 function closeFishingOverlay(){
   const overlay = $('fishing-overlay');
   overlay.classList.remove('active');
@@ -2549,11 +2644,7 @@ function closeFishingOverlay(){
     $('result-card').classList.remove('show');
     $('cast-status').classList.remove('show');
     $('line-rig').classList.remove('dropped','tug','waiting');
-    if(pendingRodUpgrade){
-      const level = pendingRodUpgrade;
-      pendingRodUpgrade = null;
-      showRodUpgrade(level);
-    }
+    showPendingCelebrations();
   }, 550);
   updateCastPanel();
   $('cast-panel').classList.add('show');
@@ -2575,6 +2666,7 @@ function addToBag(name, tierKey){
     pendingRodUpgrade = levelAfter;
   }
   checkWeeklyChallenge();
+  checkAchievements();
 }
 function tierIndexOf(tierKey){
   return TIERS.findIndex(t=>t.key===tierKey);
@@ -2610,6 +2702,13 @@ const HOOK_COSMETICS = [
   { id:'crimson', name:'Crimson Hook',  color:'#ff2d78', price:90 },
   { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:90 },
   { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:125 }
+];
+const MARKER_COSMETICS = [
+  { id:'classic', name:'Classic Blue',  color:'#0e86c4', price:0 },
+  { id:'gold',    name:'Golden Marker', color:'#c9860a', price:90 },
+  { id:'crimson', name:'Crimson Marker',color:'#e0356f', price:90 },
+  { id:'toxic',   name:'Toxic Green',   color:'#2f9c74', price:90 },
+  { id:'royal',   name:'Royal Purple',  color:'#9455e0', price:125 }
 ];
 
 /* ====================== WEEKLY CHALLENGE ====================== */
@@ -2660,6 +2759,117 @@ function checkWeeklyChallenge(){
   syncShopToCloud();
   grantBoost('weekly_challenge', WEEKLY_CHALLENGE_BOOST, WEEKLY_CHALLENGE_MS);
   showToast(`\u{1F3C6} Weekly Challenge complete! +${WEEKLY_CHALLENGE_BOOST}% bite chance for 24 hours!`);
+}
+
+/* ====================== ACHIEVEMENTS (bragging rights only) ====================== */
+const ACHIEVEMENTS = [
+  { id:'pts_50',    category:'points',  threshold:50,   name:'Getting Started',   desc:'Earn 50 points',            icon:'\u2B50' },
+  { id:'pts_150',   category:'points',  threshold:150,  name:'Committed Angler',  desc:'Earn 150 points',           icon:'\u2B50' },
+  { id:'pts_300',   category:'points',  threshold:300,  name:'Dedicated',         desc:'Earn 300 points',           icon:'\u{1F31F}' },
+  { id:'pts_500',   category:'points',  threshold:500,  name:'Serious Fisher',    desc:'Earn 500 points',           icon:'\u{1F31F}' },
+  { id:'pts_1000',  category:'points',  threshold:1000, name:'Point Collector',   desc:'Earn 1,000 points',         icon:'\u{1F4AB}' },
+  { id:'pts_2500',  category:'points',  threshold:2500, name:'Elite Angler',      desc:'Earn 2,500 points',         icon:'\u{1F4AB}' },
+  { id:'pts_5000',  category:'points',  threshold:5000, name:'Legendary Angler',  desc:'Earn 5,000 points',         icon:'\u{1F451}' },
+
+  { id:'trap_1',    category:'traps',   threshold:1,    name:'First Trap',        desc:'Collect your first prawn trap', icon:'\u{1F990}' },
+  { id:'trap_5',    category:'traps',   threshold:5,    name:'Trapper',           desc:'Collect 5 prawn traps',     icon:'\u{1F990}' },
+  { id:'trap_15',   category:'traps',   threshold:15,   name:'Trap Veteran',      desc:'Collect 15 prawn traps',    icon:'\u{1FAA4}' },
+  { id:'trap_30',   category:'traps',   threshold:30,   name:'Trap Master',       desc:'Collect 30 prawn traps',    icon:'\u{1FAA4}' },
+  { id:'trap_50',   category:'traps',   threshold:50,   name:'Trap Legend',       desc:'Collect 50 prawn traps',    icon:'\u{1F3C6}' },
+
+  { id:'species_10',  category:'species', threshold:10,  name:'Curious Collector',    desc:'Catch 10 different species',  icon:'\u{1F41F}' },
+  { id:'species_50',  category:'species', threshold:50,  name:'Species Hunter',       desc:'Catch 50 different species',  icon:'\u{1F420}' },
+  { id:'species_100', category:'species', threshold:100, name:'Naturalist',           desc:'Catch 100 different species', icon:'\u{1F421}' },
+  { id:'species_250', category:'species', threshold:250, name:'Marine Biologist',     desc:'Catch 250 different species', icon:'\u{1F988}' },
+  { id:'species_500', category:'species', threshold:500, name:'Living Field Guide',   desc:'Catch 500 different species', icon:'\u{1F4D6}' },
+
+  { id:'tier_hard',      category:'tier', tierKey:'hard',      name:'Leveling Up',    desc:'Catch your first Hard-tier fish',      icon:'\u{1F3AF}' },
+  { id:'tier_rare',      category:'tier', tierKey:'rare',      name:'Rare Find',      desc:'Catch your first Rare fish',           icon:'\u{1F48E}' },
+  { id:'tier_superrare', category:'tier', tierKey:'superrare', name:'Super Rare!',    desc:'Catch your first Super Rare fish',     icon:'\u2728' },
+  { id:'tier_ultimate',  category:'tier', tierKey:'ultimate',  name:'Ultimate Catch', desc:'Catch your first Ultimate fish',       icon:'\u{1F525}' },
+  { id:'tier_abyssal',   category:'tier', tierKey:'abyssal',   name:'From The Abyss', desc:'Catch an Abyssal fish',                icon:'\u{1F311}' },
+
+  { id:'streak_3',  category:'streak', threshold:3,  name:'On A Roll',         desc:'Play 3 days in a row',  icon:'\u{1F525}' },
+  { id:'streak_7',  category:'streak', threshold:7,  name:'Weekly Regular',    desc:'Play 7 days in a row',  icon:'\u{1F525}' },
+  { id:'streak_14', category:'streak', threshold:14, name:'Two-Week Streak',   desc:'Play 14 days in a row', icon:'\u26A1' },
+  { id:'streak_30', category:'streak', threshold:30, name:'Monthly Devotion',  desc:'Play 30 days in a row', icon:'\u{1F451}' }
+];
+let pendingAchievements = [];
+
+function computeUnlockedAchievementIds(bag, shop){
+  bag = bag || loadBag();
+  shop = shop || shopState;
+  const points = computePoints(bag);
+  const traps = shop.trapsCollected || 0;
+  const species = new Set(bag.map(c=>c.name)).size;
+  const tiersCaught = new Set(bag.map(c=>c.tier));
+  const streak = shop.dailyStreak || 0;
+
+  const unlocked = [];
+  ACHIEVEMENTS.forEach(a=>{
+    let met = false;
+    if(a.category==='points') met = points >= a.threshold;
+    else if(a.category==='traps') met = traps >= a.threshold;
+    else if(a.category==='species') met = species >= a.threshold;
+    else if(a.category==='tier') met = tiersCaught.has(a.tierKey);
+    else if(a.category==='streak') met = streak >= a.threshold;
+    if(met) unlocked.push(a.id);
+  });
+  return unlocked;
+}
+function silentlyBackfillAchievements(){
+  // Used on load / sign-in merges -- marks anything already earned as
+  // unlocked WITHOUT popping a celebration for old progress.
+  const nowUnlocked = computeUnlockedAchievementIds();
+  shopState.unlockedAchievements = Array.from(new Set([...(shopState.unlockedAchievements||[]), ...nowUnlocked]));
+  saveShopState();
+  syncShopToCloud();
+}
+function checkAchievements(){
+  const nowUnlocked = computeUnlockedAchievementIds();
+  const prevUnlocked = new Set(shopState.unlockedAchievements||[]);
+  const newlyUnlocked = nowUnlocked.filter(id=>!prevUnlocked.has(id));
+  if(!newlyUnlocked.length) return;
+  shopState.unlockedAchievements = Array.from(new Set([...(shopState.unlockedAchievements||[]), ...newlyUnlocked]));
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  newlyUnlocked.forEach(id=>{
+    const a = ACHIEVEMENTS.find(x=>x.id===id);
+    if(a) pendingAchievements.push(a);
+  });
+}
+function showNextAchievement(){
+  if(!pendingAchievements.length) return;
+  const a = pendingAchievements.shift();
+  $('achievement-icon').textContent = a.icon;
+  $('achievement-name').textContent = a.name;
+  $('achievement-desc').textContent = a.desc;
+  $('achievement-overlay').classList.add('show');
+  spawnRodSparks('achievement-overlay');
+  ensureAudioCtx();
+  [523,659,784].forEach((f,i)=> playTone(f, i*0.09, 0.2, 'triangle', 0.14));
+  if('vibrate' in navigator) navigator.vibrate([50,40,50,40,100]);
+}
+function closeAchievementOverlay(){
+  $('achievement-overlay').classList.remove('show');
+  if(pendingAchievements.length) setTimeout(showNextAchievement, 400);
+}
+function updateDailyStreak(){
+  const today = new Date();
+  const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  if(shopState.lastPlayDate === todayStr) return;
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayStr = yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+
+  shopState.dailyStreak = (shopState.lastPlayDate === yesterdayStr) ? (shopState.dailyStreak||0)+1 : 1;
+  shopState.lastPlayDate = todayStr;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  checkAchievements();
 }
 
 /* ====================== ROD UPGRADES ====================== */
@@ -2824,9 +3034,10 @@ function showRodUpgrade(level){
 }
 function closeRodUpgrade(){
   $('rod-upgrade-overlay').classList.remove('show');
+  if(pendingAchievements.length) setTimeout(showNextAchievement, 400);
 }
-function spawnRodSparks(){
-  const overlay = $('rod-upgrade-overlay');
+function spawnRodSparks(overlayId){
+  const overlay = $(overlayId || 'rod-upgrade-overlay');
   overlay.querySelectorAll('.ru-spark').forEach(s=>s.remove());
   const cx = window.innerWidth/2;
   const cy = window.innerHeight*0.36;
@@ -2926,6 +3137,19 @@ function renderShopView(){
     </div>`;
   }).join('') + `</div>`;
 
+  html += `<h3 class="shop-section-title">\u{1F4CD} Map Marker Colors</h3>`;
+  html += `<div class="shop-grid">` + MARKER_COSMETICS.map(c=>{
+    const owned = shopState.ownedCosmetics.markers.includes(c.id);
+    const equipped = shopState.equipped.marker === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};border:2px solid #fff;box-shadow:0 0 0 2px ${c.color}"></span></div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-marker" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-marker" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
   if(!session){
     html += `<p class="shop-note">Sign in to save your coins, gear, and cosmetics across devices.</p>`;
   }
@@ -2981,8 +3205,14 @@ function renderGearView(){
   html += `<h3 class="shop-section-title">\u{1F3A8} Equipped Cosmetics</h3>`;
   const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
   const hook = HOOK_COSMETICS.find(c=>c.id===shopState.equipped.hook) || HOOK_COSMETICS[0];
+  const marker = MARKER_COSMETICS.find(c=>c.id===shopState.equipped.marker) || MARKER_COSMETICS[0];
   html += `<div class="gear-cosmetic-row"><div class="shop-card-icon">${avatar.emoji}</div><div>Avatar: <strong>${avatar.name}</strong></div></div>`;
   html += `<div class="gear-cosmetic-row"><div class="shop-card-icon" style="color:${hook.color}">\u2014</div><div>Hook: <strong>${hook.name}</strong></div></div>`;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${marker.color};border:2px solid #fff;box-shadow:0 0 0 1px ${marker.color}"></span></div><div>Map Marker: <strong>${marker.name}</strong></div></div>`;
+
+  html += `<h3 class="shop-section-title">\u{1F3C6} Achievements</h3>`;
+  const unlockedCount = (shopState.unlockedAchievements||[]).length;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon">\u{1F3C6}</div><div>Unlocked: <strong>${unlockedCount} / ${ACHIEVEMENTS.length}</strong> \u2014 see full list in Settings</div></div>`;
 
   $('shop-content').innerHTML = html;
 }
@@ -3018,11 +3248,21 @@ function activateItem(key){
   showToast(`${item.name} activated! +${item.boostAmount}% for ${Math.round(item.boostMs/60000)} min \u{1F525}`);
   renderShop();
 }
+function cosmeticListFor(type){
+  if(type==='avatar') return AVATAR_COSMETICS;
+  if(type==='hook') return HOOK_COSMETICS;
+  return MARKER_COSMETICS;
+}
+function cosmeticOwnedKeyFor(type){
+  if(type==='avatar') return 'avatars';
+  if(type==='hook') return 'hooks';
+  return 'markers';
+}
 function buyCosmetic(type, id){
-  const list = type==='avatar' ? AVATAR_COSMETICS : HOOK_COSMETICS;
+  const list = cosmeticListFor(type);
   const item = list.find(c=>c.id===id);
   if(!item) return;
-  const owned = shopState.ownedCosmetics[type==='avatar'?'avatars':'hooks'];
+  const owned = shopState.ownedCosmetics[cosmeticOwnedKeyFor(type)];
   if(owned.includes(id)) return;
   if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
   shopState.coinsSpent += item.price;
@@ -3047,16 +3287,34 @@ function updateEquippedVisuals(){
     const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
     avatarEl.textContent = avatar.emoji;
   }
+  updateMarkerVisual();
 }
 function equippedHookColor(){
   const hook = HOOK_COSMETICS.find(c=>c.id===shopState.equipped.hook) || HOOK_COSMETICS[0];
   return hook.color;
+}
+function equippedMarkerColor(){
+  const marker = MARKER_COSMETICS.find(c=>c.id===shopState.equipped.marker) || MARKER_COSMETICS[0];
+  return marker.color;
+}
+function updateMarkerVisual(){
+  if(!userMarker) return; // map not initialized yet -- initMap() will use the current color when it builds the icon
+  const color = equippedMarkerColor();
+  const icon = L.divIcon({
+    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:3px solid #ffffff;box-shadow:0 0 0 6px ${color}38"></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+  userMarker.setIcon(icon);
+  if(accuracyCircle){
+    accuracyCircle.setStyle({ color, fillColor:color });
+  }
 }
 
 /* ---- Settings / rod roadmap ---- */
 function openSettingsDrawer(){
   renderRodSettings();
   renderWeeklyChallengeSettings();
+  renderAchievementsSettings();
   $('settings-scrim').classList.add('show');
   $('settings-drawer').classList.add('show');
 }
@@ -3072,6 +3330,18 @@ function renderWeeklyChallengeSettings(){
   $('weekly-challenge-status').textContent = claimed
     ? `\u2713 Completed \u2014 enjoy your +${WEEKLY_CHALLENGE_BOOST}% boost!`
     : `${progress} / ${challenge.target} \u2014 complete for +${WEEKLY_CHALLENGE_BOOST}% bite chance for 24 hours`;
+}
+function renderAchievementsSettings(){
+  const unlocked = new Set(shopState.unlockedAchievements||[]);
+  $('achievements-count-label').textContent = `${unlocked.size} / ${ACHIEVEMENTS.length}`;
+  $('achievements-list').innerHTML = ACHIEVEMENTS.map(a=>{
+    const done = unlocked.has(a.id);
+    return `<div class="ach-row ${done?'unlocked':''}">
+      <div class="ach-row-icon">${a.icon}</div>
+      <div class="ach-row-name">${a.name}</div>
+      <div class="ach-row-desc">${done ? a.desc : '\u{1F512} ' + a.desc}</div>
+    </div>`;
+  }).join('');
 }
 function renderRodSettings(){
   const points = computePoints(loadBag());
@@ -3292,15 +3562,21 @@ function renderAccountDrawer(){
     signedIn.classList.remove('hidden');
     const bag = loadBag();
     const points = computePoints(bag);
+    const achCount = (shopState.unlockedAchievements||[]).length;
     $('account-name').textContent = session.displayName;
-    $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches`;
+    $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches \u00b7 ${achCount}/${ACHIEVEMENTS.length} achievements`;
     $('account-rank').textContent = 'Checking your rank...';
     if(window.DriftlineCloud){
-      window.DriftlineCloud.fetchLeaderboard(1000).then(list=>{
+      const RANK_CHECK_LIMIT = 50; // keeps this cheap on Firestore's free tier
+      window.DriftlineCloud.fetchLeaderboard(RANK_CHECK_LIMIT).then(list=>{
         const idx = list.findIndex(p=>p.uid===session.uid);
-        $('account-rank').textContent = idx>=0
-          ? `Ranked #${idx+1} of ${list.length} anglers`
-          : 'Not ranked yet \u2014 catch a fish to get on the board!';
+        if(idx>=0){
+          $('account-rank').textContent = `Ranked #${idx+1} of the top ${list.length} anglers`;
+        } else if(points === 0){
+          $('account-rank').textContent = 'Not ranked yet \u2014 catch a fish to get on the board!';
+        } else {
+          $('account-rank').textContent = `Outside the top ${RANK_CHECK_LIMIT} \u2014 keep fishing to climb!`;
+        }
       }).catch(()=>{ $('account-rank').textContent = "Couldn't load your rank right now."; });
     }
   } else {
@@ -3343,7 +3619,7 @@ async function afterAuthSuccess(result){
 
     const cloudShop = result.shop;
     if(cloudShop && typeof cloudShop === 'object' && (cloudShop.updatedAt||0) > (shopState.updatedAt||0)){
-      shopState = Object.assign(defaultShopState(), cloudShop);
+      shopState = normalizeShopState(cloudShop);
     }
     // prawnTrap: keep whatever's local (cloud is null on a new account).
   } else {
@@ -3354,9 +3630,7 @@ async function afterAuthSuccess(result){
     saveBag(cloudBag);
     syncBagToCloud(cloudBag);
 
-    shopState = (result.shop && typeof result.shop === 'object')
-      ? Object.assign(defaultShopState(), result.shop)
-      : defaultShopState();
+    shopState = normalizeShopState(result.shop);
 
     prawnTrap = result.prawn || null;
     savePrawnTrap();
@@ -3370,6 +3644,7 @@ async function afterAuthSuccess(result){
   updateBagBadge();
   if(bagViewMode) renderBag();
   checkSigninReminder();
+  silentlyBackfillAchievements();
   refreshFriendsState();
   showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
   renderAccountDrawer();
@@ -3507,6 +3782,7 @@ async function openFriendGear(uid){
   $('fg-points').textContent = '\u2014';
   $('fg-rod').textContent = '\u2014';
   $('fg-catches').textContent = '\u2014';
+  $('fg-achievements').textContent = '\u2014';
   $('friend-gear-cosmetics').innerHTML = '';
   $('friend-gear-scrim').classList.add('show');
 
@@ -3518,17 +3794,21 @@ async function openFriendGear(uid){
   const shop = p.shop || defaultShopState();
   const points = p.points || computePoints(p.bag||[]);
   const rodLevel = rodLevelForPoints(points) + (shop.bonusRodLevels||0);
+  const achCount = (shop.unlockedAchievements||[]).length;
   const avatar = AVATAR_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.avatar)) || AVATAR_COSMETICS[0];
   const hook = HOOK_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.hook)) || HOOK_COSMETICS[0];
+  const marker = MARKER_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.marker)) || MARKER_COSMETICS[0];
 
   $('friend-gear-avatar').textContent = avatar.emoji;
   $('friend-gear-name').textContent = p.displayName;
   $('fg-points').textContent = points.toLocaleString();
   $('fg-rod').textContent = rodLevel;
   $('fg-catches').textContent = (p.bag||[]).length.toLocaleString();
+  $('fg-achievements').textContent = `${achCount}/${ACHIEVEMENTS.length}`;
   $('friend-gear-cosmetics').innerHTML = `
     <div class="fg-cosmetic-row"><span>${avatar.emoji}</span><span>Avatar: <strong>${avatar.name}</strong></span></div>
     <div class="fg-cosmetic-row"><span style="color:${hook.color}">\u2014</span><span>Hook: <strong>${hook.name}</strong></span></div>
+    <div class="fg-cosmetic-row"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${marker.color};border:2px solid #fff;box-shadow:0 0 0 1px ${marker.color}"></span><span>Marker: <strong>${marker.name}</strong></span></div>
   `;
 }
 function closeFriendGear(){ $('friend-gear-scrim').classList.remove('show'); }
@@ -3555,7 +3835,8 @@ async function openLeaderboard(){
     return;
   }
   try{
-    const players = await window.DriftlineCloud.fetchAllPlayersForPeriods(300);
+    const LEADERBOARD_FETCH_LIMIT = 50; // keeps this cheap on Firestore's free tier
+    const players = await window.DriftlineCloud.fetchAllPlayersForPeriods(LEADERBOARD_FETCH_LIMIT);
     lbCache = players;
     renderLeaderboardForPeriod(lbPeriod);
   }catch(e){
@@ -3584,7 +3865,7 @@ function renderLeaderboardForPeriod(period){
     avatar: p.avatar,
     points: windowMs === null ? p.points : computePeriodPoints(p.bag || [], windowMs)
   }));
-  ranked = ranked.filter(p=>p.points > 0).sort((a,b)=>b.points-a.points).slice(0,100);
+  ranked = ranked.filter(p=>p.points > 0).sort((a,b)=>b.points-a.points).slice(0,50);
   renderLeaderboard(ranked, period);
 }
 
@@ -3704,6 +3985,8 @@ function beginGame(pt, accuracy){
   checkSigninReminder();
   startSignoutReminderTimer();
   updateEquippedVisuals();
+  silentlyBackfillAchievements();
+  updateDailyStreak();
   checkWeeklyChallenge();
   updatePrawnChip();
   startPrawnTicker();
@@ -3874,8 +4157,10 @@ $('shop-content').addEventListener('click', (e)=>{
   else if(action === 'activate-item') activateItem(key);
   else if(action === 'buy-avatar') buyCosmetic('avatar', key);
   else if(action === 'buy-hook') buyCosmetic('hook', key);
+  else if(action === 'buy-marker') buyCosmetic('marker', key);
   else if(action === 'equip-avatar') equipCosmetic('avatar', key);
   else if(action === 'equip-hook') equipCosmetic('hook', key);
+  else if(action === 'equip-marker') equipCosmetic('marker', key);
 });
 $('signin-banner-btn').addEventListener('click', openAccountDrawer);
 $('signin-banner-dismiss').addEventListener('click', ()=>{
