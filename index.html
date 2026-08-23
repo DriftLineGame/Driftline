@@ -4351,6 +4351,7 @@ function beginGame(pt, accuracy){
   $('topbar').classList.remove('hidden');
   $('timer-chip').classList.remove('hidden');
   $('prawn-chip').classList.remove('hidden');
+  $('crab-chip').classList.remove('hidden');
 
   const saved = loadState();
   if(saved && saved.center && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
