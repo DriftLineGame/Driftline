@@ -145,6 +145,19 @@
     font-weight:800; animation:fabPulse 2.4s ease-in-out infinite;
   }
 
+  #crab-chip{
+    position:fixed; top:186px; left:14px; z-index:200; cursor:pointer;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
+    display:flex; align-items:center; gap:6px;
+    transition:transform .15s ease;
+  }
+  #crab-chip:active{transform:scale(0.95);}
+  #crab-chip.ready{
+    color:#2b1608; border-color:rgba(255,138,63,0.4) !important;
+    background:linear-gradient(90deg,#ff8a3f,#c9860a) !important;
+    font-weight:800; animation:fabPulse 2.4s ease-in-out infinite;
+  }
+
   /* ---------- Selected spot / cast panel ---------- */
   #cast-panel{
     position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
@@ -436,6 +449,57 @@
     background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:12px 8px;
   }
   .prawn-result-empty{grid-column:span 2; padding:24px 10px; color:rgba(255,255,255,0.55); font-size:13px;}
+
+  /* ---------- Crab Trap (darker, sinks to the sea floor) ---------- */
+  #crab-overlay{
+    position:fixed; inset:0; z-index:821;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    background:
+      radial-gradient(120% 55% at 50% 0%, rgba(11,74,117,0.18), transparent 60%),
+      linear-gradient(180deg, #051726 0%, #03101c 35%, #020a12 65%, #01070d 100%);
+    transition:opacity .4s ease;
+    overflow:hidden; padding:24px;
+  }
+  #crab-overlay.active{opacity:1; pointer-events:auto;}
+  #crab-content{position:relative; z-index:3; width:100%; max-width:360px; text-align:center; height:100%; display:flex; align-items:center; justify-content:center;}
+  #crab-seafloor{
+    position:fixed; left:0; right:0; bottom:0; height:22%; z-index:1; pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 16px),
+      linear-gradient(180deg, #2b2016 0%, #1a130d 55%, #100b07 100%);
+    box-shadow:0 -26px 46px rgba(0,0,0,0.5) inset;
+  }
+  .crab-card{
+    position:relative; z-index:3;
+    background:rgba(20,14,10,0.55); border:1px solid rgba(200,120,40,0.22); border-radius:26px;
+    padding:30px 24px 26px; backdrop-filter:blur(10px); color:#fff;
+  }
+  .crab-icon-big{font-size:52px; margin-bottom:12px; filter:drop-shadow(0 0 14px rgba(220,100,30,0.35));}
+  .crab-title{font-family:'Bricolage Grotesque'; font-size:22px; font-weight:800; margin:0 0 10px;}
+  .crab-desc{font-size:13.5px; color:rgba(255,255,255,0.68); line-height:1.55; margin:0 0 22px;}
+  .crab-countdown{font-family:'Bricolage Grotesque'; font-size:32px; font-weight:800; color:#ff8a3f; margin-bottom:6px; font-variant-numeric:tabular-nums;}
+  .crab-sub{font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:22px;}
+  .crab-card .btn-primary{background:linear-gradient(160deg,#ff8a3f,#c9860a); color:#1a0f08;}
+  #crab-close{
+    position:fixed; top:14px; right:14px; z-index:5; width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #crab-close svg{width:16px; height:16px; stroke:#fff;}
+  #crab-trap-icon{
+    position:absolute; left:50%; top:80%; transform:translate(-50%,-50%); font-size:40px; z-index:2;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+  }
+  .crab-results-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;}
+  .crab-result-card{
+    background:rgba(255,255,255,0.06); border:1px solid rgba(200,120,40,0.18); border-radius:14px; padding:12px 8px;
+  }
+  .crab-result-empty{grid-column:span 2; padding:24px 10px; color:rgba(255,255,255,0.5); font-size:13px;}
+  .sediment{
+    position:absolute; border-radius:50%; z-index:2; pointer-events:none;
+    background:radial-gradient(circle at 30% 30%, #8a6a45, #4a3620 75%);
+  }
 
   /* ---------- Friends ---------- */
   #friends-scrim{
@@ -1024,6 +1088,10 @@
   <span class="boost-flame">🦐</span>
   <span id="prawn-chip-text">Set a Prawn Trap</span>
 </div>
+<div id="crab-chip" class="glass hidden" style="border-radius:999px;">
+  <span class="boost-flame">🦀</span>
+  <span id="crab-chip-text">Set a Crab Trap</span>
+</div>
 
 <div id="signin-banner" class="glass">
   <div id="signin-banner-text">
@@ -1080,6 +1148,13 @@
 <!-- Prawn Trap -->
 <div id="prawn-overlay">
   <div id="prawn-content"></div>
+</div>
+
+<!-- Crab Trap -->
+<div id="crab-overlay">
+  <div id="crab-seafloor"></div>
+  <button id="crab-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <div id="crab-content"></div>
 </div>
 
 <!-- Bag drawer -->
@@ -1360,10 +1435,10 @@
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
     await setDoc(ref, {
-      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null,
+      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
-    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null };
+    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null, crab: null };
   }
 
   async function signIn(username, pin){
@@ -1378,7 +1453,7 @@
     if(pinHash !== data.pinHash){
       throw new Error('Incorrect PIN.');
     }
-    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null };
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null, crab: data.crab || null };
   }
 
   async function syncBag(uid, bag, points){
@@ -1394,6 +1469,11 @@
   async function syncPrawnTrap(uid, prawnState){
     const ref = doc(db, 'players', uid);
     await updateDoc(ref, { prawn: prawnState });
+  }
+
+  async function syncCrabTrap(uid, crabState){
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { crab: crabState });
   }
 
   function normUidLookup(username){
@@ -1502,7 +1582,7 @@
   }
 
   window.DriftlineCloud = {
-    signUp, signIn, syncBag, syncShop, syncPrawnTrap,
+    signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap,
     fetchLeaderboard, fetchAllPlayersForPeriods,
     sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid
   };
@@ -1557,6 +1637,8 @@ let friendsState = { friends:[], incomingRequests:[], outgoingRequests:[] };
 let friendsProfileCache = {};    // uid -> fetched player summary, for the friends list view
 let prawnTrap = loadPrawnTrap(); // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
 let prawnTickInterval = null;
+let crabTrap = loadCrabTrap();   // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
+let crabTickInterval = null;
 let authMode = 'signin';         // 'signin' | 'signup'
 
 const $ = (id)=>document.getElementById(id);
@@ -1594,6 +1676,7 @@ function defaultShopState(){
     activeBoosts: [],
     lastChallengeClaimedWeek: null,
     trapsCollected: 0,
+    crabsCollected: 0,
     lastPlayDate: null,
     dailyStreak: 0,
     unlockedAchievements: [],
@@ -1624,6 +1707,7 @@ function normalizeShopState(s){
     activeBoosts: s.activeBoosts||[],
     lastChallengeClaimedWeek: s.lastChallengeClaimedWeek||null,
     trapsCollected: s.trapsCollected||0,
+    crabsCollected: s.crabsCollected||0,
     lastPlayDate: s.lastPlayDate||null,
     dailyStreak: s.dailyStreak||0,
     unlockedAchievements: s.unlockedAchievements||[],
@@ -1654,6 +1738,20 @@ function savePrawnTrap(){
 function syncPrawnTrapToCloud(){
   if(!session || !window.DriftlineCloud) return;
   window.DriftlineCloud.syncPrawnTrap(session.uid, prawnTrap).catch(()=>{});
+}
+function loadCrabTrap(){
+  try{
+    const t = JSON.parse(localStorage.getItem('driftline_crab')||'null');
+    return (t && typeof t==='object') ? t : null;
+  }catch(e){ return null; }
+}
+function saveCrabTrap(){
+  if(crabTrap) localStorage.setItem('driftline_crab', JSON.stringify(crabTrap));
+  else localStorage.removeItem('driftline_crab');
+}
+function syncCrabTrapToCloud(){
+  if(!session || !window.DriftlineCloud) return;
+  window.DriftlineCloud.syncCrabTrap(session.uid, crabTrap).catch(()=>{});
 }
 
 /* ====================== GEO / MATH HELPERS ====================== */
@@ -2351,6 +2449,274 @@ function renderPrawnResults(results, attempts){
   });
 }
 
+/* ====================== CRAB TRAP (darker, sinks to the sea floor) ====================== */
+const CRAB_TRAP_MS = 2*60*60*1000; // 2 hours
+
+function isCrabTrapReady(){
+  return !!crabTrap && Date.now() >= crabTrap.resolveAt;
+}
+function fmtCrabTime(ms){
+  const h = Math.floor(ms/3600000);
+  const m = Math.floor((ms%3600000)/60000);
+  const s = Math.floor((ms%60000)/1000);
+  return h>0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}:${String(s).padStart(2,'0')}`;
+}
+function updateCrabChip(){
+  const chip = $('crab-chip');
+  const text = $('crab-chip-text');
+  if(!chip || !text) return;
+  if(!crabTrap){
+    chip.classList.remove('ready');
+    text.textContent = 'Set a Crab Trap';
+  } else if(isCrabTrapReady()){
+    chip.classList.add('ready');
+    text.textContent = 'Trap ready! Tap to collect';
+    if($('crab-overlay').classList.contains('active')) renderCrabState();
+  } else {
+    chip.classList.remove('ready');
+    const remain = crabTrap.resolveAt - Date.now();
+    text.textContent = `Trap: ${fmtCrabTime(remain)}`;
+    const liveCountdown = $('crab-live-countdown');
+    if(liveCountdown) liveCountdown.textContent = fmtCrabTime(remain);
+  }
+}
+function startCrabTicker(){
+  clearInterval(crabTickInterval);
+  crabTickInterval = setInterval(updateCrabChip, 1000);
+}
+function openCrabOverlay(){
+  $('crab-overlay').classList.add('active');
+  renderCrabState();
+}
+function closeCrabOverlay(){
+  $('crab-overlay').classList.remove('active');
+  removeCrabIcon();
+}
+function showRestingCrabIcon(){
+  removeCrabIcon();
+  const overlay = $('crab-overlay');
+  const icon = document.createElement('div');
+  icon.id = 'crab-trap-icon';
+  icon.textContent = '\u{1F980}';
+  icon.style.left = (window.innerWidth/2)+'px';
+  icon.style.top = (window.innerHeight*0.80)+'px';
+  icon.style.opacity = '1';
+  overlay.appendChild(icon);
+}
+function removeCrabIcon(){
+  const el = $('crab-trap-icon');
+  if(el) el.remove();
+}
+function renderCrabState(){
+  const content = $('crab-content');
+  if(!crabTrap){
+    removeCrabIcon();
+    content.innerHTML = `
+      <div class="crab-card">
+        <div class="crab-icon-big">\u{1F980}</div>
+        <h3 class="crab-title">Set a Crab Trap</h3>
+        <p class="crab-desc">Drop a heavier trap that sinks all the way to the sea floor. Come back in 2 hours to pull it up \u2014 it'll make 3\u201310 catch attempts using the same odds as a regular cast right here, right now.</p>
+        <button class="btn btn-primary" id="crab-deploy-btn" style="width:100%;">Set Trap Here</button>
+      </div>`;
+    wireCrabContentButtons();
+    return;
+  }
+  showRestingCrabIcon();
+  if(!isCrabTrapReady()){
+    const remain = crabTrap.resolveAt - Date.now();
+    content.innerHTML = `
+      <div class="crab-card">
+        <div class="crab-icon-big">\u{1F980}</div>
+        <h3 class="crab-title">Trap Is Down</h3>
+        <div class="crab-countdown" id="crab-live-countdown">${fmtCrabTime(remain)}</div>
+        <div class="crab-sub">until you can pull it back up</div>
+        <p class="crab-desc">It's sitting on the sea floor right now. Keep fishing, check the leaderboard, whatever \u2014 this chip up top will tell you when it's ready.</p>
+      </div>`;
+    wireCrabContentButtons();
+    return;
+  }
+  content.innerHTML = `
+    <div class="crab-card">
+      <div class="crab-icon-big">\u{1F980}</div>
+      <h3 class="crab-title">Trap Is Ready!</h3>
+      <p class="crab-desc">Time to pull it up from the sea floor and see what you caught.</p>
+      <button class="btn btn-primary" id="crab-collect-btn" style="width:100%;">Pull Up Trap</button>
+    </div>`;
+  wireCrabContentButtons();
+}
+function wireCrabContentButtons(){
+  const deployBtn = $('crab-deploy-btn');
+  if(deployBtn) deployBtn.addEventListener('click', deployCrabTrap);
+  const collectBtn = $('crab-collect-btn');
+  if(collectBtn) collectBtn.addEventListener('click', collectCrabTrap);
+}
+function playThudSound(){
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  const len = Math.floor(ctx.sampleRate*0.35);
+  const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<len;i++){ data[i] = (Math.random()*2-1) * Math.pow(1-i/len, 3); }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass'; filter.frequency.value = 300;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.3, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.35);
+  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.start();
+  playTone(70, 0, 0.3, 'sine', 0.15);
+}
+function spawnSediment(x, y){
+  const overlay = $('crab-overlay');
+  for(let i=0;i<10;i++){
+    const s = document.createElement('div');
+    s.className = 'sediment';
+    const size = 3+Math.random()*6;
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = x+'px';
+    s.style.top = y+'px';
+    overlay.appendChild(s);
+    const dx = (Math.random()*2-1)*70;
+    const dy = -(10+Math.random()*40);
+    s.animate([
+      { transform:'translate(-50%,-50%) translate(0,0)', opacity:0.9 },
+      { transform:`translate(-50%,-50%) translate(${dx*0.6}px, ${dy}px)`, opacity:0.8, offset:0.4 },
+      { transform:`translate(-50%,-50%) translate(${dx}px, ${dy*0.3}px)`, opacity:0 }
+    ], { duration: 500+Math.random()*300, easing:'cubic-bezier(.2,.7,.4,1)' })
+    .finished.then(()=>s.remove()).catch(()=>s.remove());
+  }
+}
+function animateCrabTrapDrop(onLand){
+  const overlay = $('crab-overlay');
+  removeCrabIcon();
+  const icon = document.createElement('div');
+  icon.id = 'crab-trap-icon';
+  icon.textContent = '\u{1F980}';
+  const x = window.innerWidth/2;
+  const floorY = window.innerHeight*0.80;
+  const startY = -60;
+  icon.style.left = x+'px';
+  icon.style.top = startY+'px';
+  icon.style.opacity = '0';
+  overlay.appendChild(icon);
+
+  const anim = icon.animate([
+    { top: startY+'px', opacity:0, transform:'translate(-50%,-50%) rotate(-10deg) scale(0.9)' },
+    { top: (floorY*0.55)+'px', opacity:1, transform:'translate(-50%,-50%) rotate(8deg) scale(1)', offset:0.55 },
+    { top: floorY+'px', opacity:1, transform:'translate(-50%,-50%) rotate(0deg) scale(1.05)' }
+  ], { duration:1500, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+  anim.finished.then(()=>{
+    spawnSediment(x, floorY);
+    playThudSound();
+    if('vibrate' in navigator) navigator.vibrate(40);
+    icon.animate([
+      { transform:'translate(-50%,-50%) scale(1.05)' },
+      { transform:'translate(-50%,-50%) scale(0.94)' },
+      { transform:'translate(-50%,-50%) scale(1)' }
+    ], { duration:220, easing:'ease-out' });
+    if(onLand) onLand();
+  }).catch(()=>{ if(onLand) onLand(); });
+}
+function animateCrabTrapRise(onDone){
+  const overlay = $('crab-overlay');
+  const icon = $('crab-trap-icon');
+  if(!icon){ if(onDone) onDone(); return; }
+  const x = window.innerWidth/2;
+  const floorY = window.innerHeight*0.80;
+  spawnSediment(x, floorY);
+  playThudSound();
+  if('vibrate' in navigator) navigator.vibrate(40);
+
+  const anim = icon.animate([
+    { top: floorY+'px', opacity:1, transform:'translate(-50%,-50%) rotate(0deg)' },
+    { top: (floorY*0.4)+'px', opacity:1, transform:'translate(-50%,-50%) rotate(-8deg)', offset:0.6 },
+    { top:'-60px', opacity:0, transform:'translate(-50%,-50%) rotate(10deg)' }
+  ], { duration:1300, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+  anim.finished.then(()=>{
+    icon.remove();
+    if(onDone) onDone();
+  }).catch(()=>{ icon.remove(); if(onDone) onDone(); });
+}
+function deployCrabTrap(){
+  if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
+  if(crabTrap){ showToast('You already have a crab trap out.'); return; }
+  const { odds, hotspot } = oddsAtPoint(liveLatLng);
+  const now = Date.now();
+  crabTrap = {
+    lat: liveLatLng.lat, lng: liveLatLng.lng,
+    deployedAt: now, resolveAt: now + CRAB_TRAP_MS,
+    odds, wasHotspot: !!hotspot,
+    attempts: 3 + Math.floor(Math.random()*8)
+  };
+  saveCrabTrap();
+  syncCrabTrapToCloud();
+  updateCrabChip();
+
+  $('crab-content').innerHTML = '';
+  animateCrabTrapDrop(()=>{
+    showToast('\u{1F980} Crab trap set! Check back in 2 hours.');
+    setTimeout(closeCrabOverlay, 700);
+  });
+}
+function collectCrabTrap(){
+  if(!crabTrap || !isCrabTrapReady()) return;
+  const trap = crabTrap;
+  const results = [];
+  for(let i=0;i<trap.attempts;i++){
+    const success = Math.random()*100 < trap.odds;
+    if(success){
+      const tier = trap.wasHotspot ? pickTier() : TIERS[0];
+      const fish = pickFish(tier.key);
+      results.push({ fish, tier });
+    }
+  }
+
+  animateCrabTrapRise(()=>{
+    if(results.length){
+      addCatchesToBagBatch(results, trap.lat, trap.lng);
+    }
+    crabTrap = null;
+    saveCrabTrap();
+    syncCrabTrapToCloud();
+    updateCrabChip();
+    shopState.crabsCollected = (shopState.crabsCollected||0) + 1;
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    checkAchievements();
+    renderCrabResults(results, trap.attempts);
+  });
+}
+function renderCrabResults(results, attempts){
+  const content = $('crab-content');
+  const cardsHtml = results.length
+    ? results.map(r=>`
+        <div class="crab-result-card">
+          <div style="font-size:22px; margin-bottom:4px; color:${r.tier.hex}">\u{1F980}</div>
+          <div style="font-weight:700; font-size:12px; color:#fff;">${r.fish}</div>
+          <div class="tier-tag" style="background:${r.tier.hex}22;color:${r.tier.hex}; margin-top:6px; display:inline-block;">${r.tier.label}</div>
+        </div>`).join('')
+    : `<div class="crab-result-empty">The trap came up empty this time \u2014 ${attempts} attempt${attempts===1?'':'s'}, no luck. Try again in a couple hours.</div>`;
+
+  content.innerHTML = `
+    <div class="crab-card">
+      <div class="crab-icon-big">\u{1F980}</div>
+      <h3 class="crab-title">${results.length ? `Caught ${results.length}!` : 'Empty Trap'}</h3>
+      <p class="crab-desc">${attempts} attempt${attempts===1?'':'s'} rolled, using the bite chance from when you set the trap.</p>
+      <div class="crab-results-grid">${cardsHtml}</div>
+      <button class="btn btn-primary" id="crab-done-btn" style="width:100%;">Nice</button>
+    </div>`;
+  $('crab-done-btn').addEventListener('click', ()=>{
+    closeCrabOverlay();
+    setTimeout(showPendingCelebrations, 400);
+  });
+}
+
 function attemptCast(){
   ensureAudioCtx(); // must happen inside the click gesture for audio to be allowed
   if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
@@ -2780,6 +3146,12 @@ const ACHIEVEMENTS = [
   { id:'trap_30',   category:'traps',   threshold:30,   name:'Trap Master',       desc:'Collect 30 prawn traps',    icon:'\u{1FAA4}' },
   { id:'trap_50',   category:'traps',   threshold:50,   name:'Trap Legend',       desc:'Collect 50 prawn traps',    icon:'\u{1F3C6}' },
 
+  { id:'crab_1',    category:'crabs',   threshold:1,    name:'First Crab Trap',   desc:'Collect your first crab trap', icon:'\u{1F980}' },
+  { id:'crab_5',    category:'crabs',   threshold:5,    name:'Crabber',           desc:'Collect 5 crab traps',      icon:'\u{1F980}' },
+  { id:'crab_15',   category:'crabs',   threshold:15,   name:'Crab Veteran',      desc:'Collect 15 crab traps',     icon:'\u{1FAA4}' },
+  { id:'crab_30',   category:'crabs',   threshold:30,   name:'Crab Master',       desc:'Collect 30 crab traps',     icon:'\u{1FAA4}' },
+  { id:'crab_50',   category:'crabs',   threshold:50,   name:'Crab Legend',       desc:'Collect 50 crab traps',     icon:'\u{1F3C6}' },
+
   { id:'species_10',  category:'species', threshold:10,  name:'Curious Collector',    desc:'Catch 10 different species',  icon:'\u{1F41F}' },
   { id:'species_50',  category:'species', threshold:50,  name:'Species Hunter',       desc:'Catch 50 different species',  icon:'\u{1F420}' },
   { id:'species_100', category:'species', threshold:100, name:'Naturalist',           desc:'Catch 100 different species', icon:'\u{1F421}' },
@@ -2804,6 +3176,7 @@ function computeUnlockedAchievementIds(bag, shop){
   shop = shop || shopState;
   const points = computePoints(bag);
   const traps = shop.trapsCollected || 0;
+  const crabs = shop.crabsCollected || 0;
   const species = new Set(bag.map(c=>c.name)).size;
   const tiersCaught = new Set(bag.map(c=>c.tier));
   const streak = shop.dailyStreak || 0;
@@ -2813,6 +3186,7 @@ function computeUnlockedAchievementIds(bag, shop){
     let met = false;
     if(a.category==='points') met = points >= a.threshold;
     else if(a.category==='traps') met = traps >= a.threshold;
+    else if(a.category==='crabs') met = crabs >= a.threshold;
     else if(a.category==='species') met = species >= a.threshold;
     else if(a.category==='tier') met = tiersCaught.has(a.tierKey);
     else if(a.category==='streak') met = streak >= a.threshold;
@@ -3405,6 +3779,7 @@ const TUTORIAL_STEPS = [
   { title:'Field Guide', desc:'Switch tabs here to browse every catchable species in Driftline, caught or not \u2014 tap the tier counts up top to jump straight to a section.', target:'bag-tabs' },
   { title:'Friends', desc:"Add friends by username from your Account. Once they accept, you can check out each other's gear \u2014 rod level, cosmetics, everything.", target:'open-friends-btn', action:'open-friends' },
   { title:'Prawn Trap', desc:'A slower way to fish: set a trap at your location, then come back in an hour to pull it up. It rolls 1\u20135 catch attempts using the bite chance from when you set it \u2014 keep an eye on this chip.', target:'prawn-chip', action:'open-prawn' },
+  { title:'Crab Trap', desc:'A heavier trap that sinks all the way to the sea floor. It takes 2 hours, but rolls 3\u201310 catch attempts \u2014 more patience, more potential payoff.', target:'crab-chip', action:'open-crab' },
   { title:'You\u2019re All Set! \u{1F3A3}', desc:'That covers everything. Go stand somewhere real, find a hotspot, and cast your line.', target:null, action:'close-all' }
 ];
 
@@ -3455,6 +3830,7 @@ function closeAllOverlaysForTutorial(){
   closeFriendsDrawer();
   closeFriendGear();
   closePrawnOverlay();
+  closeCrabOverlay();
 }
 function applyTutorialAction(action){
   switch(action){
@@ -3465,6 +3841,7 @@ function applyTutorialAction(action){
     case 'open-bag': closeAllOverlaysForTutorial(); openBag(); break;
     case 'open-friends': closeAllOverlaysForTutorial(); openAccountDrawer(); break;
     case 'open-prawn': closeAllOverlaysForTutorial(); openPrawnOverlay(); break;
+    case 'open-crab': closeAllOverlaysForTutorial(); openCrabOverlay(); break;
     case 'close-all': closeAllOverlaysForTutorial(); break;
   }
 }
@@ -3637,12 +4014,15 @@ async function afterAuthSuccess(result){
 
     prawnTrap = result.prawn || null;
     savePrawnTrap();
+    crabTrap = result.crab || null;
+    saveCrabTrap();
   }
 
   saveShopState();
   syncShopToCloud();
   updateEquippedVisuals();
   updatePrawnChip();
+  updateCrabChip();
 
   updateBagBadge();
   if(bagViewMode) renderBag();
@@ -3993,6 +4373,8 @@ function beginGame(pt, accuracy){
   checkWeeklyChallenge();
   updatePrawnChip();
   startPrawnTicker();
+  updateCrabChip();
+  startCrabTicker();
   if(session) refreshFriendsState();
   maybeAutoStartTutorial();
 }
@@ -4218,6 +4600,10 @@ $('friend-gear-scrim').addEventListener('click', (e)=>{
 
 /* ---- Prawn Trap listeners ---- */
 $('prawn-chip').addEventListener('click', openPrawnOverlay);
+
+/* ---- Crab Trap listeners ---- */
+$('crab-chip').addEventListener('click', openCrabOverlay);
+$('crab-close').addEventListener('click', closeCrabOverlay);
 
 </script>
 </body>
