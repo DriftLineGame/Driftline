@@ -123,33 +123,10 @@
     display:flex; align-items:center; justify-content:center; padding:0 4px;
     border:2px solid #ffffff;
   }
-  #topbar-icon-list{overflow:hidden;}
-  #topbar-icon-inner{display:flex; gap:6px;}
-  body.compact-topbar #topbar-more-btn{display:flex;}
-  body.compact-topbar #topbar-icon-list{
-    max-width:0; transition:max-width .3s ease;
-  }
-  body.compact-topbar #topbar-icon-list.expanded{max-width:240px;}
-
   #status-chip-group{
     position:fixed; top:66px; left:14px; z-index:200;
     display:flex; flex-direction:column; gap:10px; max-width:calc(100vw - 28px);
   }
-  #status-summary-chip{
-    align-self:flex-start; cursor:pointer; touch-action:manipulation;
-    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; color:var(--ink);
-    align-items:center; gap:7px; border:none;
-  }
-  body.compact-chips #status-summary-chip{display:flex;}
-  #status-summary-chip svg{width:14px; height:14px; stroke:var(--ink-dim); fill:none;}
-  #status-summary-chevron{width:12px !important; height:12px !important; stroke:var(--ink-dim) !important; transition:transform .25s ease;}
-  #status-summary-chip.open #status-summary-chevron{transform:rotate(180deg);}
-  #status-chip-list{overflow:hidden;}
-  #status-chip-inner{display:flex; flex-direction:column; gap:10px;}
-  body.compact-chips #status-chip-list{
-    max-height:0; transition:max-height .3s ease;
-  }
-  body.compact-chips #status-chip-list.expanded{max-height:240px;}
 
   #timer-chip{
     padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
@@ -970,23 +947,6 @@
   .ach-row.unlocked .ach-row-name{color:var(--ink);}
   .ach-row-desc{font-size:10px; color:var(--ink-dim); line-height:1.3;}
   .settings-footnote{padding:14px 20px 26px; margin:4px 0 0; font-size:12px; color:var(--ink-dim); line-height:1.55;}
-  .settings-toggle-row{
-    display:flex; align-items:center; gap:14px; padding:12px 20px; margin:0 0 4px;
-  }
-  .settings-toggle-text{flex:1; min-width:0;}
-  .settings-toggle-label{font-weight:700; font-size:13.5px;}
-  .settings-toggle-desc{font-size:11.5px; color:var(--ink-dim); line-height:1.4; margin-top:2px;}
-  .ui-toggle{position:relative; flex:0 0 auto; width:46px; height:27px; display:block;}
-  .ui-toggle input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:1;}
-  .ui-toggle-track{
-    position:absolute; inset:0; background:#dde6ec; border-radius:999px; transition:background .2s ease;
-  }
-  .ui-toggle-track::after{
-    content:''; position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%;
-    background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.25); transition:transform .2s cubic-bezier(.2,.9,.25,1);
-  }
-  .ui-toggle input:checked ~ .ui-toggle-track{background:linear-gradient(90deg,#4fe0ff,#0e86c4);}
-  .ui-toggle input:checked ~ .ui-toggle-track::after{transform:translateX(19px);}
 
   /* ---------- Interactive tutorial ---------- */
   #tutorial-overlay{
@@ -1121,58 +1081,41 @@
     <span class="display">Driftline</span>
   </div>
   <div class="top-actions">
-    <button id="topbar-more-btn" class="icon-btn glass hidden" title="More">
-      <svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
-      <span class="bag-badge hidden" id="topbar-more-badge"></span>
+    <button class="icon-btn glass" id="recenter-btn">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     </button>
-    <div id="topbar-icon-list">
-      <div id="topbar-icon-inner">
-        <button class="icon-btn glass" id="recenter-btn">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-        </button>
-        <button class="icon-btn glass" id="share-btn" title="Share Driftline">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
-        </button>
-        <button class="icon-btn glass" id="account-btn" title="Account">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-          <span class="bag-badge hidden" id="account-alert" style="background:var(--boost);">!</span>
-        </button>
-        <button class="icon-btn glass" id="settings-btn" title="Settings">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
-        <button class="icon-btn glass" id="bag-btn">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-          <span class="bag-badge hidden" id="bag-count">0</span>
-        </button>
-      </div>
-    </div>
+    <button class="icon-btn glass" id="share-btn" title="Share Driftline">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    </button>
+    <button class="icon-btn glass" id="account-btn" title="Account">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      <span class="bag-badge hidden" id="account-alert" style="background:var(--boost);">!</span>
+    </button>
+    <button class="icon-btn glass" id="settings-btn" title="Settings">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button class="icon-btn glass" id="bag-btn">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span class="bag-badge hidden" id="bag-count">0</span>
+    </button>
   </div>
 </div>
 <div id="status-chip-group">
-  <button id="status-summary-chip" class="glass hidden" style="border-radius:999px;">
-    <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    <span>Status</span>
-    <svg id="status-summary-chevron" viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-  </button>
-  <div id="status-chip-list">
-    <div id="status-chip-inner">
-      <div id="timer-chip" class="glass hidden" style="border-radius:999px;">
-        <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        Hotspots refresh in <b id="timer-value">30:00</b>
-      </div>
-      <div id="boost-chip" class="glass hidden" style="border-radius:999px;">
-        <span class="boost-flame">🔥</span>
-        Boost active <b id="boost-value">10:00</b>
-      </div>
-      <div id="prawn-chip" class="glass hidden" style="border-radius:999px;">
-        <span class="boost-flame">🦐</span>
-        <span id="prawn-chip-text">Set a Prawn Trap</span>
-      </div>
-      <div id="crab-chip" class="glass hidden" style="border-radius:999px;">
-        <span class="boost-flame">🦀</span>
-        <span id="crab-chip-text">Set a Crab Trap</span>
-      </div>
-    </div>
+  <div id="timer-chip" class="glass hidden" style="border-radius:999px;">
+    <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    Hotspots refresh in <b id="timer-value">30:00</b>
+  </div>
+  <div id="boost-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">🔥</span>
+    Boost active <b id="boost-value">10:00</b>
+  </div>
+  <div id="prawn-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">🦐</span>
+    <span id="prawn-chip-text">Set a Prawn Trap</span>
+  </div>
+  <div id="crab-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">🦀</span>
+    <span id="crab-chip-text">Set a Crab Trap</span>
   </div>
 </div>
 
@@ -1432,27 +1375,6 @@
   </div>
   <h3 class="settings-section-title">🏆 Achievements <span id="achievements-count-label"></span></h3>
   <div id="achievements-list"></div>
-  <h3 class="settings-section-title">🧹 Display</h3>
-  <div class="settings-toggle-row">
-    <div class="settings-toggle-text">
-      <div class="settings-toggle-label">Compact status chips</div>
-      <div class="settings-toggle-desc">Collapse the timer, boost, and trap chips behind one tappable summary.</div>
-    </div>
-    <label class="ui-toggle">
-      <input type="checkbox" id="toggle-compact-chips">
-      <span class="ui-toggle-track"></span>
-    </label>
-  </div>
-  <div class="settings-toggle-row">
-    <div class="settings-toggle-text">
-      <div class="settings-toggle-label">Compact top bar</div>
-      <div class="settings-toggle-desc">Collapse Recenter, Share, Account, Settings, and Bag behind one "more" button.</div>
-    </div>
-    <label class="ui-toggle">
-      <input type="checkbox" id="toggle-compact-topbar">
-      <span class="ui-toggle-track"></span>
-    </label>
-  </div>
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
   <div id="rod-milestones"></div>
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
@@ -1735,7 +1657,6 @@ let pendingResult = null;
 let audioCtx = null;
 let bagViewMode = 'catches';     // 'catches' | 'guide'
 let shareState = loadShareState();
-let uiPrefs = loadUiPrefs();
 let session = loadSession();     // { uid, displayName } | null
 let pendingRodUpgrade = null;    // level number, shown once the fishing overlay closes
 let shopState = loadShopState();
@@ -1768,24 +1689,6 @@ function loadShareState(){
   }catch(e){ return { lastGrantedAt:0, boostUntil:0 }; }
 }
 function saveShareState(){ localStorage.setItem('driftline_share', JSON.stringify(shareState)); }
-function loadUiPrefs(){
-  try{
-    const p = JSON.parse(localStorage.getItem('driftline_ui_prefs')||'null');
-    return { compactChips: !!(p&&p.compactChips), compactTopbar: !!(p&&p.compactTopbar) };
-  }catch(e){ return { compactChips:false, compactTopbar:false }; }
-}
-function saveUiPrefs(){ localStorage.setItem('driftline_ui_prefs', JSON.stringify(uiPrefs)); }
-function applyUiPrefs(){
-  document.body.classList.toggle('compact-chips', uiPrefs.compactChips);
-  document.body.classList.toggle('compact-topbar', uiPrefs.compactTopbar);
-  $('toggle-compact-chips').checked = uiPrefs.compactChips;
-  $('toggle-compact-topbar').checked = uiPrefs.compactTopbar;
-  // Reset any open/expanded state so switching the setting always starts clean.
-  $('status-chip-list').classList.remove('expanded');
-  $('status-summary-chip').classList.remove('open');
-  $('topbar-icon-list').classList.remove('expanded');
-  updateFabPosition();
-}
 function loadSession(){
   try{ return JSON.parse(localStorage.getItem('driftline_session')||'null'); }catch(e){ return null; }
 }
@@ -3430,16 +3333,6 @@ function updateBagBadge(){
   } else {
     badge.classList.add('hidden');
   }
-  updateTopbarMoreBadge();
-}
-function updateTopbarMoreBadge(){
-  // When the top bar is collapsed behind the "more" button, this keeps a
-  // small dot visible so an account alert or a full bag doesn't go unnoticed.
-  const moreBadge = $('topbar-more-badge');
-  if(!moreBadge) return;
-  const accountAlertVisible = !$('account-alert').classList.contains('hidden');
-  const bagCountVisible = !$('bag-count').classList.contains('hidden');
-  moreBadge.classList.toggle('hidden', !(accountAlertVisible || bagCountVisible));
 }
 function tierMeta(key){ return TIERS.find(t=>t.key===key) || TIERS[0]; }
 
@@ -4052,7 +3945,6 @@ function updateAccountBadge(){
   if(count>0){ dot.classList.remove('hidden'); dot.textContent = count>9?'9+':String(count); }
   else dot.classList.add('hidden');
   updateFriendsBadge();
-  updateTopbarMoreBadge();
 }
 function updateFriendsBadge(){
   const dot = $('friends-alert');
@@ -4761,26 +4653,6 @@ $('crab-chip').addEventListener('click', openCrabOverlay);
 $('crab-close').addEventListener('click', closeCrabOverlay);
 
 window.addEventListener('resize', updateFabPosition);
-
-/* ---- Compact menus (Settings toggles) ---- */
-$('toggle-compact-chips').addEventListener('change', (e)=>{
-  uiPrefs.compactChips = e.target.checked;
-  saveUiPrefs();
-  applyUiPrefs();
-});
-$('toggle-compact-topbar').addEventListener('change', (e)=>{
-  uiPrefs.compactTopbar = e.target.checked;
-  saveUiPrefs();
-  applyUiPrefs();
-});
-$('status-summary-chip').addEventListener('click', ()=>{
-  const expanded = $('status-chip-list').classList.toggle('expanded');
-  $('status-summary-chip').classList.toggle('open', expanded);
-});
-$('topbar-more-btn').addEventListener('click', ()=>{
-  $('topbar-icon-list').classList.toggle('expanded');
-});
-applyUiPrefs();
 
 </script>
 </body>
