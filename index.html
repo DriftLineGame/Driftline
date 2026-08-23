@@ -4242,7 +4242,20 @@ async function openFriendGear(uid){
 }
 function closeFriendGear(){ $('friend-gear-scrim').classList.remove('show'); }
 
-const LB_WINDOWS = { day:24*60*60*1000, week:7*24*60*60*1000, month:30*24*60*60*1000, all:null };
+function dayStartMs(){
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0).getTime();
+}
+function monthStartMs(){
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0).getTime();
+}
+const LB_PERIOD_START = {
+  day: dayStartMs,
+  week: weekStartMs, // same Monday-based calendar week as the Weekly Challenge
+  month: monthStartMs,
+  all: ()=>null
+};
 const LB_EMPTY_MSG = {
   day: 'No one\u2019s landed a catch today yet \u2014 be the first!',
   week: 'No catches logged this week yet \u2014 be the first!',
@@ -4274,11 +4287,10 @@ async function openLeaderboard(){
 }
 function closeLeaderboard(){ $('leaderboard-fullscreen').classList.remove('show'); }
 
-function computePeriodPoints(bag, windowMs){
-  if(windowMs === null) return null; // caller should use the stored all-time total instead
-  const now = Date.now();
+function computePeriodPoints(bag, startMs){
+  if(startMs === null) return null; // caller should use the stored all-time total instead
   return bag.reduce((sum,c)=>{
-    if((now - c.ts) > windowMs) return sum;
+    if(c.ts < startMs) return sum;
     return sum + 1 + Math.max(0, tierIndexOf(c.tier));
   }, 0);
 }
@@ -4287,12 +4299,12 @@ function renderLeaderboardForPeriod(period){
   lbPeriod = period;
   document.querySelectorAll('.lb-period-tab').forEach(t=>t.classList.toggle('active', t.dataset.period===period));
   if(!lbCache){ return; }
-  const windowMs = LB_WINDOWS[period];
+  const startMs = LB_PERIOD_START[period]();
   let ranked = lbCache.map(p=>({
     uid: p.uid,
     displayName: p.displayName,
     avatar: p.avatar,
-    points: windowMs === null ? p.points : computePeriodPoints(p.bag || [], windowMs)
+    points: startMs === null ? p.points : computePeriodPoints(p.bag || [], startMs)
   }));
   ranked = ranked.filter(p=>p.points > 0).sort((a,b)=>b.points-a.points).slice(0,50);
   renderLeaderboard(ranked, period);
@@ -4604,6 +4616,7 @@ $('signout-reminder-signin').addEventListener('click', ()=>{
 });
 $('signout-reminder-dismiss').addEventListener('click', closeSignoutReminder);
 $('rod-upgrade-close').addEventListener('click', closeRodUpgrade);
+$('achievement-close').addEventListener('click', closeAchievementOverlay);
 $('settings-btn').addEventListener('click', openSettingsDrawer);
 $('settings-close').addEventListener('click', closeSettingsDrawer);
 $('settings-scrim').addEventListener('click', (e)=>{
