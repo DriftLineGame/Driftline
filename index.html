@@ -44,23 +44,37 @@
 
   /* ---------- Start screen ---------- */
   #start-screen{
-    position:fixed; inset:0; z-index:500;
+    position:fixed; inset:0; z-index:500; overflow:hidden;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     background:
       radial-gradient(120% 90% at 50% -10%, #cdeeff 0%, #eaf6fc 45%, #ffffff 100%);
     text-align:center; padding:32px;
   }
+  .start-blob{
+    position:absolute; border-radius:50%; filter:blur(60px); opacity:0.22; pointer-events:none;
+    animation:lbDrift 9s ease-in-out infinite;
+  }
   .brand-mark{
-    width:72px; height:72px; border-radius:22px;
+    width:64px; height:64px; border-radius:20px;
     background:linear-gradient(160deg, #3fd6ff, #0b6fa3);
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 12px 34px rgba(63,214,255,0.35);
-    margin-bottom:22px;
+    margin-bottom:14px; position:relative; z-index:2;
   }
-  .brand-mark svg{width:38px; height:38px;}
-  #start-screen h1{font-size:34px; margin:0 0 8px; letter-spacing:-0.02em; font-weight:800;}
-  #start-screen p{color:var(--ink-dim); font-size:15px; line-height:1.5; max-width:320px; margin:0 0 28px;}
+  .brand-mark svg{width:32px; height:32px;}
+  #start-screen h1{position:relative; z-index:2; font-size:28px; margin:0 0 12px; letter-spacing:-0.02em; font-weight:800;}
+  #start-fish-strip{
+    position:relative; z-index:2; display:flex; flex-wrap:wrap; justify-content:center; gap:6px;
+    max-width:320px; margin:0 0 14px;
+  }
+  .start-fish-chip{
+    font-size:11px; font-weight:700; padding:5px 10px; border-radius:999px;
+    border:1.5px solid; background:#ffffffcc; white-space:nowrap;
+  }
+  #start-screen p{position:relative; z-index:2; color:var(--ink-dim); font-size:12.5px; line-height:1.5; max-width:280px; margin:0 0 6px;}
+  #start-screen p.start-required{color:var(--ink); font-weight:700; font-size:12.5px; margin:0 0 20px;}
   #start-screen p strong{color:var(--ink); font-weight:700;}
+  #start-screen .btn{position:relative; z-index:2;}
   .btn{
     appearance:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;
     border-radius:999px; padding:15px 26px; font-size:15px; font-weight:700;
@@ -109,14 +123,13 @@
     display:flex; align-items:center; justify-content:center; padding:0 4px;
     border:2px solid #ffffff;
   }
-  #topbar-icon-list{overflow:visible;}
+  #topbar-icon-list{overflow:hidden;}
   #topbar-icon-inner{display:flex; gap:6px;}
   body.compact-topbar #topbar-more-btn{display:flex;}
   body.compact-topbar #topbar-icon-list{
-    display:grid; grid-template-columns:0fr; transition:grid-template-columns .3s ease; overflow:hidden;
+    max-width:0; transition:max-width .3s ease;
   }
-  body.compact-topbar #topbar-icon-list.expanded{grid-template-columns:1fr;}
-  body.compact-topbar #topbar-icon-inner{min-width:0; overflow:hidden;}
+  body.compact-topbar #topbar-icon-list.expanded{max-width:240px;}
 
   #status-chip-group{
     position:fixed; top:66px; left:14px; z-index:200;
@@ -131,13 +144,12 @@
   #status-summary-chip svg{width:14px; height:14px; stroke:var(--ink-dim); fill:none;}
   #status-summary-chevron{width:12px !important; height:12px !important; stroke:var(--ink-dim) !important; transition:transform .25s ease;}
   #status-summary-chip.open #status-summary-chevron{transform:rotate(180deg);}
-  #status-chip-list{overflow:visible;}
+  #status-chip-list{overflow:hidden;}
   #status-chip-inner{display:flex; flex-direction:column; gap:10px;}
   body.compact-chips #status-chip-list{
-    display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s ease; overflow:hidden;
+    max-height:0; transition:max-height .3s ease;
   }
-  body.compact-chips #status-chip-list.expanded{grid-template-rows:1fr;}
-  body.compact-chips #status-chip-inner{min-height:0; overflow:hidden;}
+  body.compact-chips #status-chip-list.expanded{max-height:240px;}
 
   #timer-chip{
     padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
@@ -1069,6 +1081,9 @@
 
 <!-- Start screen -->
 <div id="start-screen">
+  <div class="start-blob" style="width:220px;height:220px;top:-70px;left:-60px;background:#39ff8f;"></div>
+  <div class="start-blob" style="width:190px;height:190px;top:70px;right:-70px;background:#ffd23f;animation-delay:-3s;"></div>
+  <div class="start-blob" style="width:230px;height:230px;bottom:60px;left:-80px;background:#ff2d78;animation-delay:-6s;"></div>
   <div class="brand-mark">
     <svg viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/>
@@ -1077,7 +1092,15 @@
     </svg>
   </div>
   <h1 class="display">Driftline</h1>
-  <p>Your real coastline, turned into a fishing map. We'll drop hotspots around your location and refresh them every 5 minutes. <strong>Driftline needs your phone's real GPS location to work — it won't run without it.</strong></p>
+  <div id="start-fish-strip">
+    <div class="start-fish-chip" style="color:var(--tier-common); border-color:var(--tier-common);">🐟 Bluegill</div>
+    <div class="start-fish-chip" style="color:var(--tier-hard); border-color:var(--tier-hard);">🐠 Bass</div>
+    <div class="start-fish-chip" style="color:var(--tier-rare); border-color:var(--tier-rare);">🐟 Salmon</div>
+    <div class="start-fish-chip" style="color:var(--tier-superrare); border-color:var(--tier-superrare);">🗡️ Swordfish</div>
+    <div class="start-fish-chip" style="color:var(--tier-ultimate); border-color:var(--tier-ultimate);">🦈 Great White</div>
+  </div>
+  <p>1,500+ fish. Real GPS hotspots on your actual coastline.</p>
+  <p class="start-required">📍 Needs your real location — it's the whole game.</p>
   <button class="btn btn-primary" id="use-location-btn">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#02121e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     Find My Fishing Grounds
@@ -1088,7 +1111,7 @@
     <input type="text" id="lng-input" placeholder="Longitude e.g. -125.2475" />
     <button class="btn btn-primary" id="manual-submit" style="margin-top:2px;">Use These Coordinates</button>
   </div>
-  <button class="btn btn-ghost" id="manual-toggle">Enter coordinates manually (not recommended — live tracking needs real GPS)</button>
+  <button class="btn btn-ghost" id="manual-toggle">Enter coordinates manually</button>
 </div>
 
 <!-- Top bar -->
