@@ -281,7 +281,7 @@
     100%{opacity:0; transform:translateY(-115vh) translateX(var(--drift,18px));}
   }
 
-  #line-rig{position:absolute; top:-40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; transition:top 1.4s cubic-bezier(.45,0,.2,1);}
+  #line-rig{position:absolute; top:-40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;}
   #line-rig.dropped{top:38%;}
   #line-rig .line{width:1.5px; height:220px; background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.55));}
   #line-rig .hook{width:22px; height:22px; margin-top:-4px;}
@@ -3377,6 +3377,7 @@ function runFishingAnimation(){
   const card = $('result-card');
 
   rig.classList.remove('dropped','tug','waiting');
+  rig.style.transform = '';
   card.classList.remove('show');
   status.classList.remove('show');
   overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
@@ -3393,7 +3394,7 @@ function runFishingAnimation(){
   status.textContent = 'Casting out...';
   setTimeout(()=> status.classList.add('show'), 150);
 
-  setTimeout(()=>{ rig.classList.add('dropped'); }, 250);
+  setTimeout(()=>{ animateHookDrop(rig); }, 250);
 
   setTimeout(()=>{
     playSplashSound();
@@ -3407,100 +3408,165 @@ function runFishingAnimation(){
 
   const preBiteDelay = 900 + Math.random()*900;
   setTimeout(()=>{
-    if(pendingResult.success){
-      beginSuccessBite();
-    } else {
-      revealResult();
-    }
+    beginBiteSequence();
   }, 1700 + preBiteDelay);
 }
 
-function beginSuccessBite(){
+function animateHookDrop(rig){
+  rig.classList.add('dropped'); // CSS fallback end-state, in case WAAPI/reduced-motion skips the rich version
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    return;
+  }
+  // A real sink, not a straight-line slide: a slight cast-swing, a wobble
+  // as it settles through the water, and a gentle decelerating rest.
+  rig.animate([
+    { top:'-40px',  transform:'translateX(-50%) rotate(0deg)' },
+    { top:'8%',     transform:'translateX(-54%) rotate(-9deg)', offset:0.16 },
+    { top:'18%',    transform:'translateX(-47%) rotate(7deg)',  offset:0.36 },
+    { top:'27%',    transform:'translateX(-52%) rotate(-5deg)', offset:0.58 },
+    { top:'34%',    transform:'translateX(-49%) rotate(3deg)',  offset:0.8 },
+    { top:'38%',    transform:'translateX(-50%) rotate(0deg)',  offset:1 }
+  ], { duration:1500, easing:'cubic-bezier(.3,.6,.25,1)', fill:'forwards' });
+
+  // A few small bubbles trailing the hook as it sinks, timed to the drop.
+  const overlay = $('fishing-overlay');
+  for(let i=0;i<5;i++){
+    const delay = 200 + i*230 + Math.random()*120;
+    setTimeout(()=>{
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      const size = 3+Math.random()*6;
+      b.style.width = size+'px';
+      b.style.height = size+'px';
+      b.style.left = (48+Math.random()*4)+'%';
+      b.style.top = (10+i*6)+'%';
+      b.style.setProperty('--drift',(Math.random()*20-10)+'px');
+      b.style.animationDuration = '1.6s';
+      overlay.appendChild(b);
+      setTimeout(()=>b.remove(), 1700);
+    }, delay);
+  }
+}
+
+function beginBiteSequence(){
   const rig = $('line-rig');
   const status = $('cast-status');
   rig.classList.remove('waiting');
-  status.textContent = 'Something\u2019s circling the hook...';
 
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    status.textContent = 'Something\u2019s on the line!';
+    status.textContent = pendingResult.success ? 'Something\u2019s on the line!' : 'The line comes back quiet.';
     revealResult();
     return;
   }
 
-  const tier = pendingResult.tier;
-  const { fish, anim, targetX, targetY } = spawnSwimFish(tier);
+  status.textContent = pendingResult.success ? 'A school swims by\u2026' : 'A school passes through\u2026';
 
-  anim.finished.then(()=>{
-    status.textContent = 'Something\u2019s on the line!';
-    return runFishStrike(fish, tier, targetX, targetY);
-  }).then(()=>{
-    revealResult(fish);
-  }).catch(()=>{
-    // Animation got interrupted (overlay closed early, etc.) — still resolve.
-    revealResult(fish);
-  });
+  const { strikerFishEl, strikerAnim, targetX, targetY } = spawnFishSchool(
+    pendingResult.hotspot, pendingResult.success, pendingResult.tier, pendingResult.fish
+  );
+
+  if(pendingResult.success && strikerAnim){
+    strikerAnim.finished.then(()=>{
+      status.textContent = 'Something\u2019s on the line!';
+      return runFishStrike(strikerFishEl, pendingResult.tier, targetX, targetY);
+    }).then(()=>{
+      revealResult(strikerFishEl);
+    }).catch(()=>{
+      revealResult(strikerFishEl);
+    });
+  } else {
+    // Miss: let the whole school clear the screen, then reveal quietly.
+    setTimeout(()=>{ revealResult(); }, 1150);
+  }
 }
 
-function spawnSwimFish(tier){
+function spawnFishSchool(hotspot, success, catchTier, catchFish){
   const overlay = $('fishing-overlay');
   overlay.querySelectorAll('.swim-fish').forEach(f=>f.remove());
 
-  const sizeByTier = { common:58, hard:64, rare:72, superrare:82, ultimate:94, abyssal:106 };
-  const glowByTier = { common:0, hard:6, rare:12, superrare:20, ultimate:30, abyssal:44 };
-  const size = sizeByTier[tier.key] || 58;
-  const glow = glowByTier[tier.key] || 0;
-
-  // Find the hook's real on-screen position — this is the fish's actual
-  // destination, not a guessed percentage. Fixes the "fish floats near the
-  // surface instead of at the hook" bug.
   const hookEl = document.querySelector('#line-rig .hook');
   const hookRect = hookEl.getBoundingClientRect();
   const targetX = hookRect.left + hookRect.width/2;
   const targetY = hookRect.top + hookRect.height/2;
-
   const vw = window.innerWidth;
-  const fromLeft = Math.random() < 0.5;
-  const startX = fromLeft ? -size : vw + size;
-  const startY = targetY + (Math.random()*70 - 35);
 
-  const fish = document.createElement('div');
-  fish.className = 'swim-fish';
-  fish.style.filter = glow ? `drop-shadow(0 0 ${glow}px ${tier.hex}cc)` : 'none';
-  fish.style.left = startX + 'px';
-  fish.style.top = startY + 'px';
-  fish.style.opacity = '0';
-  fish.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block; transform:scaleX(${fromLeft ? 1 : -1})">
-    <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" fill="${tier.hex}" fill-opacity="0.95" stroke="${tier.hex}" stroke-width="0.6"/>
-    <circle cx="15" cy="12" r="1.3" fill="#04121f"/>
-  </svg>`;
-  overlay.appendChild(fish);
-
-  // Build a wavy, decelerating swim path from off-screen to the hook.
-  const steps = 10;
-  const keyframes = [];
-  for(let i=0;i<=steps;i++){
-    const t = i/steps;
-    const ease = 1 - Math.pow(1-t, 2.2);
-    const x = startX + (targetX-startX)*ease;
-    const waveAmp = 26*(1-t) + 3;
-    const y = startY + (targetY-startY)*ease + Math.sin(t*Math.PI*3.2)*waveAmp;
-    const rot = Math.sin(t*Math.PI*5) * (fromLeft?10:-10) * (1-t*0.4);
-    const scale = 0.82 + t*0.22;
-    keyframes.push({
-      left: x+'px', top: y+'px',
-      opacity: t < 0.08 ? t/0.08 : 1,
-      transform: `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`,
-      offset: t
-    });
+  // The school is sampled with the SAME tier/fish weighting this hotspot
+  // actually uses for real catches, so it's an honest preview of what
+  // lives here — not decorative filler.
+  const SCHOOL_SIZE = 10 + Math.floor(Math.random()*5); // 10-14
+  const members = [];
+  for(let i=0;i<SCHOOL_SIZE;i++){
+    const tier = hotspot ? pickTier() : TIERS[0];
+    const fish = hotspot ? pickFishForHotspot(tier.key, hotspot) : pickFish(tier.key);
+    members.push({ fish, tier, isStriker:false });
+  }
+  if(success){
+    const strikeIdx = Math.floor(Math.random()*members.length);
+    members[strikeIdx] = { fish:catchFish, tier:catchTier, isStriker:true };
   }
 
-  const anim = fish.animate(keyframes, {
-    duration: 1150 + Math.random()*300,
-    easing: 'linear',
-    fill: 'forwards'
+  const sizeByTier = { common:44, hard:50, rare:58, superrare:66, ultimate:78, abyssal:90 };
+  const glowByTier = { common:0, hard:5, rare:10, superrare:16, ultimate:26, abyssal:38 };
+
+  let strikerFishEl = null, strikerAnim = null;
+
+  members.forEach((m, i)=>{
+    const fromLeft = i % 2 === 0; // guarantees fish genuinely enter from both sides
+    const baseSize = sizeByTier[m.tier.key] || 44;
+    const size = m.isStriker ? baseSize*1.2 : baseSize*0.85;
+    const glow = glowByTier[m.tier.key] || 0;
+    const startX = fromLeft ? -size - Math.random()*60 : vw + size + Math.random()*60;
+    const laneY = targetY + (Math.random()*170 - 85);
+    const delay = Math.random()*320;
+
+    const el = document.createElement('div');
+    el.className = 'swim-fish';
+    el.style.filter = glow ? `drop-shadow(0 0 ${glow}px ${m.tier.hex}cc)` : 'none';
+    el.style.left = startX+'px';
+    el.style.top = laneY+'px';
+    el.style.opacity = '0';
+    el.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block; transform:scaleX(${fromLeft?1:-1})">
+      <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" fill="${m.tier.hex}" fill-opacity="0.95" stroke="${m.tier.hex}" stroke-width="0.6"/>
+      <circle cx="15" cy="12" r="1.3" fill="#04121f"/>
+    </svg>`;
+    overlay.appendChild(el);
+
+    const endX = m.isStriker ? targetX : (fromLeft ? vw + size + 40 : -size - 40);
+    const endY = m.isStriker ? targetY : laneY + (Math.random()*50-25);
+
+    const steps = m.isStriker ? 10 : 6;
+    const keyframes = [];
+    for(let s=0;s<=steps;s++){
+      const t = s/steps;
+      const ease = m.isStriker ? 1-Math.pow(1-t,2.2) : t;
+      const x = startX + (endX-startX)*ease;
+      const waveAmp = m.isStriker ? 22*(1-t)+3 : 9;
+      const y = laneY + (endY-laneY)*ease + Math.sin(t*Math.PI*(m.isStriker?3.2:2.4))*waveAmp;
+      const rot = Math.sin(t*Math.PI*4) * (fromLeft?8:-8) * (1-t*0.3);
+      let opacity = 1;
+      if(t < 0.1) opacity = t/0.1;
+      else if(!m.isStriker && t > 0.85) opacity = (1-t)/0.15;
+      keyframes.push({
+        left:x+'px', top:y+'px', opacity,
+        transform:`translate(-50%,-50%) rotate(${rot}deg) scale(${0.85+t*0.15})`,
+        offset:t
+      });
+    }
+
+    const anim = el.animate(keyframes, {
+      duration: (m.isStriker ? 1300 : 1000) + Math.random()*250,
+      delay, easing:'linear', fill:'forwards'
+    });
+
+    if(m.isStriker){
+      strikerFishEl = el;
+      strikerAnim = anim;
+    } else {
+      anim.finished.then(()=>el.remove()).catch(()=>el.remove());
+    }
   });
 
-  return { fish, anim, targetX, targetY };
+  return { strikerFishEl, strikerAnim, targetX, targetY };
 }
 
 function runFishStrike(fish, tier, x, y){
