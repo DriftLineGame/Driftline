@@ -189,6 +189,30 @@
     animation:fabPulse 2.4s ease-in-out infinite;
   }
 
+  #world-event-chip{
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; color:#0e86c4;
+    display:flex; align-items:center; gap:6px;
+    border-color:rgba(14,134,196,0.3) !important;
+    background:linear-gradient(90deg,rgba(57,255,143,0.14),rgba(0,229,255,0.14)) !important;
+    animation:fabPulse 2.4s ease-in-out infinite;
+  }
+
+  /* ---------- World event announcement banner ---------- */
+  .world-event-banner{
+    position:fixed; top:14px; left:14px; right:14px; z-index:997;
+    display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:18px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.3);
+    transform:translateY(-140%); opacity:0; transition:transform .4s cubic-bezier(.2,.9,.25,1), opacity .3s ease;
+    pointer-events:none;
+  }
+  .world-event-banner.show{transform:translateY(0); opacity:1;}
+  .world-event-banner.frenzy{background:linear-gradient(100deg,#0b6fa3,#0e86c4); }
+  .world-event-banner.migration{background:linear-gradient(100deg,#1c7fc2,#9455e0);}
+  .web-icon{font-size:28px; flex:0 0 auto;}
+  .web-text{color:#fff; min-width:0;}
+  .web-title{font-family:'Bricolage Grotesque'; font-weight:800; font-size:15px;}
+  .web-desc{font-size:12px; color:rgba(255,255,255,0.85); line-height:1.4; margin-top:2px;}
+
   /* ---------- Selected spot / cast panel ---------- */
   #cast-panel{
     position:fixed; left:14px; right:14px; bottom:20px; z-index:200;
@@ -1281,6 +1305,10 @@
   <div id="battle-chip" class="glass hidden" style="border-radius:999px;">
     <span class="boost-flame">⚔️</span>
     <span id="battle-chip-text">Battle: 23h 59m</span>
+  </div>
+  <div id="world-event-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">🐟</span>
+    <span id="world-event-chip-text">Fish migrating</span>
   </div>
 </div>
 
@@ -2440,11 +2468,12 @@ function oddsAtPoint(pt){
 
 /* ====================== BOOSTS (generalized: share + shop lures) ====================== */
 const BOOST_SOURCE_LABELS = {
-  share:            { label:'Share Boost',       icon:'\u{1F525}' },
-  weekly_challenge: { label:'Weekly Challenge',  icon:'\u{1F3C6}' },
-  lure_basic:       { label:'Basic Lure',        icon:'\u{1FAB1}' },
-  lure_pro:         { label:'Pro Lure',          icon:'\u{1FA9D}' },
-  lure_legendary:   { label:'Legendary Lure',    icon:'\u2728' }
+  share:              { label:'Share Boost',       icon:'\u{1F525}' },
+  weekly_challenge:   { label:'Weekly Challenge',  icon:'\u{1F3C6}' },
+  lure_basic:         { label:'Basic Lure',        icon:'\u{1FAB1}' },
+  lure_pro:           { label:'Pro Lure',          icon:'\u{1FA9D}' },
+  lure_legendary:     { label:'Legendary Lure',    icon:'\u2728' },
+  world_event_frenzy: { label:'Feeding Frenzy',    icon:'\u{1F30A}' }
 };
 function pruneExpiredBoosts(){
   const now = Date.now();
@@ -3360,10 +3389,20 @@ function attemptCast(){
   const success = Math.random()*100 < odds;
   let fish=null, tier=null;
   if(success){
-    // Outside a hotspot, only Common fish are on the table — the rarer
-    // tiers only come into play once you're standing in a real hotspot.
-    tier = hotspot ? pickTier() : TIERS[0];
-    fish = hotspot ? pickFishForHotspot(tier.key, hotspot) : pickFish(tier.key);
+    // A live Migration event can override the normal tier roll entirely --
+    // handled as its own branch (not injected into the tier-specific fish
+    // picker) so the tier and fish name can never end up mismatched.
+    const migration = hotspot ? currentWorldEvent() : null;
+    const migrationHit = migration && migration.type === 'migration' && Math.random()*100 < migration.boostChance;
+    if(migrationHit){
+      tier = TIERS.find(t=>t.key===migration.tier) || TIERS[0];
+      fish = migration.fish;
+    } else {
+      // Outside a hotspot, only Common fish are on the table — the rarer
+      // tiers only come into play once you're standing in a real hotspot.
+      tier = hotspot ? pickTier() : TIERS[0];
+      fish = hotspot ? pickFishForHotspot(tier.key, hotspot) : pickFish(tier.key);
+    }
   }
   pendingResult = { success, fish, tier, hotspot, at: liveLatLng };
   runFishingAnimation();
@@ -3833,10 +3872,14 @@ function weekStartMs(){
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-day, 0,0,0,0);
   return start.getTime();
 }
+function hashStr(s){
+  let hash = 0;
+  for(let i=0;i<s.length;i++) hash = (hash*31 + s.charCodeAt(i)) >>> 0;
+  return hash;
+}
 function currentWeeklyChallenge(){
   const wid = currentWeekId();
-  let hash = 0;
-  for(let i=0;i<wid.length;i++) hash = (hash*31 + wid.charCodeAt(i)) >>> 0;
+  const hash = hashStr(wid);
   const template = WEEKLY_CHALLENGE_TEMPLATES[hash % WEEKLY_CHALLENGE_TEMPLATES.length];
   return { weekId: wid, ...template };
 }
@@ -3856,6 +3899,107 @@ function checkWeeklyChallenge(){
   syncShopToCloud();
   grantBoost('weekly_challenge', WEEKLY_CHALLENGE_BOOST, WEEKLY_CHALLENGE_MS);
   showToast(`\u{1F3C6} Weekly Challenge complete! +${WEEKLY_CHALLENGE_BOOST}% bite chance for 24 hours!`);
+}
+
+/* ====================== WORLD EVENTS ====================== */
+// Deterministic and time-slot based, so every player sees the exact same
+// event at the exact same real-world moment without needing a server to
+// author or push anything -- same trick as the weekly challenge, just on a
+// tighter cadence so sessions feel less identical to each other.
+const WORLD_EVENT_SLOT_MS = 3*60*60*1000; // 3-hour slots, 8 possible per day
+const WORLD_EVENT_OCCUR_CHANCE = 45; // % chance a given slot has an event at all
+let lastAnnouncedWorldEventKey = null;
+let worldEventTickInterval = null;
+
+function currentWorldEvent(){
+  const now = Date.now();
+  const slotIndex = Math.floor(now / WORLD_EVENT_SLOT_MS);
+  if(hashStr('we_occurs_'+slotIndex) % 100 >= WORLD_EVENT_OCCUR_CHANCE) return null;
+
+  const type = (hashStr('we_type_'+slotIndex) % 100) < 55 ? 'frenzy' : 'migration';
+  const slotStart = slotIndex * WORLD_EVENT_SLOT_MS;
+  const eventDurationMs = (20 + hashStr('we_dur_'+slotIndex) % 26) * 60000; // 20-45 min
+  const maxOffset = Math.max(0, WORLD_EVENT_SLOT_MS - eventDurationMs);
+  const offset = maxOffset > 0 ? (hashStr('we_offset_'+slotIndex) % maxOffset) : 0;
+  const startAt = slotStart + offset;
+  const endAt = startAt + eventDurationMs;
+  if(now < startAt || now >= endAt) return null; // this slot has an event, just not right now
+
+  const key = type+'_'+startAt;
+  if(type === 'frenzy'){
+    const boostAmount = 15 + hashStr('we_boost_'+slotIndex) % 11; // 15-25%
+    return { key, type, startAt, endAt, boostAmount };
+  }
+  // Migration: a Rare or (occasionally) Super Rare fish, never Ultimate/Abyssal --
+  // keeps the top tiers meaningfully hard even during an event.
+  const tierKey = (hashStr('we_migtier_'+slotIndex) % 100) < 70 ? 'rare' : 'superrare';
+  const pool = FISH_DATA[tierKey];
+  const fish = pool[hashStr('we_migfish_'+slotIndex) % pool.length];
+  const boostChance = 8 + hashStr('we_migchance_'+slotIndex) % 8; // 8-15%
+  return { key, type, startAt, endAt, fish, tier:tierKey, boostChance };
+}
+function checkWorldEvent(){
+  const event = currentWorldEvent();
+  if(event && event.type === 'frenzy'){
+    const alreadyGranted = shopState.activeBoosts.some(b=>b.source==='world_event_frenzy' && b.until===event.endAt);
+    if(!alreadyGranted){
+      shopState.activeBoosts = shopState.activeBoosts.filter(b=>b.source!=='world_event_frenzy');
+      grantBoost('world_event_frenzy', event.boostAmount, event.endAt-Date.now());
+    }
+  }
+  if(event && event.key !== lastAnnouncedWorldEventKey){
+    lastAnnouncedWorldEventKey = event.key;
+    showWorldEventBanner(event);
+  }
+  updateWorldEventChip(event);
+  return event;
+}
+function updateWorldEventChip(event){
+  const chip = $('world-event-chip');
+  const text = $('world-event-chip-text');
+  if(!chip || !text) return;
+  if(!event || event.type !== 'migration'){
+    chip.classList.add('hidden');
+    return;
+  }
+  chip.classList.remove('hidden');
+  const remain = event.endAt - Date.now();
+  const h = Math.floor(remain/3600000);
+  const m = Math.floor((remain%3600000)/60000);
+  text.textContent = `${event.fish} migrating \u2014 ${h>0?h+'h ':''}${m}m left`;
+}
+function startWorldEventTicker(){
+  clearInterval(worldEventTickInterval);
+  checkWorldEvent();
+  worldEventTickInterval = setInterval(checkWorldEvent, 30000);
+}
+function showWorldEventBanner(event){
+  const banner = document.createElement('div');
+  banner.className = 'world-event-banner ' + event.type;
+  if(event.type === 'frenzy'){
+    banner.innerHTML = `
+      <div class="web-icon">\u{1F30A}</div>
+      <div class="web-text">
+        <div class="web-title">Feeding Frenzy!</div>
+        <div class="web-desc">+${event.boostAmount}% bite chance everywhere for the next ${Math.round((event.endAt-Date.now())/60000)} minutes.</div>
+      </div>`;
+  } else {
+    banner.innerHTML = `
+      <div class="web-icon">\u{1F41F}</div>
+      <div class="web-text">
+        <div class="web-title">Migration Spotted!</div>
+        <div class="web-desc">${event.fish} is unusually common at hotspots for the next ${Math.round((event.endAt-Date.now())/60000)} minutes.</div>
+      </div>`;
+  }
+  document.body.appendChild(banner);
+  ensureAudioCtx();
+  [660,880,1046].forEach((f,i)=> playTone(f, i*0.09, 0.18, 'triangle', 0.13));
+  if('vibrate' in navigator) navigator.vibrate([40,30,40,30,90]);
+  requestAnimationFrame(()=> banner.classList.add('show'));
+  setTimeout(()=>{
+    banner.classList.remove('show');
+    setTimeout(()=>banner.remove(), 400);
+  }, 5000);
 }
 
 /* ====================== ACHIEVEMENTS (bragging rights only) ====================== */
@@ -4509,6 +4653,7 @@ const TUTORIAL_STEPS = [
   { title:'Friends', desc:"Add friends by username from your Account. Once they accept, you can check out each other's gear \u2014 rod level, cosmetics, everything.", target:'open-friends-btn', action:'open-friends' },
   { title:'Prawn Trap', desc:'A slower way to fish: set a trap at your location, then come back in an hour to pull it up. It rolls 1\u20135 catch attempts using the bite chance from when you set it \u2014 keep an eye on this chip.', target:'prawn-chip', action:'open-prawn' },
   { title:'Crab Trap', desc:'A heavier trap that sinks all the way to the sea floor. It takes 2 hours, but rolls 3\u201310 catch attempts \u2014 more patience, more potential payoff.', target:'crab-chip', action:'open-crab' },
+  { title:'World Events', desc:'Every few hours, something happens across the whole map \u2014 a Feeding Frenzy boosts everyone\u2019s odds, or a specific rare fish starts migrating and becomes far easier to find. Watch for the banner, and keep an eye on this chip when one\u2019s live.', target:'world-event-chip' },
   { title:'You\u2019re All Set! \u{1F3A3}', desc:'That covers everything. Go stand somewhere real, find a hotspot, and cast your line.', target:null, action:'close-all' }
 ];
 
@@ -5561,6 +5706,7 @@ function beginGame(pt, accuracy){
   updateCrabChip();
   startCrabTicker();
   startBattleTicker();
+  startWorldEventTicker();
   if(session){
     refreshFriendsState();
     refreshBattleState();
