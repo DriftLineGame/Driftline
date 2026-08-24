@@ -1071,6 +1071,18 @@
   #weekly-challenge-bar{height:9px; border-radius:999px; background:#f2e4d8; overflow:hidden;}
   #weekly-challenge-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#ff8a3f,#ffd23f); transition:width .5s ease;}
   #weekly-challenge-status{font-size:11.5px; color:var(--ink-dim); margin-top:7px; font-weight:600;}
+  #map-mode-card{padding:0 20px 6px;}
+  .map-mode-row{display:flex; gap:10px;}
+  .map-mode-btn{
+    flex:1; appearance:none; border:1.5px solid var(--line); background:#f4f9fb; color:var(--ink);
+    border-radius:16px; padding:14px 12px; cursor:pointer; touch-action:manipulation;
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;
+  }
+  .map-mode-btn:active{transform:scale(0.97);}
+  .map-mode-btn.active{border-color:#0e86c4; background:rgba(14,134,196,0.08);}
+  .map-mode-icon{font-size:24px;}
+  .map-mode-title{font-weight:800; font-size:13px;}
+  .map-mode-desc{font-size:10.5px; color:var(--ink-dim); line-height:1.35;}
   .settings-section-title{font-family:'Bricolage Grotesque'; font-size:14px; font-weight:800; margin:4px 20px 10px; color:var(--ink);}
   #rod-milestones{padding:0 16px;}
   .rod-row{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:14px; background:#f4f9fb; margin-bottom:7px;}
@@ -1596,6 +1608,22 @@
     <div id="weekly-challenge-bar"><div id="weekly-challenge-fill"></div></div>
     <div id="weekly-challenge-status"></div>
   </div>
+  <h3 class="settings-section-title">🗺️ Map Mode</h3>
+  <div id="map-mode-card">
+    <div class="map-mode-row">
+      <button class="map-mode-btn" id="map-mode-walking-btn" data-mode="walking">
+        <span class="map-mode-icon">🚶</span>
+        <span class="map-mode-title">Walking</span>
+        <span class="map-mode-desc">1km area, 3–50m holes packed close together</span>
+      </button>
+      <button class="map-mode-btn" id="map-mode-vehicle-btn" data-mode="vehicle">
+        <span class="map-mode-icon">🚗</span>
+        <span class="map-mode-title">Vehicle</span>
+        <span class="map-mode-desc">10km area, 10–500m holes spread wide</span>
+      </button>
+    </div>
+    <p class="settings-footnote" style="padding:12px 0 0;">Switching modes regenerates every hotspot on the map. Walking mode is the default — built for exploring on foot.</p>
+  </div>
   <h3 class="settings-section-title">🏆 Achievements <span id="achievements-count-label"></span></h3>
   <div id="achievements-list"></div>
   <h3 class="settings-section-title">Rod Upgrade Roadmap</h3>
@@ -2050,11 +2078,25 @@ const TIERS = [
 const TOTAL_FISH_COUNT = Object.values(FISH_DATA).reduce((a,l)=>a+l.length,0);
 
 /* ====================== STATE ====================== */
-const REGION_RADIUS_M = 10000;      // 10km play area
-const HOTSPOT_MIN_M = 10;
-const HOTSPOT_MAX_M = 500;
-const PINPOINT_RADIUS_M = 10;       // a handful of ultra-precise 10m fishing holes
+// Map mode controls the whole scale of the play area. Vehicle mode is the
+// original 10km/10-500m design; Walking mode packs the same hotspot COUNT
+// into a much smaller area so players are encouraged to actually walk
+// between spots instead of driving.
+const MAP_MODES = {
+  walking: { regionRadius:1000,  hotspotMin:3,  hotspotMax:50,  pinpointRadius:1.5 },
+  vehicle: { regionRadius:10000, hotspotMin:10, hotspotMax:500, pinpointRadius:10 }
+};
+let mapMode = loadMapMode(); // 'walking' | 'vehicle' -- default set in loadMapMode()
+let REGION_RADIUS_M, HOTSPOT_MIN_M, HOTSPOT_MAX_M, PINPOINT_RADIUS_M;
 const PINPOINT_ODDS = 95;
+function applyMapModeConstants(){
+  const m = MAP_MODES[mapMode] || MAP_MODES.walking;
+  REGION_RADIUS_M = m.regionRadius;
+  HOTSPOT_MIN_M = m.hotspotMin;
+  HOTSPOT_MAX_M = m.hotspotMax;
+  PINPOINT_RADIUS_M = m.pinpointRadius;
+}
+applyMapModeConstants();
 const REFRESH_MS = 5*60*1000;       // 5 minutes
 const BASE_ODDS = 15;
 const CLUSTER_PIXEL_RADIUS = 55;    // spots closer than this on-screen fold into one cluster circle
@@ -2067,6 +2109,7 @@ let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
 let prawnTrapMarker = null, crabTrapMarker = null;
 let prawnTrapMarkerReady = false, crabTrapMarkerReady = false;
 let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
+let pendingHotspotTransition = null; // a freshly-spawned replacement hotspot the map should fly to next
 let hotspots = [];               // {lat,lng,radius,odds}
 let liveLatLng = null;           // {lat,lng} — your real-time GPS position (only valid cast location)
 let liveAccuracy = null;
@@ -2114,6 +2157,40 @@ function loadShareState(){
   }catch(e){ return { lastGrantedAt:0, boostUntil:0 }; }
 }
 function saveShareState(){ localStorage.setItem('driftline_share', JSON.stringify(shareState)); }
+function loadMapMode(){
+  const m = localStorage.getItem('driftline_map_mode');
+  return (m === 'vehicle') ? 'vehicle' : 'walking'; // walking is the default
+}
+function saveMapMode(){ localStorage.setItem('driftline_map_mode', mapMode); }
+function renderMapModeSettings(){
+  const walkingBtn = document.getElementById('map-mode-walking-btn');
+  const vehicleBtn = document.getElementById('map-mode-vehicle-btn');
+  if(walkingBtn) walkingBtn.classList.toggle('active', mapMode==='walking');
+  if(vehicleBtn) vehicleBtn.classList.toggle('active', mapMode==='vehicle');
+}
+function switchMapMode(newMode){
+  if(newMode === mapMode) return;
+  mapMode = newMode;
+  saveMapMode();
+  applyMapModeConstants();
+
+  const anchor = liveLatLng || center;
+  if(regionCircle) regionCircle.setRadius(REGION_RADIUS_M);
+  if(anchor){
+    center = anchor;
+    if(regionCircle) regionCircle.setLatLng([center.lat, center.lng]);
+    startRefreshCycle(true); // forces hotspot regeneration for the new mode + saves state
+  }
+  if(map && anchor){
+    const targetZoom = mapMode === 'walking' ? 16 : 13;
+    map.flyTo([anchor.lat, anchor.lng], targetZoom, { duration: 1.2 });
+  }
+  renderMapModeSettings();
+  updateCastPanel();
+  showToast(mapMode === 'walking'
+    ? '\u{1F6B6} Walking Mode \u2014 hotspots are close together now.'
+    : '\u{1F697} Vehicle Mode \u2014 hotspots are spread across a wider area.');
+}
 function loadSession(){
   try{ return JSON.parse(localStorage.getItem('driftline_session')||'null'); }catch(e){ return null; }
 }
@@ -2236,6 +2313,9 @@ function hotspotColor(odds){
 }
 
 /* ====================== HOTSPOT GENERATION ====================== */
+function genHotspotId(){
+  return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+}
 function generateHotspots(centerPt){
   const count = 120 + Math.floor(Math.random()*81); // 120-200 (2x the previous 60-100)
   const list = [];
@@ -2246,14 +2326,16 @@ function generateHotspots(centerPt){
     const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.94);
     const frac = 1 - Math.pow(Math.random(), ODDS_SKEW);
     const radius = HOTSPOT_MIN_M + frac*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
-    list.push({ lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius) });
+    const featured = pickFeaturedFishForHotspot(radius);
+    list.push({ id: genHotspotId(), lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius), ...featured });
   }
-  // A rare handful of pinpoint 10m fishing holes — the best odds on the
+  // A rare handful of pinpoint fishing holes — the best odds on the
   // whole map, but you have to be standing almost exactly on top of one.
   const pinpointCount = 4 + Math.floor(Math.random()*3); // 4-6 (2x the previous 2-3)
   for(let i=0;i<pinpointCount;i++){
     const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.9);
-    list.push({ lat:pt.lat, lng:pt.lng, radius:PINPOINT_RADIUS_M, odds:PINPOINT_ODDS, pinpoint:true });
+    const featured = pickFeaturedFishForHotspot(PINPOINT_RADIUS_M);
+    list.push({ id: genHotspotId(), lat:pt.lat, lng:pt.lng, radius:PINPOINT_RADIUS_M, odds:PINPOINT_ODDS, pinpoint:true, ...featured });
   }
   return list;
 }
@@ -2483,7 +2565,8 @@ function tickBoost(){
 
 /* ====================== MAP SETUP ====================== */
 function initMap(centerPt){
-  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], 13);
+  const initialZoom = mapMode === 'walking' ? 16 : 13;
+  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], initialZoom);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd', maxZoom: 19
@@ -2783,6 +2866,33 @@ function pickTier(){
 function pickFish(tierKey){
   const list = FISH_DATA[tierKey];
   return list[Math.floor(Math.random()*list.length)];
+}
+function pickFeaturedFishForHotspot(radius){
+  // Bigger holes (common, low base odds) feature a Common/Hard fish.
+  // Smaller holes (rare, high base odds) feature a Rare fish, with only an
+  // occasional Super Rare. Ultimate/Abyssal are never featured -- they stay
+  // hard regardless of which hole you're standing in.
+  const frac = Math.min(1, Math.max(0, (radius - HOTSPOT_MIN_M) / (HOTSPOT_MAX_M - HOTSPOT_MIN_M)));
+  const roll = Math.random();
+  let tierKey;
+  if(frac > 0.6){
+    tierKey = roll < 0.75 ? 'common' : 'hard';
+  } else if(frac > 0.25){
+    tierKey = roll < 0.5 ? 'hard' : 'rare';
+  } else {
+    tierKey = roll < 0.85 ? 'rare' : 'superrare';
+  }
+  const featuredFish = pickFish(tierKey);
+  const featuredBoost = Math.round((5 + Math.random()*5)*10)/10; // 5.0-10.0 percentage points
+  return { featuredFish, featuredTier: tierKey, featuredBoost };
+}
+function pickFishForHotspot(tierKey, hotspot){
+  if(hotspot && hotspot.featuredFish && hotspot.featuredTier === tierKey){
+    if(Math.random()*100 < hotspot.featuredBoost){
+      return hotspot.featuredFish;
+    }
+  }
+  return pickFish(tierKey);
 }
 
 /* ====================== PRAWN TRAP ====================== */
@@ -3253,7 +3363,7 @@ function attemptCast(){
     // Outside a hotspot, only Common fish are on the table — the rarer
     // tiers only come into play once you're standing in a real hotspot.
     tier = hotspot ? pickTier() : TIERS[0];
-    fish = pickFish(tier.key);
+    fish = hotspot ? pickFishForHotspot(tier.key, hotspot) : pickFish(tier.key);
   }
   pendingResult = { success, fish, tier, hotspot, at: liveLatLng };
   runFishingAnimation();
@@ -3469,8 +3579,27 @@ function spawnSplash(){
   }
 }
 
+function depleteHotspot(depletedHotspot){
+  const idx = hotspots.findIndex(h=>h.id === depletedHotspot.id);
+  if(idx === -1) return;
+  hotspots.splice(idx, 1);
+  const newSpot = generateSingleReplacementHotspot(center || liveLatLng);
+  hotspots.push(newSpot);
+  saveState();
+  renderHotspots();
+  pendingHotspotTransition = newSpot;
+  showToast(`\u{1F3A3} You fished that hole dry! A new hotspot has appeared \u2014 check the map.`);
+}
+function generateSingleReplacementHotspot(centerPt){
+  const frac = 1 - Math.pow(Math.random(), 2.4);
+  const radius = HOTSPOT_MIN_M + frac*(HOTSPOT_MAX_M-HOTSPOT_MIN_M);
+  const pt = randomPointInDisk(centerPt, REGION_RADIUS_M*0.94);
+  const featured = pickFeaturedFishForHotspot(radius);
+  return { id: genHotspotId(), lat:pt.lat, lng:pt.lng, radius:Math.round(radius), odds:oddsForRadius(radius), ...featured };
+}
+
 function revealResult(fishEl){
-  const {success, fish, tier} = pendingResult;
+  const {success, fish, tier, hotspot} = pendingResult;
   const status = $('cast-status');
   const rig = $('line-rig');
   const card = $('result-card');
@@ -3493,6 +3622,9 @@ function revealResult(fishEl){
     addToBag(fish, tier.key);
     playCatchSound(tier.key);
     hapticBuzz(tier.key);
+    if(hotspot && hotspot.featuredFish === fish){
+      depleteHotspot(hotspot);
+    }
   } else {
     status.textContent = 'The line comes back quiet.';
     icon.style.background = '#5fb0e822';
@@ -3536,6 +3668,13 @@ function closeFishingOverlay(){
     $('cast-status').classList.remove('show');
     $('line-rig').classList.remove('dropped','tug','waiting');
     showPendingCelebrations();
+    if(pendingHotspotTransition && map){
+      const spot = pendingHotspotTransition;
+      pendingHotspotTransition = null;
+      setTimeout(()=>{
+        map.flyTo([spot.lat, spot.lng], Math.max(map.getZoom(), 15), { duration: 1.4 });
+      }, 500);
+    }
   }, 550);
   updateCastPanel();
   $('cast-panel').classList.add('show');
@@ -4215,6 +4354,7 @@ function openSettingsDrawer(){
   renderRodSettings();
   renderWeeklyChallengeSettings();
   renderAchievementsSettings();
+  renderMapModeSettings();
   $('settings-scrim').classList.add('show');
   $('settings-drawer').classList.add('show');
 }
@@ -5550,6 +5690,33 @@ $('replay-tutorial-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
   startTutorial();
 });
+
+/* ---- Map Mode switch (2-tap confirm since it regenerates every hotspot) ---- */
+let mapModeConfirming = null;
+['walking','vehicle'].forEach(m=>{
+  const btn = document.getElementById(`map-mode-${m}-btn`);
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    if(mapMode === m) return;
+    const descEl = btn.querySelector('.map-mode-desc');
+    if(mapModeConfirming === m){
+      mapModeConfirming = null;
+      descEl.textContent = btn.dataset.originalDesc || descEl.textContent;
+      switchMapMode(m);
+      return;
+    }
+    mapModeConfirming = m;
+    if(!btn.dataset.originalDesc) btn.dataset.originalDesc = descEl.textContent;
+    descEl.textContent = 'Tap again to confirm switch';
+    setTimeout(()=>{
+      if(mapModeConfirming === m){
+        mapModeConfirming = null;
+        descEl.textContent = btn.dataset.originalDesc;
+      }
+    }, 3000);
+  });
+});
+
 $('tutorial-next').addEventListener('click', tutorialNext);
 $('tutorial-back').addEventListener('click', tutorialBack);
 $('tutorial-skip').addEventListener('click', endTutorial);
