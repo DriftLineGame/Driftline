@@ -241,6 +241,15 @@
     display:flex; flex-direction:column; gap:10px;
     transition:bottom .25s ease;
   }
+  #ratio-chip{
+    position:fixed; right:14px; z-index:199;
+    bottom:var(--fab-bottom, 210px);
+    transition:bottom .25s ease, transform .15s ease;
+    border:none; cursor:pointer; touch-action:manipulation; border-radius:999px;
+    padding:7px 11px; font-size:11px; font-weight:700; color:var(--ink-dim);
+    display:flex; align-items:center; gap:4px;
+  }
+  #ratio-chip:active{transform:scale(0.94);}
   #leaderboard-fab, #shop-fab{
     border:none; cursor:pointer; border-radius:999px;
     height:46px; padding:0 20px 0 15px;
@@ -745,7 +754,11 @@
     background:rgba(18,41,58,0.06); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
   }
   #friend-gear-close svg{width:14px; height:14px; stroke:var(--ink);}
-  #friend-gear-avatar{font-size:44px; margin-bottom:10px;}
+  #friend-gear-avatar{
+    font-size:36px; margin-bottom:10px; width:66px; height:66px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin-left:auto; margin-right:auto;
+    border:3px solid var(--hook-ring-color, #eaf6ff); background:rgba(14,134,196,0.06);
+  }
   #friend-gear-name{font-family:'Bricolage Grotesque'; font-size:19px; font-weight:800; margin-bottom:16px;}
   #friend-gear-stats{display:flex; justify-content:space-around; padding:14px 4px; border-radius:16px; background:rgba(14,134,196,0.06); margin-bottom:14px;}
   .fg-stat span{display:block; font-family:'Bricolage Grotesque'; font-size:16px; font-weight:800;}
@@ -799,13 +812,17 @@
   .account-note{padding:16px 20px 22px; margin:0; font-size:12px; color:var(--ink-dim); line-height:1.5;}
 
   #account-signed-in{padding:6px 20px 24px;}
-  #account-profile{display:flex; align-items:center; gap:14px; margin-bottom:16px;}
+  #account-profile{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
   #account-avatar{
     width:52px; height:52px; border-radius:50%; background:rgba(14,134,196,0.12);
     display:flex; align-items:center; justify-content:center; font-size:24px; flex:0 0 auto;
+    border:3px solid var(--hook-ring-color, #eaf6ff); box-shadow:0 0 0 1px rgba(18,41,58,0.06);
   }
   #account-name{font-family:'Bricolage Grotesque'; font-size:18px; font-weight:800;}
   #account-points{font-size:12.5px; color:var(--ink-dim); margin-top:2px;}
+  #account-gear-swatches{display:flex; gap:14px; margin-bottom:14px;}
+  .gear-swatch{display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--ink-dim);}
+  .gear-swatch-dot{width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px rgba(18,41,58,0.15); display:inline-block;}
   #account-rank{
     font-size:13px; font-weight:700; color:var(--cyan); background:rgba(14,134,196,0.08);
     border-radius:12px; padding:10px 14px; margin-bottom:16px;
@@ -1154,7 +1171,10 @@
   }
   #tutorial-progress{font-size:11px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;}
   #tutorial-title{font-family:'Bricolage Grotesque'; font-size:17px; font-weight:800; margin:0 0 8px; color:var(--ink);}
+  #tutorial-title.big{font-size:21px;}
   #tutorial-desc{font-size:13.5px; color:var(--ink-dim); line-height:1.5; margin:0 0 16px;}
+  #tutorial-desc.big{font-size:16px; line-height:1.6; color:var(--ink);}
+  #tutorial-card.wide{max-width:380px; padding:26px 24px;}
   #tutorial-nav{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   #tutorial-back, #tutorial-next{
     appearance:none; border:none; border-radius:999px; padding:10px 18px; font-weight:800; font-size:13px; cursor:pointer;
@@ -1348,6 +1368,10 @@
   </button>
 </div>
 
+<button id="ratio-chip" class="glass hidden" title="Catch rate this hour">
+  📊 <span id="ratio-chip-text">--%</span>
+</button>
+
 <div id="toast"></div>
 
 <!-- Fishing overlay -->
@@ -1426,6 +1450,10 @@
         <div id="account-name"></div>
         <div id="account-points"></div>
       </div>
+    </div>
+    <div id="account-gear-swatches">
+      <div class="gear-swatch"><span class="gear-swatch-dot" id="account-hook-swatch"></span><label>Hook</label></div>
+      <div class="gear-swatch"><span class="gear-swatch-dot" id="account-boat-swatch"></span><label>Boat</label></div>
     </div>
     <div id="account-rank"></div>
     <button class="btn btn-primary" id="open-shop-btn">🧰 Tackle Shop</button>
@@ -2125,7 +2153,7 @@ function applyMapModeConstants(){
   PINPOINT_RADIUS_M = m.pinpointRadius;
 }
 applyMapModeConstants();
-const REFRESH_MS = 5*60*1000;       // 5 minutes
+const REFRESH_MS = 30*60*1000;      // 30 minutes
 const BASE_ODDS = 15;
 const CLUSTER_PIXEL_RADIUS = 55;    // spots closer than this on-screen fold into one cluster circle
 const SHARE_COOLDOWN_MS = 48*60*60*1000; // 48 hours between share boosts
@@ -2137,6 +2165,7 @@ let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
 let prawnTrapMarker = null, crabTrapMarker = null;
 let prawnTrapMarkerReady = false, crabTrapMarkerReady = false;
 let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
+let castLog = loadCastLog();     // local-only rolling log of recent cast attempts, for the hourly ratio chip
 let pendingHotspotTransition = null; // a freshly-spawned replacement hotspot the map should fly to next
 let hotspots = [];               // {lat,lng,radius,odds}
 let liveLatLng = null;           // {lat,lng} — your real-time GPS position (only valid cast location)
@@ -2190,6 +2219,55 @@ function loadMapMode(){
   return (m === 'vehicle') ? 'vehicle' : 'walking'; // walking is the default
 }
 function saveMapMode(){ localStorage.setItem('driftline_map_mode', mapMode); }
+function loadCastLog(){
+  try{
+    const log = JSON.parse(localStorage.getItem('driftline_cast_log')||'[]');
+    return Array.isArray(log) ? log : [];
+  }catch(e){ return []; }
+}
+function saveCastLog(){
+  if(castLog.length > 2000) castLog = castLog.slice(castLog.length-2000); // keep localStorage bounded
+  localStorage.setItem('driftline_cast_log', JSON.stringify(castLog));
+}
+function logCastAttempt(success){
+  castLog.push({ ts:Date.now(), success });
+  saveCastLog();
+}
+function hourlyRatioStats(){
+  const currentHour = new Date().getHours();
+  const relevant = castLog.filter(c => new Date(c.ts).getHours() === currentHour);
+  const casts = relevant.length;
+  const catches = relevant.filter(c=>c.success).length;
+  const pct = casts>0 ? Math.round(catches/casts*100) : 0;
+  return { hour: currentHour, casts, catches, pct };
+}
+function formatHourLabel(hour){
+  const fmt = (h)=>{
+    const period = h < 12 ? 'AM' : 'PM';
+    const display = h % 12 === 0 ? 12 : h % 12;
+    return `${display} ${period}`;
+  };
+  return `${fmt(hour)} \u2013 ${fmt((hour+1)%24)}`;
+}
+function updateRatioChip(){
+  const chip = $('ratio-chip');
+  if(!chip) return;
+  const stats = hourlyRatioStats();
+  if(stats.casts === 0){
+    chip.classList.add('hidden');
+    return;
+  }
+  chip.classList.remove('hidden');
+  $('ratio-chip-text').textContent = stats.pct+'%';
+}
+function showRatioDetail(){
+  const stats = hourlyRatioStats();
+  if(stats.casts === 0){
+    showToast('No casts logged this hour yet.');
+    return;
+  }
+  showToast(`${formatHourLabel(stats.hour)}: ${stats.catches}/${stats.casts} casts landed \u2014 ${stats.pct}%`);
+}
 function renderMapModeSettings(){
   const walkingBtn = document.getElementById('map-mode-walking-btn');
   const vehicleBtn = document.getElementById('map-mode-vehicle-btn');
@@ -2607,8 +2685,8 @@ function initMap(centerPt){
   }).addTo(map);
 
   const userIcon = L.divIcon({
-    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:${equippedMarkerColor()};border:3px solid #ffffff;box-shadow:0 0 0 6px ${equippedMarkerColor()}38"></div>`,
-    iconSize:[16,16], iconAnchor:[8,8]
+    className:'', html: boatMarkerHtml(equippedMarkerColor()),
+    iconSize:[30,26], iconAnchor:[15,18]
   });
   userMarker = L.marker([centerPt.lat, centerPt.lng], { icon:userIcon, interactive:false }).addTo(map);
 
@@ -2912,7 +2990,7 @@ function pickFeaturedFishForHotspot(radius){
     tierKey = roll < 0.85 ? 'rare' : 'superrare';
   }
   const featuredFish = pickFish(tierKey);
-  const featuredBoost = Math.round((5 + Math.random()*5)*10)/10; // 5.0-10.0 percentage points
+  const featuredBoost = 10; // flat 10 percentage points for that one fish
   return { featuredFish, featuredTier: tierKey, featuredBoost };
 }
 function pickFishForHotspot(tierKey, hotspot){
@@ -3387,6 +3465,8 @@ function attemptCast(){
   }
   const {odds, hotspot} = oddsAtPoint(liveLatLng);
   const success = Math.random()*100 < odds;
+  logCastAttempt(success);
+  updateRatioChip();
   let fish=null, tier=null;
   if(success){
     // A live Migration event can override the normal tier roll entirely --
@@ -3722,12 +3802,13 @@ function revealResult(fishEl){
     icon.style.color = tier.hex;
     icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="${tier.hex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2" fill="${tier.hex}"/></svg>`;
     title.textContent = fish;
-    sub.textContent = 'Added to your bag.';
+    const isFeaturedCatch = hotspot && hotspot.featuredFish === fish;
+    sub.textContent = isFeaturedCatch ? 'This hole\u2019s featured fish \u2014 5x points!' : 'Added to your bag.';
     tierEl.innerHTML = `<span class="tier-tag" style="background:${tier.hex}22;color:${tier.hex}">${tier.label}</span>`;
-    addToBag(fish, tier.key);
+    addToBag(fish, tier.key, isFeaturedCatch ? 5 : 1);
     playCatchSound(tier.key);
     hapticBuzz(tier.key);
-    if(hotspot && hotspot.featuredFish === fish){
+    if(isFeaturedCatch){
       depleteHotspot(hotspot);
     }
   } else {
@@ -3777,7 +3858,12 @@ function closeFishingOverlay(){
       const spot = pendingHotspotTransition;
       pendingHotspotTransition = null;
       setTimeout(()=>{
-        map.flyTo([spot.lat, spot.lng], Math.max(map.getZoom(), 15), { duration: 1.4 });
+        const currentZoom = map.getZoom();
+        const zoomedOut = Math.max(currentZoom-3, 12);
+        map.flyTo(map.getCenter(), zoomedOut, { duration: 0.9 });
+        setTimeout(()=>{
+          map.flyTo([spot.lat, spot.lng], Math.max(currentZoom, 15), { duration: 1.4 });
+        }, 950);
       }, 500);
     }
   }, 550);
@@ -3786,10 +3872,10 @@ function closeFishingOverlay(){
 }
 
 /* ====================== BAG ====================== */
-function addToBag(name, tierKey){
+function addToBag(name, tierKey, bonusMultiplier){
   const pointsBefore = computePoints(loadBag());
   const bag = loadBag();
-  bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng });
+  bag.unshift({ name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng, bonus: bonusMultiplier||1 });
   saveBag(bag);
   updateBagBadge();
   syncBagToCloud(bag);
@@ -3807,7 +3893,7 @@ function tierIndexOf(tierKey){
   return TIERS.findIndex(t=>t.key===tierKey);
 }
 function computePoints(bag){
-  return bag.reduce((sum,c)=> sum + 1 + Math.max(0, tierIndexOf(c.tier)), 0);
+  return bag.reduce((sum,c)=> sum + (1 + Math.max(0, tierIndexOf(c.tier))) * (c.bonus||1), 0);
 }
 function syncBagToCloud(bag){
   if(!session || !window.DriftlineCloud) return;
@@ -4347,6 +4433,22 @@ function renderShopView(){
     <button class="shop-buy-btn ${affordBadge(rodPrice)}" data-action="buy-rod-token">${rodPrice.toLocaleString()} \u{1FA99}</button>
   </div>`;
 
+  html += `<h3 class="shop-section-title">\u{1F5FA}\uFE0F Map Management</h3>`;
+  html += `<div class="shop-rod-card" style="margin-bottom:10px;">
+    <div>
+      <div class="shop-rod-level">Instant Regen</div>
+      <div class="shop-rod-sub">Skip the wait \u2014 every hotspot regenerates right now.</div>
+    </div>
+    <button class="shop-buy-btn ${affordBadge(MAP_REGEN_PRICE)}" data-action="buy-map-regen">${MAP_REGEN_PRICE.toLocaleString()} \u{1FA99}</button>
+  </div>`;
+  html += `<div class="shop-rod-card">
+    <div>
+      <div class="shop-rod-level">Map Freezer</div>
+      <div class="shop-rod-sub">Found a great hole? Delay the next regen by 30 extra minutes.</div>
+    </div>
+    <button class="shop-buy-btn ${affordBadge(MAP_FREEZE_PRICE)}" data-action="buy-map-freeze">${MAP_FREEZE_PRICE.toLocaleString()} \u{1FA99}</button>
+  </div>`;
+
   html += `<h3 class="shop-section-title">\u{1FA9D} Lures &amp; Boosts</h3>`;
   html += `<div class="shop-grid">` + Object.keys(SHOP_ITEMS).map(key=>{
     const item = SHOP_ITEMS[key];
@@ -4477,6 +4579,28 @@ function buyRodToken(){
   showRodUpgrade(currentRodLevel());
   renderShop();
 }
+const MAP_REGEN_PRICE = 100;
+const MAP_FREEZE_PRICE = 60;
+function buyMapRegen(){
+  if(getCoinsBalance() < MAP_REGEN_PRICE){ showToast('Not enough Chum Coins.'); return; }
+  shopState.coinsSpent += MAP_REGEN_PRICE;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  startRefreshCycle(true);
+  showToast('\u{1F5FA}\uFE0F Instant regen! Fresh hotspots have appeared.');
+  renderShop();
+}
+function buyMapFreeze(){
+  if(getCoinsBalance() < MAP_FREEZE_PRICE){ showToast('Not enough Chum Coins.'); return; }
+  shopState.coinsSpent += MAP_FREEZE_PRICE;
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  if(refreshDeadline) refreshDeadline += 30*60*1000;
+  showToast('\u2744\uFE0F Map frozen for 30 extra minutes.');
+  renderShop();
+}
 function buyItem(key){
   const item = SHOP_ITEMS[key];
   if(!item) return;
@@ -4535,7 +4659,12 @@ function updateEquippedVisuals(){
   if(avatarEl){
     const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
     avatarEl.textContent = avatar.emoji;
+    avatarEl.style.setProperty('--hook-ring-color', equippedHookColor());
   }
+  const hookSwatch = $('account-hook-swatch');
+  if(hookSwatch) hookSwatch.style.background = equippedHookColor();
+  const boatSwatch = $('account-boat-swatch');
+  if(boatSwatch) boatSwatch.style.background = equippedMarkerColor();
   updateMarkerVisual();
 }
 function equippedHookColor(){
@@ -4546,12 +4675,22 @@ function equippedMarkerColor(){
   const marker = MARKER_COSMETICS.find(c=>c.id===shopState.equipped.marker) || MARKER_COSMETICS[0];
   return marker.color;
 }
+function boatMarkerHtml(color){
+  return `<div class="boat-marker">
+    <svg width="30" height="26" viewBox="0 0 30 26">
+      <ellipse cx="15" cy="18.5" rx="12" ry="2.4" fill="${color}" fill-opacity="0.3"/>
+      <path d="M4 15 L26 15 L22 22 L8 22 Z" fill="${color}" stroke="#ffffff" stroke-width="1.4"/>
+      <rect x="13.6" y="2.5" width="1.4" height="12.5" fill="#6b5642"/>
+      <path d="M15 3.5 L21.5 9.5 L15 9.5 Z" fill="#ffffff" fill-opacity="0.94"/>
+    </svg>
+  </div>`;
+}
 function updateMarkerVisual(){
   if(!userMarker) return; // map not initialized yet -- initMap() will use the current color when it builds the icon
   const color = equippedMarkerColor();
   const icon = L.divIcon({
-    className:'', html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:3px solid #ffffff;box-shadow:0 0 0 6px ${color}38"></div>`,
-    iconSize:[16,16], iconAnchor:[8,8]
+    className:'', html: boatMarkerHtml(color),
+    iconSize:[30,26], iconAnchor:[15,18]
   });
   userMarker.setIcon(icon);
   if(accuracyCircle){
@@ -4636,24 +4775,33 @@ const TUTORIAL_VERSION = 1;
 
 const TUTORIAL_STEPS = [
   { title:'Welcome to Driftline! \u{1F3A3}', desc:"Let's take a quick tour of everything the app can do. Tap Next to continue \u2014 you can replay this anytime from Settings.", target:null },
-  { title:'Hotspot Timer', desc:'Hotspots refresh across your 10km fishing grounds every 5 minutes \u2014 new spots appear automatically, so keep moving.', target:'timer-chip' },
+  { title:'Hotspot Timer', desc:'Every hotspot on the map refreshes every 30 minutes \u2014 new spots appear automatically, so keep moving.', target:'timer-chip' },
   { title:'Cast Your Line', desc:"This panel shows your live bite chance based on exactly where you're standing right now. You can only cast from your real GPS location \u2014 no teleporting.", target:'cast-panel' },
   { title:'Recenter', desc:'Lost track of your marker on the map? Tap this to snap the view back to your live position.', target:'recenter-btn' },
+  { title:'Your Boat', desc:'That\u2019s you on the map \u2014 a little boat instead of a plain dot. Its color, your hook color, and your avatar are all cosmetics you can buy in the Tackle Shop.', target:null },
+  { title:'Featured Fish', desc:'Every hotspot secretly favors one specific fish \u2014 a +10% boost just for that species. Catch it and you get 5x points, the hole \u201cruns dry,\u201d and a brand new hotspot appears elsewhere on the map.', target:null },
+  { title:'Walking vs. Vehicle Mode', desc:'Walking Mode (the default) packs hotspots into a tight 1km area with tiny 3\u201350m holes, built for exploring on foot. Vehicle Mode spreads things across a full 10km area. Switch anytime in Settings.', target:'settings-btn', action:'open-settings' },
   { title:'Share for a Boost', desc:'Share Driftline with someone to get a temporary bite-chance boost \u2014 available once every 48 hours.', target:'share-btn' },
   { title:'Your Account', desc:'Sign in here with a username and 6-digit PIN to save your bag across devices and appear on the leaderboard. This is also home base for the Leaderboard and Tackle Shop.', target:'account-btn', action:'open-account' },
-  { title:'Leaderboard', desc:'Tap here to see how you rank \u2014 Today, This Week, This Month, or All Time.', target:'view-leaderboard-btn' },
-  { title:'Tackle Shop', desc:'Tap here to spend Chum Coins on rod upgrades, temporary lures, and cosmetics.', target:'open-shop-btn' },
+  { title:'Leaderboard', desc:'Tap here to see how you rank \u2014 Today, This Week, This Month, All Time, or the dedicated Battles standings.', target:'view-leaderboard-btn' },
+  { title:'Tackle Shop', desc:'Tap here to spend Chum Coins on rod upgrades, temporary lures, cosmetics, and map management.', target:'open-shop-btn' },
   { title:'Quick Shortcuts', desc:'These two floating buttons jump straight to the Leaderboard and Tackle Shop from anywhere \u2014 no need to open Account first.', target:'leaderboard-fab', action:'close-all' },
   { title:'The Shop', desc:'Buy a Rod Token for an instant permanent level, or grab a Lure for a temporary boost. Chum Coins come from your points \u2014 1 coin per point earned.', target:'shop-tabs', action:'open-shop' },
+  { title:'Map Management', desc:'Found a great hotspot right before the timer resets? Buy a Map Freezer to delay the regen by 30 minutes. Or buy an Instant Regen to skip the wait entirely.', target:'shop-tabs' },
   { title:'My Gear', desc:'Switch here to see your rod level, any active boosts counting down, your lure inventory, and your equipped cosmetics.', target:'shop-tabs', action:'open-shop-gear' },
   { title:'Settings & Rod Upgrades', desc:'See your full rod upgrade roadmap here \u2014 every level is a permanent bite-chance boost, whether you earn it or buy it. You can always replay this tour from this screen too.', target:'settings-btn', action:'open-settings' },
   { title:"This Week's Challenge", desc:'A new challenge appears every week, same for everyone. Complete it and you get +15% bite chance for a full 24 hours \u2014 check your progress right here in Settings.', target:'weekly-challenge-card' },
   { title:'Your Bag', desc:'Every fish you\u2019ve ever caught, organized by rarity.', target:'bag-btn', action:'open-bag' },
   { title:'Field Guide', desc:'Switch tabs here to browse every catchable species in Driftline, caught or not \u2014 tap the tier counts up top to jump straight to a section.', target:'bag-tabs' },
   { title:'Friends', desc:"Add friends by username from your Account. Once they accept, you can check out each other's gear \u2014 rod level, cosmetics, everything.", target:'open-friends-btn', action:'open-friends' },
+  { title:'Friend Battles', desc:'Challenge a friend to a head-to-head from the Friends screen \u2014 30 minutes to 72 hours, most points wins. Pick how visible scores are during the match, and either player can forfeit if needed. This chip tracks any battle you\u2019re in.', target:'battle-chip', action:'close-all' },
   { title:'Prawn Trap', desc:'A slower way to fish: set a trap at your location, then come back in an hour to pull it up. It rolls 1\u20135 catch attempts using the bite chance from when you set it \u2014 keep an eye on this chip.', target:'prawn-chip', action:'open-prawn' },
   { title:'Crab Trap', desc:'A heavier trap that sinks all the way to the sea floor. It takes 2 hours, but rolls 3\u201310 catch attempts \u2014 more patience, more potential payoff.', target:'crab-chip', action:'open-crab' },
   { title:'World Events', desc:'Every few hours, something happens across the whole map \u2014 a Feeding Frenzy boosts everyone\u2019s odds, or a specific rare fish starts migrating and becomes far easier to find. Watch for the banner, and keep an eye on this chip when one\u2019s live.', target:'world-event-chip' },
+  { title:'Catch Rate', desc:'This little button tracks your personal bite rate for the current hour of day, based on your own casting history \u2014 tap it anytime for the exact numbers.', target:'ratio-chip' },
+  { title:'How Odds Really Work', desc:'Your bite chance stacks from several layers: a base rate, a big jump if you\u2019re standing in a real hotspot, a permanent bonus from your rod level, and any temporary boosts on top \u2014 lures, shares, challenges, events. Everything is capped at 98%, no matter how much stacks.', target:null, bigText:true },
+  { title:'Rarity & Points', desc:'Fish range from Common up through Hard, Rare, Super Rare, Ultimate, and the truly hidden Abyssal tier \u2014 each catch is worth more points the rarer it is. A hotspot\u2019s Featured Fish always pays 5x, regardless of tier.', target:null, bigText:true },
+  { title:'A Few Tips', desc:'Walking Mode rewards actually moving \u2014 hotspots are close together on purpose. Keep a Prawn or Crab trap running while you fish live spots. And check back after a World Event banner \u2014 those windows don\u2019t last long.', target:null, bigText:true },
   { title:'You\u2019re All Set! \u{1F3A3}', desc:'That covers everything. Go stand somewhere real, find a hotspot, and cast your line.', target:null, action:'close-all' }
 ];
 
@@ -4726,6 +4874,9 @@ function renderTutorialStep(){
   const step = TUTORIAL_STEPS[tutorialStep];
   $('tutorial-title').textContent = step.title;
   $('tutorial-desc').textContent = step.desc;
+  $('tutorial-desc').classList.toggle('big', !!step.bigText);
+  $('tutorial-title').classList.toggle('big', !!step.bigText);
+  $('tutorial-card').classList.toggle('wide', !!step.bigText);
   $('tutorial-progress').textContent = `${tutorialStep+1} / ${TUTORIAL_STEPS.length}`;
   $('tutorial-back').setAttribute('data-hidden', tutorialStep===0 ? 'true' : 'false');
   $('tutorial-next').textContent = tutorialStep === TUTORIAL_STEPS.length-1 ? 'Done' : 'Next';
@@ -5448,6 +5599,7 @@ async function openFriendGear(uid){
   const marker = MARKER_COSMETICS.find(c=>c.id===(shop.equipped&&shop.equipped.marker)) || MARKER_COSMETICS[0];
 
   $('friend-gear-avatar').textContent = avatar.emoji;
+  $('friend-gear-avatar').style.setProperty('--hook-ring-color', hook.color);
   $('friend-gear-name').textContent = p.displayName;
   $('fg-points').textContent = points.toLocaleString();
   $('fg-rod').textContent = rodLevel;
@@ -5707,6 +5859,7 @@ function beginGame(pt, accuracy){
   startCrabTicker();
   startBattleTicker();
   startWorldEventTicker();
+  updateRatioChip();
   if(session){
     refreshFriendsState();
     refreshBattleState();
@@ -5853,6 +6006,7 @@ $('view-leaderboard-btn').addEventListener('click', ()=>{
 });
 $('leaderboard-fab').addEventListener('click', openLeaderboard);
 $('shop-fab').addEventListener('click', openShop);
+$('ratio-chip').addEventListener('click', showRatioDetail);
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
 document.querySelectorAll('.lb-period-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
@@ -5873,6 +6027,8 @@ $('shop-content').addEventListener('click', (e)=>{
   const action = btn.dataset.action;
   const key = btn.dataset.key;
   if(action === 'buy-rod-token') buyRodToken();
+  else if(action === 'buy-map-regen') buyMapRegen();
+  else if(action === 'buy-map-freeze') buyMapFreeze();
   else if(action === 'buy-item') buyItem(key);
   else if(action === 'activate-item') activateItem(key);
   else if(action === 'buy-avatar') buyCosmetic('avatar', key);
