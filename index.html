@@ -2201,7 +2201,7 @@ function loadState(){
   try{ return JSON.parse(localStorage.getItem('driftline_state')||'null'); }catch(e){ return null; }
 }
 function saveState(){
-  localStorage.setItem('driftline_state', JSON.stringify({ center, hotspots, refreshDeadline }));
+  localStorage.setItem('driftline_state', JSON.stringify({ center, hotspots, refreshDeadline, mapMode }));
 }
 function loadBag(){
   try{ return JSON.parse(localStorage.getItem('driftline_bag')||'[]'); }catch(e){ return []; }
@@ -2494,9 +2494,13 @@ function renderHotspots(){
         color: col, weight: h.pinpoint ? 2.2 : 1.6, opacity:0.95,
         fillColor: col, fillOpacity: h.pinpoint ? 0.4 : 0.3,
       }).addTo(map);
+      const featuredMeta = h.featuredFish ? (TIERS.find(t=>t.key===h.featuredTier) || TIERS[0]) : null;
+      const featuredHtml = featuredMeta
+        ? ` &mdash; <span style="color:${featuredMeta.hex}; font-weight:800;">\u2b50 ${h.featuredFish}</span> <span style="opacity:0.75;">+${h.featuredBoost}%</span>`
+        : '';
       const tooltipText = h.pinpoint
-        ? `\u{1F3AF} Pinpoint hole \u2014 ${h.odds}% bite chance, but stand within ${h.radius}m dead center`
-        : `${h.odds}% bite chance \u00b7 ${fmtDistance(h.radius)} spot`;
+        ? `\u{1F3AF} Pinpoint hole \u2014 ${h.odds}% bite chance, but stand within ${h.radius}m dead center${featuredHtml}`
+        : `${h.odds}% bite chance \u00b7 ${fmtDistance(h.radius)} spot${featuredHtml}`;
       circle.bindTooltip(tooltipText, {direction:'top', opacity:0.9});
       hotspotLayers.push(circle);
 
@@ -5835,7 +5839,7 @@ function beginGame(pt, accuracy){
   $('crab-chip').classList.remove('hidden');
 
   const saved = loadState();
-  if(saved && saved.center && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
+  if(saved && saved.center && saved.mapMode === mapMode && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
     hotspots = saved.hotspots;
     refreshDeadline = saved.refreshDeadline;
   }
