@@ -4890,6 +4890,16 @@ function renderTutorialStep(){
   setTimeout(()=>positionTutorialSpotlight(step.target), step.action ? 380 : 30);
 }
 function positionTutorialSpotlight(targetId){
+  const el = targetId ? document.getElementById(targetId) : null;
+  if(el){
+    // The target might be scrolled out of view inside a long drawer (e.g.
+    // Settings) -- bring it into view first, then wait a frame for the
+    // scroll to actually settle before measuring anything below.
+    el.scrollIntoView({ block:'center', behavior:'auto' });
+  }
+  requestAnimationFrame(()=> positionTutorialSpotlightMeasure(targetId));
+}
+function positionTutorialSpotlightMeasure(targetId){
   const spot = $('tutorial-spotlight');
   const card = $('tutorial-card');
   const el = targetId ? document.getElementById(targetId) : null;
