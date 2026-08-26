@@ -413,6 +413,59 @@
     box-shadow:0 10px 24px rgba(255,138,63,0.4);
   }
   #hook-meter-tap-btn:active{transform:scale(0.96);}
+
+  /* ---------- Reeling minigame ---------- */
+  #reel-overlay{
+    position:absolute; inset:0; z-index:20;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, #04121f 0%, #051a2c 50%, #030d17 100%);
+    padding:24px;
+  }
+  #reel-status-text{
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:17px; color:#fff;
+    margin-bottom:22px; text-align:center; min-height:24px;
+  }
+  #reel-main{display:flex; align-items:center; justify-content:center; gap:18px;}
+  .reel-side-bar{display:flex; flex-direction:column; align-items:center; gap:8px; width:44px;}
+  .reel-side-label{font-size:10px; font-weight:800; letter-spacing:0.08em; color:rgba(255,255,255,0.6);}
+  #reel-ft-bar, #reel-tension-bar{
+    position:relative; width:22px; height:220px; border-radius:11px; overflow:hidden;
+    background:rgba(255,255,255,0.08); box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset;
+  }
+  #reel-ft-fill{
+    position:absolute; left:0; right:0; bottom:0; height:0%;
+    background:linear-gradient(180deg,#4fe0ff,#0e86c4);
+  }
+  #reel-tension-fill{
+    position:absolute; left:0; right:0; bottom:0; height:20%;
+    background:#39c66b; transition:background .25s ease;
+  }
+  #reel-tension-fill.yellow{background:#e0b400;}
+  #reel-tension-fill.red{background:#d1373f;}
+  #reel-ft-value{font-size:12px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums;}
+
+  #reel-dial-wrap{display:flex; flex-direction:column; align-items:center; gap:14px;}
+  #reel-dial-outer{
+    position:relative; width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #7fd8ff, #4fb8ea 55%, #2f8fc4 100%);
+    box-shadow:0 14px 34px rgba(0,0,0,0.4), 0 0 0 6px rgba(255,255,255,0.08);
+    touch-action:none;
+  }
+  #reel-dial-arrows{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0.85;}
+  #reel-dial-center{
+    position:absolute; top:50%; left:50%; width:56px; height:56px; margin:-28px 0 0 -28px;
+    border-radius:50%; background:#ffffff; box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  }
+  #reel-dial-handle{
+    position:absolute; top:50%; left:50%; width:52px; height:52px; margin:-26px 0 0 -26px;
+    border-radius:50%; background:radial-gradient(circle at 35% 30%, #6ee8b8, #2fb888 60%, #1c8f68 100%);
+    border:3px solid #0e7a5b; box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    transform:translate(0,-70px);
+  }
+  #reel-swim-alert{
+    font-size:12.5px; font-weight:800; color:#ffd23f; text-align:center; min-height:16px;
+    text-shadow:0 2px 8px rgba(0,0,0,0.5);
+  }
   #cast-status.show{opacity:1;}
 
   #result-card{
@@ -1417,6 +1470,33 @@
       <div id="hook-meter-marker"></div>
     </div>
     <button id="hook-meter-tap-btn">Set the Hook!</button>
+  </div>
+  <div id="reel-overlay" class="hidden">
+    <div id="reel-status-text">Reel it in!</div>
+    <div id="reel-main">
+      <div class="reel-side-bar">
+        <div class="reel-side-label">FT</div>
+        <div id="reel-ft-bar"><div id="reel-ft-fill"></div></div>
+        <div id="reel-ft-value">160</div>
+      </div>
+      <div id="reel-dial-wrap">
+        <div id="reel-dial-outer">
+          <svg id="reel-dial-arrows" viewBox="0 0 220 220">
+            <path d="M50 90 L30 130" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <path d="M30 130 L22 112 M30 130 L46 122" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M170 90 L190 130" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <path d="M190 130 L198 112 M190 130 L174 122" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <div id="reel-dial-center"></div>
+          <div id="reel-dial-handle"></div>
+        </div>
+        <div id="reel-swim-alert" class="hidden">🐟 The fish is pulling away — ease off!</div>
+      </div>
+      <div class="reel-side-bar">
+        <div class="reel-side-label">TENSION</div>
+        <div id="reel-tension-bar"><div id="reel-tension-fill"></div></div>
+      </div>
+    </div>
   </div>
   <div id="result-card">
     <div class="result-icon" id="result-icon"></div>
@@ -3620,9 +3700,12 @@ function beginBiteSequence(){
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     if(pendingResult.success){
       status.textContent = 'Something\u2019s on the line!';
-      runHookTimingChallenge().then((landed)=>{
-        if(!landed){ pendingResult.lostAtHook = true; pendingResult.success = false; }
-        revealResult();
+      runHookTimingChallenge().then((hooked)=>{
+        if(!hooked){ pendingResult.lostAtHook = true; pendingResult.success = false; revealResult(); return; }
+        return runReelingChallenge().then((landed)=>{
+          if(!landed){ pendingResult.lostAtReel = true; pendingResult.success = false; }
+          revealResult();
+        });
       });
     } else {
       status.textContent = 'The line comes back quiet.';
@@ -3643,9 +3726,17 @@ function beginBiteSequence(){
       return runFishStrike(strikerFishEl, pendingResult.tier, targetX, targetY);
     }).then(()=>{
       return runHookTimingChallenge();
-    }).then((landed)=>{
-      if(!landed){ pendingResult.lostAtHook = true; pendingResult.success = false; }
-      revealResult(strikerFishEl);
+    }).then((hooked)=>{
+      if(!hooked){
+        pendingResult.lostAtHook = true;
+        pendingResult.success = false;
+        revealResult(strikerFishEl);
+        return;
+      }
+      return runReelingChallenge().then((landed)=>{
+        if(!landed){ pendingResult.lostAtReel = true; pendingResult.success = false; }
+        revealResult(strikerFishEl);
+      });
     }).catch(()=>{
       revealResult(strikerFishEl);
     });
@@ -3868,7 +3959,14 @@ function revealResult(fishEl){
       depleteHotspot(hotspot);
     }
   } else {
-    if(pendingResult.lostAtHook){
+    if(pendingResult.lostAtReel){
+      status.textContent = 'The line snapped!';
+      icon.style.background = '#d1373f22';
+      icon.style.color = '#d1373f';
+      icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="#d1373f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><path d="M8 4l3 4-3 4M6 12l4 4"/></svg>`;
+      title.textContent = 'It Got Away!';
+      sub.textContent = 'The tension stayed in the red too long and the line snapped.';
+    } else if(pendingResult.lostAtHook){
       status.textContent = 'It got away!';
       icon.style.background = '#e0356f22';
       icon.style.color = '#e0356f';
@@ -4322,7 +4420,7 @@ function hookMeterSweepMs(){
   const rodMultiplier = hookMeterSpeedMultiplier(currentRodLevel());
   const tempSlowFrac = currentLineSlowBonus()/100;
   const effectiveMultiplier = Math.max(0.25, rodMultiplier * (1-tempSlowFrac));
-  const baseSweepMs = 850; // one direction, at rod level 0, no temp boost
+  const baseSweepMs = 520; // one direction, at rod level 0, no temp boost -- genuinely fast
   return baseSweepMs / effectiveMultiplier;
 }
 function runHookTimingChallenge(){
@@ -4381,6 +4479,182 @@ function runHookTimingChallenge(){
     // Fail-safe: auto-resolve wherever the marker happens to be if the
     // player never taps, so the tutorial/overlay can never get stuck.
     setTimeout(()=>{ if(!resolved) finish(); }, 4500);
+  });
+}
+
+/* ====================== REELING (sustained skill check) ====================== */
+// Constants tuned via simulation: "good" play (ease off before red, stop
+// during swim-outs) lands reliably around 45-55s; constant greedy reeling
+// snaps every time.
+const REEL_FT_PER_ROTATION = 11;
+const REEL_TENSION_RISE = 9;          // per second while actively reeling
+const REEL_TENSION_FALL = 18;         // per second while not reeling
+const REEL_SWIMOUT_TENSION_RISE = 22; // per second, ONLY if still reeling through a swim-out
+const REEL_SWIMOUT_FT_RATE = 5;       // ft/sec pulled back out during a swim-out, regardless of input
+const REEL_BASE_RED_GRACE = 5;        // seconds allowed in the red zone before the line snaps
+const REEL_SWIMOUT_GAP_MIN = 14, REEL_SWIMOUT_GAP_MAX = 22;
+const REEL_SWIMOUT_DUR_MIN = 6, REEL_SWIMOUT_DUR_MAX = 9;
+
+function runReelingChallenge(){
+  return new Promise((resolve)=>{
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      // Fair fixed roll for reduced-motion users rather than forcing the
+      // full drag minigame -- weighted toward success but not guaranteed.
+      resolve(Math.random() < 0.65);
+      return;
+    }
+
+    const overlay = $('reel-overlay');
+    const dialOuter = $('reel-dial-outer');
+    const handle = $('reel-dial-handle');
+    const ftFill = $('reel-ft-fill');
+    const ftValue = $('reel-ft-value');
+    const tensionFill = $('reel-tension-fill');
+    const statusText = $('reel-status-text');
+    const swimAlert = $('reel-swim-alert');
+
+    const totalDistance = 120 + Math.random()*80; // 120-200 ft
+    let distance = totalDistance;
+    let tension = 20;
+    let redTimer = 0;
+    const redGrace = REEL_BASE_RED_GRACE + Math.min(currentRodLevel(), 10); // capped bonus, stays hard at high levels
+
+    let currentAngle = 0;
+    let dragging = false;
+    let lastPointerAngle = null;
+    let rotVelocity = 0; // degrees/sec, decays each frame when not actively dragged
+
+    let swimOutActive = false;
+    let swimOutTimer = 0;
+    let nextSwimOutAt = 8 + Math.random()*6;
+
+    let resolved = false;
+    let lastTick = null;
+    let rafId = null;
+
+    function setHandlePosition(angleDeg){
+      const rad = angleDeg * Math.PI/180;
+      const radius = 70;
+      const x = Math.sin(rad)*radius;
+      const y = -Math.cos(rad)*radius;
+      handle.style.transform = `translate(${x}px, ${y}px)`;
+    }
+    setHandlePosition(0);
+
+    function angleFromEvent(e){
+      const rect = dialOuter.getBoundingClientRect();
+      const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
+      const point = e.touches && e.touches[0] ? e.touches[0] : e;
+      const dx = point.clientX-cx, dy = point.clientY-cy;
+      return Math.atan2(dx, -dy) * 180/Math.PI;
+    }
+    function normalizeDelta(delta){
+      while(delta>180) delta-=360;
+      while(delta<-180) delta+=360;
+      return delta;
+    }
+    function onPointerDown(e){
+      dragging = true;
+      lastPointerAngle = angleFromEvent(e);
+      if(e.cancelable) e.preventDefault();
+    }
+    function onPointerMove(e){
+      if(!dragging) return;
+      const angle = angleFromEvent(e);
+      const delta = normalizeDelta(angle-lastPointerAngle);
+      lastPointerAngle = angle;
+      currentAngle = (currentAngle+delta) % 360;
+      setHandlePosition(currentAngle);
+      rotVelocity = delta*60; // instantaneous deg/sec estimate from this frame's delta
+      if(e.cancelable) e.preventDefault();
+    }
+    function onPointerUp(){ dragging = false; }
+
+    dialOuter.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    dialOuter.addEventListener('touchstart', onPointerDown, {passive:false});
+    window.addEventListener('touchmove', onPointerMove, {passive:false});
+    window.addEventListener('touchend', onPointerUp);
+
+    overlay.classList.remove('hidden');
+    ftValue.textContent = Math.round(distance);
+
+    function cleanup(){
+      cancelAnimationFrame(rafId);
+      dialOuter.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      dialOuter.removeEventListener('touchstart', onPointerDown);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
+      overlay.classList.add('hidden');
+    }
+    function finish(landed){
+      if(resolved) return;
+      resolved = true;
+      cleanup();
+      resolve(landed);
+    }
+
+    function tick(now){
+      if(resolved) return;
+      if(lastTick===null) lastTick = now;
+      const dt = Math.min(0.1, (now-lastTick)/1000);
+      lastTick = now;
+
+      rotVelocity *= 0.85; // decay so releasing the dial quickly reads as "not reeling"
+
+      if(!swimOutActive){
+        nextSwimOutAt -= dt;
+        if(nextSwimOutAt <= 0 && distance > totalDistance*0.1){
+          swimOutActive = true;
+          swimOutTimer = REEL_SWIMOUT_DUR_MIN + Math.random()*(REEL_SWIMOUT_DUR_MAX-REEL_SWIMOUT_DUR_MIN);
+          swimAlert.classList.remove('hidden');
+        }
+      } else {
+        swimOutTimer -= dt;
+        if(swimOutTimer <= 0){
+          swimOutActive = false;
+          swimAlert.classList.add('hidden');
+          nextSwimOutAt = REEL_SWIMOUT_GAP_MIN + Math.random()*(REEL_SWIMOUT_GAP_MAX-REEL_SWIMOUT_GAP_MIN);
+        }
+      }
+
+      const rotSpeedAbs = Math.abs(rotVelocity);
+      const isReeling = dragging && rotSpeedAbs > 15;
+
+      if(swimOutActive){
+        distance = Math.min(totalDistance, distance + REEL_SWIMOUT_FT_RATE*dt);
+        tension = isReeling
+          ? Math.min(100, tension + REEL_SWIMOUT_TENSION_RISE*dt)
+          : Math.max(0, tension - REEL_TENSION_FALL*dt);
+      } else if(isReeling){
+        const ftPerSec = (rotSpeedAbs/360) * REEL_FT_PER_ROTATION;
+        distance = Math.max(0, distance - ftPerSec*dt);
+        tension = Math.min(100, tension + REEL_TENSION_RISE*dt);
+      } else {
+        tension = Math.max(0, tension - REEL_TENSION_FALL*dt);
+      }
+
+      redTimer = tension >= 75 ? redTimer+dt : 0;
+
+      ftFill.style.height = (100 - (distance/totalDistance*100)) + '%';
+      ftValue.textContent = Math.round(distance);
+      tensionFill.style.height = tension+'%';
+      tensionFill.classList.toggle('red', tension>=75);
+      tensionFill.classList.toggle('yellow', tension>=40 && tension<75);
+      statusText.textContent = swimOutActive ? 'Hold steady\u2026' : 'Reel it in!';
+
+      if(distance <= 0){ finish(true); return; }
+      if(redTimer >= redGrace){ finish(false); return; }
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+
+    // Fail-safe: shouldn't normally trigger given the rules above, but
+    // guarantees this can never leave the player stuck indefinitely.
+    setTimeout(()=>{ if(!resolved) finish(distance <= totalDistance*0.2); }, 100000);
   });
 }
 function getCoinsBalance(){
@@ -4940,6 +5214,7 @@ const TUTORIAL_STEPS = [
   { title:'Hotspot Timer', desc:'Every hotspot on the map refreshes every 30 minutes \u2014 new spots appear automatically, so keep moving.', target:'timer-chip' },
   { title:'Cast Your Line', desc:"This panel shows your live bite chance based on exactly where you're standing right now. You can only cast from your real GPS location \u2014 no teleporting.", target:'cast-panel' },
   { title:'Set the Hook', desc:'When a fish bites, a fast moving marker sweeps across a colored bar \u2014 tap it in the dark green center for a guaranteed catch, light green for 95%, yellow for 50%, red for none at all. This bar gets slower (but never easy) as your rod levels up, and you can buy a temporary slower in the Tackle Shop.', target:null, bigText:true },
+  { title:'Reel It In', desc:'Once the hook is set, drag the green handle in circles around the dial to reel \u2014 120 to 200 feet of line, shown on the left bar. Reeling raises tension (right bar); ease off before it hits red, or the line snaps. Every so often the fish pulls back \u2014 stop reeling and let it swim, or tension will spike fast.', target:null, bigText:true },
   { title:'Recenter', desc:'Lost track of your marker on the map? Tap this to snap the view back to your live position.', target:'recenter-btn' },
   { title:'Your Boat', desc:'That\u2019s you on the map \u2014 a little boat instead of a plain dot. Its color, your hook color, and your avatar are all cosmetics you can buy in the Tackle Shop.', target:null },
   { title:'Featured Fish', desc:'Every hotspot secretly favors one specific fish \u2014 a +10% boost just for that species. Catch it and you get 5x points, the hole \u201cruns dry,\u201d and a brand new hotspot appears elsewhere on the map.', target:null },
