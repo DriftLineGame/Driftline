@@ -382,6 +382,37 @@
     opacity:0; transition:opacity .4s ease;
     text-align:center; padding:0 30px;
   }
+  #hook-meter-wrap{
+    position:relative; z-index:3; width:calc(100% - 56px); max-width:320px;
+    margin:-30px 0 40px; text-align:center;
+  }
+  #hook-meter-bar{
+    position:relative; height:22px; border-radius:11px; overflow:hidden;
+    box-shadow:0 6px 20px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.25);
+    background:linear-gradient(90deg,
+      #d1373f 0%, #d1373f 23%,
+      #e0b400 23%, #e0b400 35%,
+      #39c66b 35%, #39c66b 45%,
+      #0e7a3d 45%, #0e7a3d 55%,
+      #39c66b 55%, #39c66b 65%,
+      #e0b400 65%, #e0b400 77%,
+      #d1373f 77%, #d1373f 100%
+    );
+  }
+  #hook-meter-marker{
+    position:absolute; top:-4px; bottom:-4px; left:0%; width:4px;
+    background:#ffffff; box-shadow:0 0 8px rgba(255,255,255,0.9), 0 0 0 1px rgba(0,0,0,0.3);
+    transform:translateX(-50%); border-radius:2px;
+  }
+  #hook-meter-marker.hit{background:#39c66b; box-shadow:0 0 14px #39c66b;}
+  #hook-meter-marker.miss{background:#ff2d55; box-shadow:0 0 14px #ff2d55;}
+  #hook-meter-tap-btn{
+    margin-top:14px; appearance:none; border:none; cursor:pointer; touch-action:manipulation;
+    width:100%; padding:14px 0; border-radius:999px; font-weight:800; font-size:15px;
+    background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;
+    box-shadow:0 10px 24px rgba(255,138,63,0.4);
+  }
+  #hook-meter-tap-btn:active{transform:scale(0.96);}
   #cast-status.show{opacity:1;}
 
   #result-card{
@@ -1381,6 +1412,12 @@
     <svg class="hook" viewBox="0 0 24 24" fill="none" stroke="#eaf6ff" stroke-width="2" stroke-linecap="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>
   </div>
   <div id="cast-status"></div>
+  <div id="hook-meter-wrap" class="hidden">
+    <div id="hook-meter-bar">
+      <div id="hook-meter-marker"></div>
+    </div>
+    <button id="hook-meter-tap-btn">Set the Hook!</button>
+  </div>
   <div id="result-card">
     <div class="result-icon" id="result-icon"></div>
     <h3 id="result-title" class="display"></h3>
@@ -2316,6 +2353,8 @@ function defaultShopState(){
     lastPlayDate: null,
     dailyStreak: 0,
     unlockedAchievements: [],
+    lineSlowUntil: null,
+    lineSlowAmount: 0,
     updatedAt: 0
   };
 }
@@ -2347,6 +2386,8 @@ function normalizeShopState(s){
     lastPlayDate: s.lastPlayDate||null,
     dailyStreak: s.dailyStreak||0,
     unlockedAchievements: s.unlockedAchievements||[],
+    lineSlowUntil: s.lineSlowUntil||null,
+    lineSlowAmount: s.lineSlowAmount||0,
     updatedAt: s.updatedAt||0
   };
 }
@@ -3577,8 +3618,16 @@ function beginBiteSequence(){
   rig.classList.remove('waiting');
 
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    status.textContent = pendingResult.success ? 'Something\u2019s on the line!' : 'The line comes back quiet.';
-    revealResult();
+    if(pendingResult.success){
+      status.textContent = 'Something\u2019s on the line!';
+      runHookTimingChallenge().then((landed)=>{
+        if(!landed){ pendingResult.lostAtHook = true; pendingResult.success = false; }
+        revealResult();
+      });
+    } else {
+      status.textContent = 'The line comes back quiet.';
+      revealResult();
+    }
     return;
   }
 
@@ -3593,6 +3642,9 @@ function beginBiteSequence(){
       status.textContent = 'Something\u2019s on the line!';
       return runFishStrike(strikerFishEl, pendingResult.tier, targetX, targetY);
     }).then(()=>{
+      return runHookTimingChallenge();
+    }).then((landed)=>{
+      if(!landed){ pendingResult.lostAtHook = true; pendingResult.success = false; }
       revealResult(strikerFishEl);
     }).catch(()=>{
       revealResult(strikerFishEl);
@@ -3816,12 +3868,21 @@ function revealResult(fishEl){
       depleteHotspot(hotspot);
     }
   } else {
-    status.textContent = 'The line comes back quiet.';
-    icon.style.background = '#5fb0e822';
-    icon.style.color = '#7fb8d6';
-    icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>`;
-    title.textContent = 'No luck this time';
-    sub.textContent = 'Try another spot, or the same one again \u2014 the tide can turn fast.';
+    if(pendingResult.lostAtHook){
+      status.textContent = 'It got away!';
+      icon.style.background = '#e0356f22';
+      icon.style.color = '#e0356f';
+      icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="#e0356f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><path d="M17 8l4-4M17 16l4 4"/></svg>`;
+      title.textContent = 'So Close!';
+      sub.textContent = 'You had a bite, but the hook didn\u2019t set in time.';
+    } else {
+      status.textContent = 'The line comes back quiet.';
+      icon.style.background = '#5fb0e822';
+      icon.style.color = '#7fb8d6';
+      icon.innerHTML = `<span class="pulse-ring"></span><svg viewBox="0 0 24 24" fill="none" stroke="#7fb8d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M12 11c0 4-6 3-6 7a4 4 0 0 0 7.5 2"/></svg>`;
+      title.textContent = 'No luck this time';
+      sub.textContent = 'Try another spot, or the same one again \u2014 the tide can turn fast.';
+    }
     tierEl.innerHTML = '';
     playMissSound();
   }
@@ -3911,7 +3972,8 @@ function syncBagToCloud(bag){
 const SHOP_ITEMS = {
   lure_basic:     { name:'Basic Lure',     desc:'+10% bite chance for 15 min',  price:20,  boostAmount:10, boostMs:15*60*1000, icon:'\u{1FAB1}' },
   lure_pro:       { name:'Pro Lure',       desc:'+20% bite chance for 20 min',  price:60,  boostAmount:20, boostMs:20*60*1000, icon:'\u{1FA9D}' },
-  lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:175, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' }
+  lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:175, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' },
+  steady_hands:   { name:'Steady Hands',   desc:'-20% Set the Hook bar speed for 15 min', price:70, effectType:'lineSlow', slowAmount:20, durationMs:15*60*1000, icon:'\u{1FAA2}' }
 };
 const AVATAR_COSMETICS = [
   { id:'default', emoji:'\u{1F3A3}', name:'Classic Rod', price:0 },
@@ -4233,6 +4295,93 @@ function rodBonusPercent(points){
 }
 function currentRodLevel(){
   return rodLevelForPoints(computePoints(loadBag())) + (shopState.bonusRodLevels||0);
+}
+/* ====================== SET THE HOOK (timing skill check) ====================== */
+// Zone boundaries as fractions of the bar width (0-1), centered at 0.5.
+// Catch rates: dark green 100%, light green 95%, yellow 50%, red 0%.
+function zoneAtFraction(frac){
+  if(frac>=0.45 && frac<=0.55) return { key:'dark',   catchPct:100 };
+  if(frac>=0.35 && frac<=0.65) return { key:'light',  catchPct:95  };
+  if(frac>=0.23 && frac<=0.77) return { key:'yellow', catchPct:50  };
+  return { key:'red', catchPct:0 };
+}
+function hookMeterSpeedMultiplier(rodLevel){
+  // 1.0 = fastest/hardest (rod level 0). Approaches, but never goes below,
+  // a floor -- stays "still hard" no matter how high the rod level climbs.
+  const floor = 0.45;
+  const decay = 0.04;
+  return floor + (1-floor) * Math.exp(-decay*rodLevel);
+}
+function currentLineSlowBonus(){
+  if(shopState.lineSlowUntil && Date.now() < shopState.lineSlowUntil){
+    return shopState.lineSlowAmount || 0;
+  }
+  return 0;
+}
+function hookMeterSweepMs(){
+  const rodMultiplier = hookMeterSpeedMultiplier(currentRodLevel());
+  const tempSlowFrac = currentLineSlowBonus()/100;
+  const effectiveMultiplier = Math.max(0.25, rodMultiplier * (1-tempSlowFrac));
+  const baseSweepMs = 850; // one direction, at rod level 0, no temp boost
+  return baseSweepMs / effectiveMultiplier;
+}
+function runHookTimingChallenge(){
+  return new Promise((resolve)=>{
+    const wrap = $('hook-meter-wrap');
+    const marker = $('hook-meter-marker');
+    const tapBtn = $('hook-meter-tap-btn');
+
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      // Skip the interactive bar for reduced-motion users, but keep real
+      // stakes with a fair fixed roll instead of forcing an animated tap.
+      resolve(Math.random()*100 < 50);
+      return;
+    }
+
+    wrap.classList.remove('hidden');
+    marker.classList.remove('hit','miss');
+    marker.style.left = '0%';
+
+    const sweepMs = hookMeterSweepMs();
+    let startTime = null;
+    let resolved = false;
+    let rafId = null;
+
+    function tick(now){
+      if(resolved) return;
+      if(startTime===null) startTime = now;
+      const elapsed = (now-startTime) % (sweepMs*2);
+      const t = elapsed < sweepMs ? elapsed/sweepMs : 1-((elapsed-sweepMs)/sweepMs);
+      marker.style.left = (t*100)+'%';
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+
+    function finish(){
+      if(resolved) return;
+      resolved = true;
+      cancelAnimationFrame(rafId);
+      const frac = parseFloat(marker.style.left)/100;
+      const zone = zoneAtFraction(frac);
+      const landed = Math.random()*100 < zone.catchPct;
+      marker.classList.add(landed ? 'hit' : 'miss');
+      ensureAudioCtx();
+      if(landed) playTone(880, 0, 0.15, 'triangle', 0.15);
+      else playTone(220, 0, 0.2, 'sawtooth', 0.12);
+      if('vibrate' in navigator) navigator.vibrate(landed ? 30 : [40,30,40]);
+      setTimeout(()=>{
+        wrap.classList.add('hidden');
+        marker.classList.remove('hit','miss');
+        tapBtn.onclick = null;
+        resolve(landed);
+      }, 350);
+    }
+
+    tapBtn.onclick = finish;
+    // Fail-safe: auto-resolve wherever the marker happens to be if the
+    // player never taps, so the tutorial/overlay can never get stuck.
+    setTimeout(()=>{ if(!resolved) finish(); }, 4500);
+  });
 }
 function getCoinsBalance(){
   return Math.max(0, computePoints(loadBag()) - (shopState.coinsSpent||0));
@@ -4621,8 +4770,17 @@ function activateItem(key){
   const item = SHOP_ITEMS[key];
   if(!item || !(shopState.inventory[key]>0)) return;
   shopState.inventory[key]--;
-  grantBoost(key, item.boostAmount, item.boostMs);
-  showToast(`${item.name} activated! +${item.boostAmount}% for ${Math.round(item.boostMs/60000)} min \u{1F525}`);
+  if(item.effectType === 'lineSlow'){
+    shopState.lineSlowUntil = Date.now() + item.durationMs;
+    shopState.lineSlowAmount = item.slowAmount;
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    showToast(`${item.name} activated! Set the Hook bar slowed ${item.slowAmount}% for ${Math.round(item.durationMs/60000)} min \u{1FAA2}`);
+  } else {
+    grantBoost(key, item.boostAmount, item.boostMs);
+    showToast(`${item.name} activated! +${item.boostAmount}% for ${Math.round(item.boostMs/60000)} min \u{1F525}`);
+  }
   renderShop();
 }
 function cosmeticListFor(type){
@@ -4781,6 +4939,7 @@ const TUTORIAL_STEPS = [
   { title:'Welcome to Driftline! \u{1F3A3}', desc:"Let's take a quick tour of everything the app can do. Tap Next to continue \u2014 you can replay this anytime from Settings.", target:null },
   { title:'Hotspot Timer', desc:'Every hotspot on the map refreshes every 30 minutes \u2014 new spots appear automatically, so keep moving.', target:'timer-chip' },
   { title:'Cast Your Line', desc:"This panel shows your live bite chance based on exactly where you're standing right now. You can only cast from your real GPS location \u2014 no teleporting.", target:'cast-panel' },
+  { title:'Set the Hook', desc:'When a fish bites, a fast moving marker sweeps across a colored bar \u2014 tap it in the dark green center for a guaranteed catch, light green for 95%, yellow for 50%, red for none at all. This bar gets slower (but never easy) as your rod levels up, and you can buy a temporary slower in the Tackle Shop.', target:null, bigText:true },
   { title:'Recenter', desc:'Lost track of your marker on the map? Tap this to snap the view back to your live position.', target:'recenter-btn' },
   { title:'Your Boat', desc:'That\u2019s you on the map \u2014 a little boat instead of a plain dot. Its color, your hook color, and your avatar are all cosmetics you can buy in the Tackle Shop.', target:null },
   { title:'Featured Fish', desc:'Every hotspot secretly favors one specific fish \u2014 a +10% boost just for that species. Catch it and you get 5x points, the hole \u201cruns dry,\u201d and a brand new hotspot appears elsewhere on the map.', target:null },
