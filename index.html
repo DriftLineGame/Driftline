@@ -447,19 +447,23 @@
   #reel-dial-wrap{display:flex; flex-direction:column; align-items:center; gap:14px;}
   #reel-dial-outer{
     position:relative; width:220px; height:220px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #7fd8ff, #4fb8ea 55%, #2f8fc4 100%);
-    box-shadow:0 14px 34px rgba(0,0,0,0.4), 0 0 0 6px rgba(255,255,255,0.08);
+    background:radial-gradient(circle at 35% 30%, #4fe0ff, #0e86c4 65%, #0b6fa3 100%);
+    box-shadow:0 14px 34px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.12);
     touch-action:none;
   }
-  #reel-dial-arrows{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0.85;}
+  #reel-dial-track{
+    position:absolute; top:14px; left:14px; right:14px; bottom:14px; border-radius:50%;
+    border:2px dashed rgba(255,255,255,0.3); pointer-events:none;
+  }
   #reel-dial-center{
-    position:absolute; top:50%; left:50%; width:56px; height:56px; margin:-28px 0 0 -28px;
-    border-radius:50%; background:#ffffff; box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    position:absolute; top:50%; left:50%; width:58px; height:58px; margin:-29px 0 0 -29px;
+    border-radius:50%; background:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center; font-size:24px;
   }
   #reel-dial-handle{
-    position:absolute; top:50%; left:50%; width:52px; height:52px; margin:-26px 0 0 -26px;
-    border-radius:50%; background:radial-gradient(circle at 35% 30%, #6ee8b8, #2fb888 60%, #1c8f68 100%);
-    border:3px solid #0e7a5b; box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    position:absolute; top:50%; left:50%; width:46px; height:46px; margin:-23px 0 0 -23px;
+    border-radius:50%; background:linear-gradient(160deg,#ffd23f,#ff8a3f);
+    border:3px solid #ffffff; box-shadow:0 6px 16px rgba(255,138,63,0.5);
     transform:translate(0,-70px);
   }
   #reel-swim-alert{
@@ -1481,13 +1485,8 @@
       </div>
       <div id="reel-dial-wrap">
         <div id="reel-dial-outer">
-          <svg id="reel-dial-arrows" viewBox="0 0 220 220">
-            <path d="M50 90 L30 130" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <path d="M30 130 L22 112 M30 130 L46 122" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <path d="M170 90 L190 130" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <path d="M190 130 L198 112 M190 130 L174 122" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-          <div id="reel-dial-center"></div>
+          <div id="reel-dial-track"></div>
+          <div id="reel-dial-center">🎣</div>
           <div id="reel-dial-handle"></div>
         </div>
         <div id="reel-swim-alert" class="hidden">🐟 The fish is pulling away — ease off!</div>
@@ -4522,7 +4521,7 @@ function runReelingChallenge(){
     let currentAngle = 0;
     let dragging = false;
     let lastPointerAngle = null;
-    let rotVelocity = 0; // degrees/sec, decays each frame when not actively dragged
+    let accumulatedRotation = 0; // summed delta since the last real tick -- timing-accurate
 
     let swimOutActive = false;
     let swimOutTimer = 0;
@@ -4544,8 +4543,7 @@ function runReelingChallenge(){
     function angleFromEvent(e){
       const rect = dialOuter.getBoundingClientRect();
       const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
-      const point = e.touches && e.touches[0] ? e.touches[0] : e;
-      const dx = point.clientX-cx, dy = point.clientY-cy;
+      const dx = e.clientX-cx, dy = e.clientY-cy;
       return Math.atan2(dx, -dy) * 180/Math.PI;
     }
     function normalizeDelta(delta){
@@ -4556,6 +4554,7 @@ function runReelingChallenge(){
     function onPointerDown(e){
       dragging = true;
       lastPointerAngle = angleFromEvent(e);
+      if(dialOuter.setPointerCapture && e.pointerId!==undefined) dialOuter.setPointerCapture(e.pointerId);
       if(e.cancelable) e.preventDefault();
     }
     function onPointerMove(e){
@@ -4565,17 +4564,18 @@ function runReelingChallenge(){
       lastPointerAngle = angle;
       currentAngle = (currentAngle+delta) % 360;
       setHandlePosition(currentAngle);
-      rotVelocity = delta*60; // instantaneous deg/sec estimate from this frame's delta
+      accumulatedRotation += delta; // just accumulate -- the tick loop converts this to a real deg/sec figure using actual elapsed time
       if(e.cancelable) e.preventDefault();
     }
     function onPointerUp(){ dragging = false; }
 
+    // Pointer Events alone correctly handle touch on modern mobile Safari --
+    // adding separate touch listeners on top of these double-fired every
+    // gesture and was part of why input wasn't registering correctly.
     dialOuter.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    dialOuter.addEventListener('touchstart', onPointerDown, {passive:false});
-    window.addEventListener('touchmove', onPointerMove, {passive:false});
-    window.addEventListener('touchend', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
 
     overlay.classList.remove('hidden');
     ftValue.textContent = Math.round(distance);
@@ -4585,9 +4585,7 @@ function runReelingChallenge(){
       dialOuter.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      dialOuter.removeEventListener('touchstart', onPointerDown);
-      window.removeEventListener('touchmove', onPointerMove);
-      window.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       overlay.classList.add('hidden');
     }
     function finish(landed){
@@ -4603,7 +4601,11 @@ function runReelingChallenge(){
       const dt = Math.min(0.1, (now-lastTick)/1000);
       lastTick = now;
 
-      rotVelocity *= 0.85; // decay so releasing the dial quickly reads as "not reeling"
+      // Convert whatever rotation accumulated since the last tick into a
+      // real degrees/sec figure using ACTUAL elapsed time -- accurate
+      // regardless of how fast the device's touch events actually fire.
+      const rotDegPerSec = dt > 0 ? accumulatedRotation/dt : 0;
+      accumulatedRotation = 0;
 
       if(!swimOutActive){
         nextSwimOutAt -= dt;
@@ -4621,7 +4623,7 @@ function runReelingChallenge(){
         }
       }
 
-      const rotSpeedAbs = Math.abs(rotVelocity);
+      const rotSpeedAbs = Math.abs(rotDegPerSec);
       const isReeling = dragging && rotSpeedAbs > 15;
 
       if(swimOutActive){
