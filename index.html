@@ -4499,26 +4499,30 @@ function runHookTimingChallenge(){
 }
 
 /* ====================== REELING (sustained skill check) ====================== */
-// Constants tuned via simulation across all six rarity tiers: a fish always
-// pulls at some baseline rate (scaled by rarity), spiking harder during
-// random swim-outs. "Good" play (release fully -- not just pause -- when
-// tension gets high) lands reliably every tier; constant greedy reeling
-// snaps every time. Common lands in well under a minute; the rarest tiers
-// genuinely take a few minutes, exactly as intended.
-const REEL_FT_PER_ROTATION = 12;
-const REEL_BASE_POWER_FT = 8.5;        // approx ft/sec a sustained, active reel achieves
-const REEL_ROD_POWER_PER_LEVEL = 0.12; // small per-level bonus to reel power, capped
+// Root cause of "battle only lasts 10 seconds": rotation speed was NEVER
+// capped, so a real fast finger-spin (verified via simulation at ~2.5
+// rotations/sec) completely overwhelmed the fish's pull regardless of tier,
+// landing in ~4-5 seconds. Simulated a "frantic" (spin nonstop, ignore
+// tension) player against a "good" (release fully once tension gets high)
+// player across all six tiers to retune this properly: frantic now snaps
+// every single time, every tier; careful play lands in well under a
+// minute for common, up to a genuine multi-minute fight for the rarest
+// fish in the game -- more manageable the more your rod is upgraded.
+const REEL_ROTATION_CAP_DEG = 360;     // hard cap: spinning faster than 1 rot/sec buys nothing further
+const REEL_FT_PER_ROTATION = 11;
+const REEL_ROD_POWER_PER_LEVEL = 0.03; // % reel-power bonus per rod level, capped
 const REEL_ROD_POWER_CAP_LEVEL = 20;
-const REEL_BASELINE_PULL = 0.85;       // ft/sec the fish constantly pulls, even outside a swim-out
-const REEL_SWIMOUT_EXTRA_PULL = 2.1;   // additional ft/sec pull during an active swim-out
+const REEL_BASELINE_PULL = 1.2;        // ft/sec the fish constantly pulls, scaled by rarity below
+const REEL_SWIMOUT_EXTRA_PULL = 2.4;   // additional flat ft/sec pull during an active swim-out (NOT rarity-scaled -- rarity scaling this too made higher tiers mathematically unwinnable during swim-outs, even at max rod level)
 const REEL_PULL_MULT = { common:1.0, hard:1.3, rare:1.7, superrare:2.2, ultimate:2.8, abyssal:3.5 };
-const REEL_TENSION_CALM = 7;    // per second while actively reeling, no swim-out
-const REEL_TENSION_SWIMOUT = 17;// per second while actively reeling THROUGH a swim-out
-const REEL_TENSION_HOLD = 3;    // per second while touching the dial but not spinning it
-const REEL_TENSION_FALL = 17;   // per second while fully letting go of the dial
+const REEL_TENSION_CALM = 15;   // per second while actively reeling, no swim-out
+const REEL_TENSION_SWIMOUT = 30;// per second while actively reeling THROUGH a swim-out
+const REEL_TENSION_HOLD = 6;    // per second while touching the dial but not spinning it
+const REEL_TENSION_FALL = 20;   // per second while fully letting go of the dial
 const REEL_BASE_RED_GRACE = 5;  // seconds allowed in the red zone before the line snaps
 const REEL_SWIMOUT_GAP_MIN = 14, REEL_SWIMOUT_GAP_MAX = 22;
 const REEL_SWIMOUT_DUR_MIN = 6, REEL_SWIMOUT_DUR_MAX = 9;
+const REEL_AUTO_SPIN_DEG_PER_FT = 6.8; // calibrated so a mid-tier fish pulling hard spins the dial backward at ~5rpm (30deg/sec)
 
 function showFishEmergeAnimation(tierKey, callback){
   const t = TIERS.find(x=>x.key===tierKey) || TIERS[0];
@@ -4561,12 +4565,13 @@ function runReelingChallenge(tier){
     let redTimer = 0;
     const redGrace = REEL_BASE_RED_GRACE + Math.min(currentRodLevel(), 10); // capped bonus, stays hard at high levels
     const pullMult = REEL_PULL_MULT[tier] || 1.0;
-    const reelPower = REEL_BASE_POWER_FT + Math.min(currentRodLevel(), REEL_ROD_POWER_CAP_LEVEL)*REEL_ROD_POWER_PER_LEVEL;
+    const reelPowerMult = 1 + Math.min(currentRodLevel(), REEL_ROD_POWER_CAP_LEVEL)*REEL_ROD_POWER_PER_LEVEL;
 
     let currentAngle = 0;
     let dragging = false;
     let lastPointerAngle = null;
     let accumulatedRotation = 0; // summed delta since the last real tick -- timing-accurate
+    let smoothedRotDegPerSec = 0; // exponential moving average, damps single-frame timing spikes
 
     let swimOutActive = false;
     let swimOutTimer = 0;
@@ -4647,10 +4652,14 @@ function runReelingChallenge(tier){
       lastTick = now;
 
       // Convert whatever rotation accumulated since the last tick into a
-      // real degrees/sec figure using ACTUAL elapsed time -- accurate
-      // regardless of how fast the device's touch events actually fire.
-      const rotDegPerSec = dt > 0 ? accumulatedRotation/dt : 0;
+      // real degrees/sec figure using ACTUAL elapsed time, then smooth it
+      // (avoids single-frame spikes on high-refresh displays) and hard-cap
+      // it -- spinning faster than 1 rotation/sec buys nothing further, so
+      // frantic mashing can't just brute-force through the fish's pull.
+      const rawRotDegPerSec = dt > 0 ? accumulatedRotation/dt : 0;
       accumulatedRotation = 0;
+      smoothedRotDegPerSec = smoothedRotDegPerSec*0.6 + rawRotDegPerSec*0.4;
+      const cappedRotDegPerSec = Math.max(-REEL_ROTATION_CAP_DEG, Math.min(REEL_ROTATION_CAP_DEG, smoothedRotDegPerSec));
 
       if(!swimOutActive){
         nextSwimOutAt -= dt;
@@ -4668,14 +4677,16 @@ function runReelingChallenge(tier){
         }
       }
 
-      const rotSpeedAbs = Math.abs(rotDegPerSec);
+      const rotSpeedAbs = Math.abs(cappedRotDegPerSec);
       const isReeling = dragging && rotSpeedAbs > 15;
       const isHolding = dragging && !isReeling; // touching the dial, but essentially still
 
-      // The fish is ALWAYS pulling to some degree -- harder for rarer fish,
-      // and much harder during a swim-out.
-      const fishPull = REEL_BASELINE_PULL*pullMult + (swimOutActive ? REEL_SWIMOUT_EXTRA_PULL*pullMult : 0);
-      const reelInput = isReeling ? (rotSpeedAbs/360) * REEL_FT_PER_ROTATION * (reelPower/REEL_BASE_POWER_FT) : 0;
+      // The fish is ALWAYS pulling to some degree -- the constant baseline
+      // scales with rarity; the swim-out spike is a flat addition (scaling
+      // BOTH by rarity made higher tiers mathematically unwinnable during
+      // swim-outs, even at max rod level).
+      const fishPull = REEL_BASELINE_PULL*pullMult + (swimOutActive ? REEL_SWIMOUT_EXTRA_PULL : 0);
+      const reelInput = isReeling ? (rotSpeedAbs/360) * REEL_FT_PER_ROTATION * reelPowerMult : 0;
       const net = reelInput - fishPull; // positive = real progress, negative = fish is winning
 
       distance = Math.min(totalDistance, Math.max(0, distance - net*dt));
@@ -4691,7 +4702,7 @@ function runReelingChallenge(tier){
       // The reel visibly spins backward whenever the fish is winning --
       // whether that's an active swim-out or you've just stopped reeling.
       if(net < 0){
-        const autoSpinDegPerSec = Math.abs(net) * (360/REEL_FT_PER_ROTATION);
+        const autoSpinDegPerSec = Math.abs(net) * REEL_AUTO_SPIN_DEG_PER_FT;
         currentAngle = (currentAngle - autoSpinDegPerSec*dt) % 360;
         setHandlePosition(currentAngle);
       }
