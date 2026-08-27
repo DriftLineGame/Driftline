@@ -470,6 +470,17 @@
     font-size:12.5px; font-weight:800; color:#ffd23f; text-align:center; min-height:16px;
     text-shadow:0 2px 8px rgba(0,0,0,0.5);
   }
+  #reel-fish-emerge{
+    position:absolute; inset:0; z-index:25; display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; background:rgba(4,18,31,0.6);
+    transition:opacity .3s ease;
+  }
+  #reel-fish-emerge.show{opacity:1;}
+  #reel-fish-emerge-svg{
+    width:120px; height:120px; transform:scale(0.3) translateY(40px); opacity:0;
+    transition:transform .7s cubic-bezier(.2,.9,.25,1), opacity .5s ease;
+  }
+  #reel-fish-emerge.show #reel-fish-emerge-svg{transform:scale(1) translateY(0); opacity:1;}
   #cast-status.show{opacity:1;}
 
   #result-card{
@@ -1477,6 +1488,12 @@
   </div>
   <div id="reel-overlay" class="hidden">
     <div id="reel-status-text">Reel it in!</div>
+    <div id="reel-fish-emerge">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" id="reel-fish-emerge-svg">
+        <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/>
+        <circle cx="15" cy="12" r="1.2"/>
+      </svg>
+    </div>
     <div id="reel-main">
       <div class="reel-side-bar">
         <div class="reel-side-label">FT</div>
@@ -3701,7 +3718,7 @@ function beginBiteSequence(){
       status.textContent = 'Something\u2019s on the line!';
       runHookTimingChallenge().then((hooked)=>{
         if(!hooked){ pendingResult.lostAtHook = true; pendingResult.success = false; revealResult(); return; }
-        return runReelingChallenge().then((landed)=>{
+        return runReelingChallenge(pendingResult.tier.key).then((landed)=>{
           if(!landed){ pendingResult.lostAtReel = true; pendingResult.success = false; }
           revealResult();
         });
@@ -3732,7 +3749,7 @@ function beginBiteSequence(){
         revealResult(strikerFishEl);
         return;
       }
-      return runReelingChallenge().then((landed)=>{
+      return runReelingChallenge(pendingResult.tier.key).then((landed)=>{
         if(!landed){ pendingResult.lostAtReel = true; pendingResult.success = false; }
         revealResult(strikerFishEl);
       });
@@ -4482,19 +4499,45 @@ function runHookTimingChallenge(){
 }
 
 /* ====================== REELING (sustained skill check) ====================== */
-// Constants tuned via simulation: "good" play (ease off before red, stop
-// during swim-outs) lands reliably around 45-55s; constant greedy reeling
-// snaps every time.
-const REEL_FT_PER_ROTATION = 11;
-const REEL_TENSION_RISE = 9;          // per second while actively reeling
-const REEL_TENSION_FALL = 18;         // per second while not reeling
-const REEL_SWIMOUT_TENSION_RISE = 22; // per second, ONLY if still reeling through a swim-out
-const REEL_SWIMOUT_FT_RATE = 5;       // ft/sec pulled back out during a swim-out, regardless of input
-const REEL_BASE_RED_GRACE = 5;        // seconds allowed in the red zone before the line snaps
+// Constants tuned via simulation across all six rarity tiers: a fish always
+// pulls at some baseline rate (scaled by rarity), spiking harder during
+// random swim-outs. "Good" play (release fully -- not just pause -- when
+// tension gets high) lands reliably every tier; constant greedy reeling
+// snaps every time. Common lands in well under a minute; the rarest tiers
+// genuinely take a few minutes, exactly as intended.
+const REEL_FT_PER_ROTATION = 12;
+const REEL_BASE_POWER_FT = 8.5;        // approx ft/sec a sustained, active reel achieves
+const REEL_ROD_POWER_PER_LEVEL = 0.12; // small per-level bonus to reel power, capped
+const REEL_ROD_POWER_CAP_LEVEL = 20;
+const REEL_BASELINE_PULL = 0.85;       // ft/sec the fish constantly pulls, even outside a swim-out
+const REEL_SWIMOUT_EXTRA_PULL = 2.1;   // additional ft/sec pull during an active swim-out
+const REEL_PULL_MULT = { common:1.0, hard:1.3, rare:1.7, superrare:2.2, ultimate:2.8, abyssal:3.5 };
+const REEL_TENSION_CALM = 7;    // per second while actively reeling, no swim-out
+const REEL_TENSION_SWIMOUT = 17;// per second while actively reeling THROUGH a swim-out
+const REEL_TENSION_HOLD = 3;    // per second while touching the dial but not spinning it
+const REEL_TENSION_FALL = 17;   // per second while fully letting go of the dial
+const REEL_BASE_RED_GRACE = 5;  // seconds allowed in the red zone before the line snaps
 const REEL_SWIMOUT_GAP_MIN = 14, REEL_SWIMOUT_GAP_MAX = 22;
 const REEL_SWIMOUT_DUR_MIN = 6, REEL_SWIMOUT_DUR_MAX = 9;
 
-function runReelingChallenge(){
+function showFishEmergeAnimation(tierKey, callback){
+  const t = TIERS.find(x=>x.key===tierKey) || TIERS[0];
+  const wrap = $('reel-fish-emerge');
+  const svg = $('reel-fish-emerge-svg');
+  svg.setAttribute('stroke', t.hex);
+  svg.querySelector('path').setAttribute('fill', t.hex);
+  svg.querySelector('path').setAttribute('fill-opacity', '0.95');
+  svg.querySelector('circle').setAttribute('fill', '#04121f');
+  wrap.classList.add('show');
+  ensureAudioCtx();
+  playSplashSound();
+  if('vibrate' in navigator) navigator.vibrate([30,20,50]);
+  setTimeout(()=>{
+    wrap.classList.remove('show');
+    setTimeout(callback, 300);
+  }, 950);
+}
+function runReelingChallenge(tier){
   return new Promise((resolve)=>{
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
       // Fair fixed roll for reduced-motion users rather than forcing the
@@ -4517,6 +4560,8 @@ function runReelingChallenge(){
     let tension = 20;
     let redTimer = 0;
     const redGrace = REEL_BASE_RED_GRACE + Math.min(currentRodLevel(), 10); // capped bonus, stays hard at high levels
+    const pullMult = REEL_PULL_MULT[tier] || 1.0;
+    const reelPower = REEL_BASE_POWER_FT + Math.min(currentRodLevel(), REEL_ROD_POWER_CAP_LEVEL)*REEL_ROD_POWER_PER_LEVEL;
 
     let currentAngle = 0;
     let dragging = false;
@@ -4625,18 +4670,30 @@ function runReelingChallenge(){
 
       const rotSpeedAbs = Math.abs(rotDegPerSec);
       const isReeling = dragging && rotSpeedAbs > 15;
+      const isHolding = dragging && !isReeling; // touching the dial, but essentially still
 
-      if(swimOutActive){
-        distance = Math.min(totalDistance, distance + REEL_SWIMOUT_FT_RATE*dt);
-        tension = isReeling
-          ? Math.min(100, tension + REEL_SWIMOUT_TENSION_RISE*dt)
-          : Math.max(0, tension - REEL_TENSION_FALL*dt);
-      } else if(isReeling){
-        const ftPerSec = (rotSpeedAbs/360) * REEL_FT_PER_ROTATION;
-        distance = Math.max(0, distance - ftPerSec*dt);
-        tension = Math.min(100, tension + REEL_TENSION_RISE*dt);
+      // The fish is ALWAYS pulling to some degree -- harder for rarer fish,
+      // and much harder during a swim-out.
+      const fishPull = REEL_BASELINE_PULL*pullMult + (swimOutActive ? REEL_SWIMOUT_EXTRA_PULL*pullMult : 0);
+      const reelInput = isReeling ? (rotSpeedAbs/360) * REEL_FT_PER_ROTATION * (reelPower/REEL_BASE_POWER_FT) : 0;
+      const net = reelInput - fishPull; // positive = real progress, negative = fish is winning
+
+      distance = Math.min(totalDistance, Math.max(0, distance - net*dt));
+
+      if(isReeling){
+        tension = Math.min(100, tension + (swimOutActive ? REEL_TENSION_SWIMOUT : REEL_TENSION_CALM)*dt);
+      } else if(isHolding){
+        tension = Math.min(100, tension + REEL_TENSION_HOLD*dt);
       } else {
         tension = Math.max(0, tension - REEL_TENSION_FALL*dt);
+      }
+
+      // The reel visibly spins backward whenever the fish is winning --
+      // whether that's an active swim-out or you've just stopped reeling.
+      if(net < 0){
+        const autoSpinDegPerSec = Math.abs(net) * (360/REEL_FT_PER_ROTATION);
+        currentAngle = (currentAngle - autoSpinDegPerSec*dt) % 360;
+        setHandlePosition(currentAngle);
       }
 
       redTimer = tension >= 75 ? redTimer+dt : 0;
@@ -4648,7 +4705,10 @@ function runReelingChallenge(){
       tensionFill.classList.toggle('yellow', tension>=40 && tension<75);
       statusText.textContent = swimOutActive ? 'Hold steady\u2026' : 'Reel it in!';
 
-      if(distance <= 0){ finish(true); return; }
+      if(distance <= 0){
+        showFishEmergeAnimation(tier, ()=>finish(true));
+        return;
+      }
       if(redTimer >= redGrace){ finish(false); return; }
       rafId = requestAnimationFrame(tick);
     }
