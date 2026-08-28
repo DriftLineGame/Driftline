@@ -558,6 +558,12 @@
   .catch-name{font-weight:700; font-size:14.5px;}
   .catch-meta{font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
   .catch-tier-tag{font-size:9.5px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:999px; flex:0 0 auto;}
+  .bag-sell-btn{
+    appearance:none; border:none; cursor:pointer; touch-action:manipulation;
+    background:#0b4f7a; color:#ffffff; margin-left:8px; flex:0 0 auto;
+    padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800;
+  }
+  .bag-sell-btn:active{transform:scale(0.94);}
 
   .guide-section-title{
     display:flex; align-items:center; justify-content:space-between;
@@ -1057,6 +1063,11 @@
     -webkit-tap-highlight-color:transparent;
   }
   .lb-close svg{width:18px; height:18px; stroke:#fff;}
+  #market-balance{
+    position:absolute; top:20px; left:14px; z-index:3;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
+    border-radius:999px; padding:8px 14px; font-size:12.5px; font-weight:800; color:#ffd23f;
+  }
   .lb-trophy{font-size:40px; filter:drop-shadow(0 0 18px rgba(255,210,63,0.7)); margin-bottom:4px;}
   .lb-title{
     font-family:'Bricolage Grotesque'; font-weight:800; font-size:30px; letter-spacing:0.03em;
@@ -1197,6 +1208,54 @@
   #market-buy-bag-target svg{width:26px; height:26px;}
   #market-buy-sub{font-size:12.5px; color:rgba(255,255,255,0.65); margin-top:8px; opacity:0;}
   #market-buy-close{background:linear-gradient(160deg,#39ff8f,#0e86c4); color:#04201c; opacity:0;}
+
+  #market-sold-overlay{
+    position:fixed; inset:0; z-index:975; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(255,210,63,0.3), transparent 60%),
+      linear-gradient(180deg, #261c05 0%, #181203 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #market-sold-overlay.show{opacity:1; pointer-events:auto;}
+  #market-sold-card{position:relative; z-index:2; width:100%; max-width:320px; text-align:center;}
+  #market-sold-fish-icon{
+    width:76px; height:76px; margin:0 auto 4px; border-radius:50%;
+    background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;
+    transform:scale(0); opacity:0;
+  }
+  #market-sold-fish-icon svg{width:38px; height:38px;}
+  #market-sold-title{font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px; color:#ffd23f; margin:10px 0 4px; opacity:0;}
+  #market-sold-fish-name{font-weight:700; font-size:15px; color:#fff; opacity:0;}
+  #market-sold-buyer{font-size:12.5px; color:rgba(255,255,255,0.6); margin-top:2px; opacity:0;}
+  #market-sold-coin-row{
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:32px; color:#ffd23f;
+    margin:16px 0 4px; display:flex; align-items:center; justify-content:center; gap:4px;
+    opacity:0; font-variant-numeric:tabular-nums;
+  }
+  #market-sold-sub{font-size:12.5px; color:rgba(255,255,255,0.65); opacity:0;}
+  #market-sold-close{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08; opacity:0;}
+
+  #market-digest-overlay{
+    position:fixed; inset:0; z-index:996; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(14,134,196,0.3), transparent 60%),
+      linear-gradient(180deg, #05141f 0%, #030c14 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #market-digest-overlay.show{opacity:1; pointer-events:auto;}
+  #market-digest-card{position:relative; z-index:2; width:100%; max-width:340px; text-align:center;}
+  #market-digest-icon{font-size:38px; margin-bottom:6px;}
+  #market-digest-card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; color:#fff; margin:0 0 14px;}
+  #market-digest-list{display:flex; flex-direction:column; gap:8px; margin-bottom:6px;}
+  .mkd-row{
+    display:flex; align-items:center; justify-content:space-between; padding:10px 14px;
+    background:rgba(255,255,255,0.06); border-radius:14px; font-size:13px; font-weight:700; color:#fff;
+  }
+  .mkd-change{font-weight:800;}
+  .mkd-change.up{color:#ff6b6b;}
+  .mkd-change.down{color:#39ff8f;}
 
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
@@ -1872,6 +1931,7 @@
   <div class="lb-blob" style="width:320px;height:320px;bottom:-100px;left:10%;background:#0e86c4;animation-delay:-6s;"></div>
   <div class="lb-header">
     <button class="lb-close" id="market-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div id="market-balance">0 🪙</div>
     <div class="lb-trophy">📈</div>
     <h1 class="lb-title">FISH MARKET</h1>
     <p class="lb-subtitle">Buy, sell, and track daily prices</p>
@@ -1912,6 +1972,31 @@
     </div>
     <div id="market-buy-sub">Added to your bag</div>
     <button class="btn btn-primary" id="market-buy-close" style="width:100%; margin-top:16px;">Nice</button>
+  </div>
+</div>
+
+<div id="market-sold-overlay">
+  <div id="market-sold-card">
+    <div id="market-sold-fish-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2"/></svg>
+    </div>
+    <div id="market-sold-title">Sold!</div>
+    <div id="market-sold-fish-name">Bluegill</div>
+    <div id="market-sold-buyer">to someone</div>
+    <div id="market-sold-coin-row">
+      <span>+</span><span id="market-sold-coin-count" data-target="0">0</span><span>🪙</span>
+    </div>
+    <div id="market-sold-sub">Added to your Chum Coin balance</div>
+    <button class="btn btn-primary" id="market-sold-close" style="width:100%; margin-top:16px;">Nice</button>
+  </div>
+</div>
+
+<div id="market-digest-overlay">
+  <div id="market-digest-card">
+    <div id="market-digest-icon">📈</div>
+    <h2>Today's Market</h2>
+    <div id="market-digest-list"></div>
+    <button class="btn btn-primary" id="market-digest-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
 </div>
 
@@ -4640,6 +4725,11 @@ function startWorldEventTicker(){
   checkWorldEvent();
   worldEventTickInterval = setInterval(checkWorldEvent, 30000);
 }
+let marketSaleTickInterval = null;
+function startMarketSaleTicker(){
+  clearInterval(marketSaleTickInterval);
+  marketSaleTickInterval = setInterval(checkForSoldListings, 60000);
+}
 function showWorldEventBanner(event){
   const banner = document.createElement('div');
   banner.className = 'world-event-banner ' + event.type;
@@ -5191,7 +5281,7 @@ function renderBag(){
         <div class="catch-meta">${dateStr}</div>
       </div>
       <div class="catch-tier-tag" style="background:${t.hex}22;color:${t.hex}">${t.label}</div>
-      ${session && c.id ? `<button class="mk-ghost-btn" style="margin-left:8px; flex:0 0 auto;" data-sell-catch="${c.id}|${c.name.replace(/"/g,'&quot;')}|${c.tier}">Sell</button>` : ''}
+      ${session && c.id ? `<button class="bag-sell-btn" data-sell-catch="${c.id}|${c.name.replace(/"/g,'&quot;')}|${c.tier}">Sell</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -6343,6 +6433,8 @@ async function afterAuthSuccess(result){
   refreshFriendsState();
   lastKnownBattleId = undefined; // treat this as a fresh session check -- no spurious VS reveal on sign-in
   refreshBattleState();
+  checkForSoldListings();
+  startMarketSaleTicker();
   showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
   renderAccountDrawer();
 }
@@ -6595,7 +6687,12 @@ function closeLeaderboard(){ $('leaderboard-fullscreen').classList.remove('show'
 /* ====================== FISH MARKET UI ====================== */
 function openMarket(){
   $('market-fullscreen').classList.add('show');
+  updateMarketBalanceDisplay();
   renderMarketContent();
+}
+function updateMarketBalanceDisplay(){
+  const el = $('market-balance');
+  if(el) el.textContent = `${getCoinsBalance().toLocaleString()} \u{1FA99}`;
 }
 function closeMarket(){ $('market-fullscreen').classList.remove('show'); }
 function switchMarketView(view){
@@ -6696,6 +6793,7 @@ async function buyFromGeneralMarket(tierKey, fishName, price){
   syncBagToCloud(bag);
   checkAchievements();
   showMarketBuyAnimation(fishName, tierKey, price);
+  updateMarketBalanceDisplay();
   renderGeneralMarket();
 }
 
@@ -6728,7 +6826,10 @@ function renderUserMarketList(){
   if(myListingsCache && myListingsCache.length){
     html += `<h3 class="mk-section-title">Your Listings</h3>`;
     html += myListingsCache.map(l=>{
-      const canReprice = (Date.now() - l.lastPriceChangeAt) >= 7*24*60*60*1000;
+      const weekMs = 7*24*60*60*1000;
+      const msSinceChange = Date.now() - l.lastPriceChangeAt;
+      const canReprice = msSinceChange >= weekMs;
+      const daysLeft = Math.ceil((weekMs - msSinceChange) / (24*60*60*1000));
       const t = tierMeta(l.fishTier);
       return `<div class="mk-listing-card">
         <span class="mk-fish-icon" style="color:${t.hex};">\u{1F41F}</span>
@@ -6738,7 +6839,7 @@ function renderUserMarketList(){
         </div>
         <div class="mk-listing-actions">
           <button class="mk-ghost-btn" data-cancel-listing="${l.id}">Cancel</button>
-          ${canReprice ? `<button class="mk-ghost-btn" data-reprice-listing="${l.id}|${l.fishTier}">Reprice</button>` : ''}
+          <button class="mk-ghost-btn" ${canReprice ? `data-reprice-listing="${l.id}|${l.fishTier}"` : 'disabled style="opacity:0.4;"'}>${canReprice ? 'Reprice' : `Reprice in ${daysLeft}d`}</button>
         </div>
       </div>`;
     }).join('');
@@ -6770,12 +6871,113 @@ async function buyUserListing(listingId){
     const result = await window.DriftlineCloud.purchaseListing(listingId, session.uid, session.displayName);
     checkAchievements();
     showMarketBuyAnimation(result.fishName, result.fishTier, result.price);
+    updateMarketBalanceDisplay();
     renderUserMarket();
   }catch(e){
     showToast(e.message || "Couldn't complete that purchase.");
     renderUserMarket();
   }
 }
+
+/* ---- Seller sale notifications (poll-based -- no real push available) ---- */
+let pendingSaleNotifications = [];
+function loadSeenSoldListings(){
+  try{ return new Set(JSON.parse(localStorage.getItem('driftline_seen_sold')||'[]')); }catch(e){ return new Set(); }
+}
+function saveSeenSoldListings(set){
+  localStorage.setItem('driftline_seen_sold', JSON.stringify([...set].slice(-300)));
+}
+async function checkForSoldListings(){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    const mine = await window.DriftlineCloud.fetchMyListings(session.uid);
+    const sold = mine.filter(l=>l.status==='sold');
+    const seen = loadSeenSoldListings();
+    const fresh = sold.filter(l=>!seen.has(l.id));
+    if(fresh.length){
+      fresh.forEach(l=>seen.add(l.id));
+      saveSeenSoldListings(seen);
+      pendingSaleNotifications.push(...fresh);
+      maybeShowNextSaleNotification();
+    }
+  }catch(e){ /* quietly retry on the next tick */ }
+}
+function maybeShowNextSaleNotification(){
+  if($('market-sold-overlay').classList.contains('show')) return;
+  const next = pendingSaleNotifications.shift();
+  if(next) showSaleNotification(next);
+}
+function showSaleNotification(listing){
+  const t = tierMeta(listing.fishTier);
+  const overlay = $('market-sold-overlay');
+  const icon = $('market-sold-fish-icon');
+  const iconSvg = icon.querySelector('svg');
+  iconSvg.setAttribute('stroke', t.hex);
+  iconSvg.querySelector('path').setAttribute('fill', t.hex);
+  iconSvg.querySelector('path').setAttribute('fill-opacity', '0.95');
+  iconSvg.querySelector('circle').setAttribute('fill', '#04121f');
+  $('market-sold-fish-name').textContent = listing.fishName;
+  $('market-sold-buyer').textContent = `to ${listing.buyerDisplayName}`;
+  const coinEl = $('market-sold-coin-count');
+  coinEl.dataset.target = listing.askPrice;
+  coinEl.textContent = '0';
+
+  const els = [icon, $('market-sold-title'), $('market-sold-fish-name'), $('market-sold-buyer'), $('market-sold-coin-row'), $('market-sold-sub'), $('market-sold-close')];
+  els.forEach(el=> el.style.opacity = '0');
+
+  overlay.classList.add('show');
+  ensureAudioCtx();
+  icon.animate([{transform:'scale(0)', opacity:0},{transform:'scale(1.15)', opacity:1},{transform:'scale(1)', opacity:1}], {duration:450, easing:'ease-out', fill:'forwards'});
+  playTone(587, 0, 0.15, 'triangle', 0.13);
+
+  setTimeout(()=>{
+    $('market-sold-title').style.opacity='1';
+    $('market-sold-fish-name').style.opacity='1';
+    $('market-sold-buyer').style.opacity='1';
+  }, 350);
+
+  setTimeout(()=>{
+    $('market-sold-coin-row').style.opacity='1';
+    animateDuelingScore('market-sold-coin-count');
+    [523,659,784].forEach((f,i)=> playTone(f, i*0.09, 0.16, 'triangle', 0.13));
+    if('vibrate' in navigator) navigator.vibrate([25,15,25,15,45]);
+  }, 800);
+
+  setTimeout(()=>{
+    $('market-sold-sub').style.opacity='1';
+    $('market-sold-close').style.opacity='1';
+  }, 1800);
+}
+
+/* ---- Daily market digest (once per calendar day) ---- */
+function checkDailyMarketDigest(){
+  const todayStr = new Date().toDateString();
+  const lastSeen = localStorage.getItem('driftline_market_digest_seen');
+  if(lastSeen === todayStr) return;
+  localStorage.setItem('driftline_market_digest_seen', todayStr);
+  if(lastSeen === null) return; // first-ever session: nothing to compare against yet
+  showMarketDigest();
+}
+function showMarketDigest(){
+  const tiers = ['common','hard','rare','superrare','ultimate','abyssal'];
+  const todayIdx = marketDayIndex(Date.now());
+  const rows = tiers.map(tk=>{
+    const hist = marketHistoryForTier(tk, todayIdx);
+    const today = hist[hist.length-1].price;
+    const yesterday = hist.length>1 ? hist[hist.length-2].price : today;
+    const pct = yesterday>0 ? Math.round((today/yesterday-1)*100) : 0;
+    const t = tierMeta(tk);
+    return `<div class="mkd-row">
+      <span style="color:${t.hex};">${t.label}</span>
+      <span>${Math.round(yesterday).toLocaleString()} \u2192 ${Math.round(today).toLocaleString()} \u{1FA99}
+        <span class="mkd-change ${pct>=0?'up':'down'}">(${pct>=0?'+':''}${pct}%)</span>
+      </span>
+    </div>`;
+  }).join('');
+  $('market-digest-list').innerHTML = rows;
+  $('market-digest-overlay').classList.add('show');
+}
+
 async function cancelMyListing(listingId){
   if(!session || !window.DriftlineCloud) return;
   try{
@@ -7086,9 +7288,12 @@ function beginGame(pt, accuracy){
   startWorldEventTicker();
   ensureBagCatchIds();
   updateRatioChip();
+  checkDailyMarketDigest();
   if(session){
     refreshFriendsState();
     refreshBattleState();
+    checkForSoldListings();
+    startMarketSaleTicker();
   }
   maybeAutoStartTutorial();
 }
@@ -7280,6 +7485,13 @@ $('market-sell-options').addEventListener('click', (e)=>{
 $('market-sell-confirm').addEventListener('click', confirmSellOrReprice);
 $('market-buy-close').addEventListener('click', ()=>{
   $('market-buy-overlay').classList.remove('show');
+});
+$('market-sold-close').addEventListener('click', ()=>{
+  $('market-sold-overlay').classList.remove('show');
+  setTimeout(maybeShowNextSaleNotification, 400);
+});
+$('market-digest-close').addEventListener('click', ()=>{
+  $('market-digest-overlay').classList.remove('show');
 });
 $('ratio-chip').addEventListener('click', showRatioDetail);
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
