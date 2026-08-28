@@ -1165,6 +1165,39 @@
   }
   .mk-price-opt.selected{border-color:#0e86c4; background:rgba(14,134,196,0.08); color:#0e86c4;}
 
+  #market-buy-overlay{
+    position:fixed; inset:0; z-index:975; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(57,198,107,0.28), transparent 60%),
+      linear-gradient(180deg, #05261a 0%, #031810 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #market-buy-overlay.show{opacity:1; pointer-events:auto;}
+  #market-buy-card{position:relative; z-index:2; width:100%; max-width:320px; text-align:center;}
+  #market-buy-fish-icon{
+    width:76px; height:76px; margin:0 auto 4px; border-radius:50%;
+    background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;
+    transform:scale(0); opacity:0;
+  }
+  #market-buy-fish-icon svg{width:38px; height:38px;}
+  #market-buy-title{font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px; color:#39ff8f; margin:10px 0 4px; opacity:0;}
+  #market-buy-fish-name{font-weight:700; font-size:15px; color:#fff; opacity:0;}
+  #market-buy-price{font-size:12.5px; color:rgba(255,255,255,0.6); font-weight:700; margin-top:2px; opacity:0;}
+  #market-buy-path{position:relative; height:46px; margin:10px 0; opacity:0;}
+  #market-buy-path-dot{
+    position:absolute; top:0; left:50%; width:10px; height:10px; border-radius:50%;
+    background:#39ff8f; transform:translateX(-50%);
+  }
+  #market-buy-bag-target{
+    width:52px; height:52px; margin:0 auto; border-radius:16px;
+    background:rgba(14,134,196,0.15); display:flex; align-items:center; justify-content:center;
+    opacity:0; transform:scale(0.7);
+  }
+  #market-buy-bag-target svg{width:26px; height:26px;}
+  #market-buy-sub{font-size:12.5px; color:rgba(255,255,255,0.65); margin-top:8px; opacity:0;}
+  #market-buy-close{background:linear-gradient(160deg,#39ff8f,#0e86c4); color:#04201c; opacity:0;}
+
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
     background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); margin-bottom:9px;
@@ -1860,6 +1893,25 @@
     <p class="bc-desc">Choose your asking price:</p>
     <div id="market-sell-options"></div>
     <button class="btn btn-primary" id="market-sell-confirm" style="width:100%; margin-top:14px;">List for Sale</button>
+  </div>
+</div>
+
+<div id="market-buy-overlay">
+  <div id="market-buy-card">
+    <div id="market-buy-fish-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z"/><circle cx="15" cy="12" r="1.2"/></svg>
+    </div>
+    <div id="market-buy-title">Purchased!</div>
+    <div id="market-buy-fish-name">Bluegill</div>
+    <div id="market-buy-price">120 🪙</div>
+    <div id="market-buy-path">
+      <span id="market-buy-path-dot"></span>
+    </div>
+    <div id="market-buy-bag-target">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0e86c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+    </div>
+    <div id="market-buy-sub">Added to your bag</div>
+    <button class="btn btn-primary" id="market-buy-close" style="width:100%; margin-top:16px;">Nice</button>
   </div>
 </div>
 
@@ -2583,7 +2635,10 @@ function ensureBagCatchIds(){
   const bag = loadBag();
   let changed = false;
   bag.forEach(c=>{ if(!c.id){ c.id = genCatchId(); changed = true; } });
-  if(changed) saveBag(bag);
+  if(changed){
+    saveBag(bag);
+    syncBagToCloud(bag); // otherwise a signed-in player's cloud copy stays permanently id-less
+  }
 }
 function loadShareState(){
   try{
@@ -6280,6 +6335,7 @@ async function afterAuthSuccess(result){
   renderPrawnTrapMarker();
   renderCrabTrapMarker();
 
+  ensureBagCatchIds();
   updateBagBadge();
   if(bagViewMode) renderBag();
   checkSigninReminder();
@@ -6287,7 +6343,6 @@ async function afterAuthSuccess(result){
   refreshFriendsState();
   lastKnownBattleId = undefined; // treat this as a fresh session check -- no spurious VS reveal on sign-in
   refreshBattleState();
-  ensureBagCatchIds();
   showToast(`Signed in as ${session.displayName} \u2014 your bag is synced.`);
   renderAccountDrawer();
 }
@@ -6581,6 +6636,53 @@ function renderGeneralMarket(){
   });
   content.innerHTML = html;
 }
+function showMarketBuyAnimation(fishName, tierKey, price){
+  const t = tierMeta(tierKey);
+  const overlay = $('market-buy-overlay');
+  const icon = $('market-buy-fish-icon');
+  const iconSvg = icon.querySelector('svg');
+  iconSvg.setAttribute('stroke', t.hex);
+  iconSvg.querySelector('path').setAttribute('fill', t.hex);
+  iconSvg.querySelector('path').setAttribute('fill-opacity', '0.95');
+  iconSvg.querySelector('circle').setAttribute('fill', '#04121f');
+  $('market-buy-fish-name').textContent = fishName;
+  $('market-buy-price').textContent = `${price.toLocaleString()} \u{1FA99}`;
+
+  const els = [icon, $('market-buy-title'), $('market-buy-fish-name'), $('market-buy-price'), $('market-buy-path'), $('market-buy-bag-target'), $('market-buy-sub'), $('market-buy-close')];
+  els.forEach(el=> el.style.opacity = '0');
+  const dot = $('market-buy-path-dot');
+  dot.style.top = '0px';
+
+  overlay.classList.add('show');
+  ensureAudioCtx();
+
+  icon.animate([{transform:'scale(0)', opacity:0},{transform:'scale(1.15)', opacity:1},{transform:'scale(1)', opacity:1}], {duration:450, easing:'ease-out', fill:'forwards'});
+  playTone(660, 0, 0.15, 'triangle', 0.13);
+
+  setTimeout(()=>{
+    $('market-buy-title').style.opacity='1';
+    $('market-buy-fish-name').style.opacity='1';
+    $('market-buy-price').style.opacity='1';
+  }, 350);
+
+  setTimeout(()=>{
+    $('market-buy-path').style.opacity='1';
+    dot.animate([{top:'0px'},{top:'40px'}], {duration:500, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards'});
+  }, 700);
+
+  setTimeout(()=>{
+    const bagTarget = $('market-buy-bag-target');
+    bagTarget.style.opacity='1';
+    bagTarget.animate([{transform:'scale(0.7)'},{transform:'scale(1.2)'},{transform:'scale(1)'}], {duration:350, easing:'ease-out', fill:'forwards'});
+    playTone(880, 0, 0.14, 'triangle', 0.14);
+    if('vibrate' in navigator) navigator.vibrate([25,15,35]);
+  }, 1150);
+
+  setTimeout(()=>{
+    $('market-buy-sub').style.opacity='1';
+    $('market-buy-close').style.opacity='1';
+  }, 1450);
+}
 async function buyFromGeneralMarket(tierKey, fishName, price){
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
   shopState.coinsSpent = (shopState.coinsSpent||0) + price;
@@ -6593,7 +6695,7 @@ async function buyFromGeneralMarket(tierKey, fishName, price){
   updateBagBadge();
   syncBagToCloud(bag);
   checkAchievements();
-  showToast(`\u{1F41F} Bought ${fishName} for ${price.toLocaleString()} \u{1FA99}!`);
+  showMarketBuyAnimation(fishName, tierKey, price);
   renderGeneralMarket();
 }
 
@@ -6666,8 +6768,8 @@ async function buyUserListing(listingId){
   if(!session || !window.DriftlineCloud) return;
   try{
     const result = await window.DriftlineCloud.purchaseListing(listingId, session.uid, session.displayName);
-    showToast(`\u{1F41F} Bought ${result.fishName} from ${result.sellerDisplayName} for ${result.price.toLocaleString()} \u{1FA99}!`);
     checkAchievements();
+    showMarketBuyAnimation(result.fishName, result.fishTier, result.price);
     renderUserMarket();
   }catch(e){
     showToast(e.message || "Couldn't complete that purchase.");
@@ -7176,6 +7278,9 @@ $('market-sell-options').addEventListener('click', (e)=>{
   marketSelectedPricePct = parseInt(opt.dataset.sellPct, 10);
 });
 $('market-sell-confirm').addEventListener('click', confirmSellOrReprice);
+$('market-buy-close').addEventListener('click', ()=>{
+  $('market-buy-overlay').classList.remove('show');
+});
 $('ratio-chip').addEventListener('click', showRatioDetail);
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
 document.querySelectorAll('.lb-period-tab').forEach(tab=>{
