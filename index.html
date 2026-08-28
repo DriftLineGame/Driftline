@@ -3200,9 +3200,9 @@ function tickBoost(){
 function initMap(centerPt){
   const initialZoom = mapMode === 'walking' ? 16 : 13;
   map = L.map('map', { zoomControl:false, attributionControl:true }).setView([centerPt.lat, centerPt.lng], initialZoom);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd', maxZoom: 19
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    subdomains: 'abc', maxZoom: 19
   }).addTo(map);
 
   regionCircle = L.circle([centerPt.lat, centerPt.lng], {
@@ -6869,6 +6869,18 @@ async function buyUserListing(listingId){
   if(!session || !window.DriftlineCloud) return;
   try{
     const result = await window.DriftlineCloud.purchaseListing(listingId, session.uid, session.displayName);
+    // The transaction only updated Firestore -- pull my own authoritative
+    // post-purchase state back down, since this device's local bag/coins
+    // otherwise have no idea the trade happened at all.
+    const myFresh = await window.DriftlineCloud.fetchPlayerByUid(session.uid);
+    if(myFresh){
+      saveBag(myFresh.bag || []);
+      shopState = normalizeShopState(myFresh.shop);
+      saveShopState();
+      updateBagBadge();
+      updateEquippedVisuals();
+      if(bagViewMode) renderBag();
+    }
     checkAchievements();
     showMarketBuyAnimation(result.fishName, result.fishTier, result.price);
     updateMarketBalanceDisplay();
@@ -6897,6 +6909,18 @@ async function checkForSoldListings(){
     if(fresh.length){
       fresh.forEach(l=>seen.add(l.id));
       saveSeenSoldListings(seen);
+      // The fish left my bag and my coins were credited entirely
+      // server-side by the buyer's transaction -- this device has no idea
+      // either happened yet until I pull my own fresh state down.
+      const myFresh = await window.DriftlineCloud.fetchPlayerByUid(session.uid);
+      if(myFresh){
+        saveBag(myFresh.bag || []);
+        shopState = normalizeShopState(myFresh.shop);
+        saveShopState();
+        updateBagBadge();
+        updateEquippedVisuals();
+        if(bagViewMode) renderBag();
+      }
       pendingSaleNotifications.push(...fresh);
       maybeShowNextSaleNotification();
     }
