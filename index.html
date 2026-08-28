@@ -2126,7 +2126,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction,
+    getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, increment,
     collection, query, orderBy, limit, where, getDocs
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -2195,8 +2195,27 @@
   }
 
   async function syncShop(uid, shopState){
+    // coinsSpent is deliberately excluded here and NEVER written by this
+    // function -- it's the one field that can be modified concurrently by
+    // someone else's market transaction (a fish sale), and a routine
+    // absolute overwrite from a stale local snapshot would silently wipe
+    // out that credit/debit. Every other shop field is safe to sync
+    // wholesale via dot-notation paths (each written independently, so
+    // none of them touch coinsSpent either).
     const ref = doc(db, 'players', uid);
-    await updateDoc(ref, { shop: shopState });
+    const { coinsSpent, ...rest } = shopState;
+    const updates = {};
+    Object.keys(rest).forEach(k=>{ updates['shop.'+k] = rest[k]; });
+    updates.updatedAt = Date.now();
+    await updateDoc(ref, updates);
+  }
+  async function adjustCoinsSpent(uid, delta){
+    // The ONLY correct way to change coinsSpent -- an atomic, order
+    // independent increment that can never be clobbered by (or clobber)
+    // any other concurrent write to this same field, from this device or
+    // any other.
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { 'shop.coinsSpent': increment(delta), updatedAt: Date.now() });
   }
 
   async function syncPrawnTrap(uid, prawnState){
@@ -2278,6 +2297,12 @@
     // Transaction-guarded so two buyers racing for the same listing can't
     // both succeed -- whichever transaction commits first wins; the loser
     // gets a clean "already sold" error instead of a duplicated fish.
+    // Coin changes use increment() via dot-notation on 'shop.coinsSpent'
+    // specifically -- NEVER an absolute { shop: {...} } overwrite -- so
+    // this can't be clobbered by (or clobber) any other concurrent write
+    // to a different part of that player's shop object, like a routine
+    // cosmetic/achievement sync firing on their own device at the same
+    // moment.
     const listingRef = doc(db, 'listings', listingId);
     return await runTransaction(db, async (tx)=>{
       const listingSnap = await tx.get(listingRef);
@@ -2307,15 +2332,8 @@
       const buyerBag = buyerData.bag || [];
       buyerBag.unshift({ ...fishEntry, id: `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`, ts: Date.now() });
 
-      const sellerShop = sellerData.shop || {};
-      sellerShop.coinsSpent = (sellerShop.coinsSpent||0) - listing.fishPointValue - listing.askPrice;
-      sellerShop.updatedAt = Date.now();
-
-      buyerShop.coinsSpent = (buyerShop.coinsSpent||0) + listing.askPrice;
-      buyerShop.updatedAt = Date.now();
-
-      tx.update(sellerRef, { bag: sellerBag, shop: sellerShop, updatedAt: Date.now() });
-      tx.update(buyerRef, { bag: buyerBag, shop: buyerShop, updatedAt: Date.now() });
+      tx.update(sellerRef, { bag: sellerBag, 'shop.coinsSpent': increment(-listing.fishPointValue - listing.askPrice), 'shop.updatedAt': Date.now(), updatedAt: Date.now() });
+      tx.update(buyerRef, { bag: buyerBag, 'shop.coinsSpent': increment(listing.askPrice), 'shop.updatedAt': Date.now(), updatedAt: Date.now() });
       tx.update(listingRef, { status:'sold', buyerUid, buyerDisplayName, soldAt: Date.now() });
 
       return { fishName: listing.fishName, fishTier: listing.fishTier, price: listing.askPrice, sellerDisplayName: listing.sellerDisplayName };
@@ -2612,7 +2630,7 @@
     fetchLeaderboard, fetchAllPlayersForPeriods,
     sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid,
     sendBattleChallenge, respondBattleChallenge, completeBattle, forfeitBattle, fetchBattleState, fetchBattleLeaderboard,
-    createListing, cancelListing, repriceListing, fetchActiveListings, fetchMyListings, purchaseListing
+    createListing, cancelListing, repriceListing, fetchActiveListings, fetchMyListings, purchaseListing, adjustCoinsSpent
   };
 </script>
 
@@ -2882,6 +2900,16 @@ function saveShopState(){ localStorage.setItem('driftline_shop', JSON.stringify(
 function syncShopToCloud(){
   if(!session || !window.DriftlineCloud) return;
   window.DriftlineCloud.syncShop(session.uid, shopState).catch(()=>{});
+}
+function spendCoins(amount){
+  // The only correct way to spend coins locally -- updates the local
+  // running total for instant UI feedback, AND fires an atomic cloud
+  // increment (never an absolute overwrite) so this can't be clobbered by,
+  // or clobber, a concurrent market transaction touching the same field.
+  shopState.coinsSpent = (shopState.coinsSpent||0) + amount;
+  if(session && window.DriftlineCloud){
+    window.DriftlineCloud.adjustCoinsSpent(session.uid, amount).catch(()=>{});
+  }
 }
 function loadPrawnTrap(){
   try{
@@ -5563,7 +5591,7 @@ function renderGearView(){
 function buyRodToken(){
   const price = nextRodTokenPrice();
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent += price;
+  spendCoins(price);
   shopState.bonusRodLevels = (shopState.bonusRodLevels||0)+1;
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -5575,7 +5603,7 @@ const MAP_REGEN_PRICE = 100;
 const MAP_FREEZE_PRICE = 60;
 function buyMapRegen(){
   if(getCoinsBalance() < MAP_REGEN_PRICE){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent += MAP_REGEN_PRICE;
+  spendCoins(MAP_REGEN_PRICE);
   shopState.updatedAt = Date.now();
   saveShopState();
   syncShopToCloud();
@@ -5585,7 +5613,7 @@ function buyMapRegen(){
 }
 function buyMapFreeze(){
   if(getCoinsBalance() < MAP_FREEZE_PRICE){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent += MAP_FREEZE_PRICE;
+  spendCoins(MAP_FREEZE_PRICE);
   shopState.updatedAt = Date.now();
   saveShopState();
   syncShopToCloud();
@@ -5597,7 +5625,7 @@ function buyItem(key){
   const item = SHOP_ITEMS[key];
   if(!item) return;
   if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent += item.price;
+  spendCoins(item.price);
   shopState.inventory[key] = (shopState.inventory[key]||0)+1;
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -5639,7 +5667,7 @@ function buyCosmetic(type, id){
   const owned = shopState.ownedCosmetics[cosmeticOwnedKeyFor(type)];
   if(owned.includes(id)) return;
   if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent += item.price;
+  spendCoins(item.price);
   owned.push(id);
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -6782,7 +6810,7 @@ function showMarketBuyAnimation(fishName, tierKey, price){
 }
 async function buyFromGeneralMarket(tierKey, fishName, price){
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
-  shopState.coinsSpent = (shopState.coinsSpent||0) + price;
+  spendCoins(price);
   shopState.updatedAt = Date.now();
   saveShopState();
   syncShopToCloud();
