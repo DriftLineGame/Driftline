@@ -2333,7 +2333,11 @@
       buyerBag.unshift({ ...fishEntry, id: `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`, ts: Date.now() });
 
       tx.update(sellerRef, { bag: sellerBag, 'shop.coinsSpent': increment(-listing.fishPointValue - listing.askPrice), 'shop.updatedAt': Date.now(), updatedAt: Date.now() });
-      tx.update(buyerRef, { bag: buyerBag, 'shop.coinsSpent': increment(listing.askPrice), 'shop.updatedAt': Date.now(), updatedAt: Date.now() });
+      // The fish being added to the buyer's bag increases their own
+      // computePoints() by fishPointValue -- without offsetting that here,
+      // the purchase would effectively cost askPrice minus the fish's own
+      // point value instead of the full listed price.
+      tx.update(buyerRef, { bag: buyerBag, 'shop.coinsSpent': increment(listing.askPrice + listing.fishPointValue), 'shop.updatedAt': Date.now(), updatedAt: Date.now() });
       tx.update(listingRef, { status:'sold', buyerUid, buyerDisplayName, soldAt: Date.now() });
 
       return { fishName: listing.fishName, fishTier: listing.fishTier, price: listing.askPrice, sellerDisplayName: listing.sellerDisplayName };
@@ -6810,7 +6814,12 @@ function showMarketBuyAnimation(fishName, tierKey, price){
 }
 async function buyFromGeneralMarket(tierKey, fishName, price){
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
-  spendCoins(price);
+  // The fish about to be added to the bag increases computePoints() by its
+  // own point value -- offset that in the same spend, or the purchase
+  // would effectively cost less than the listed price (same bug as the
+  // User Market buyer side).
+  const fishPointValue = 1 + Math.max(0, tierIndexOf(tierKey));
+  spendCoins(price + fishPointValue);
   shopState.updatedAt = Date.now();
   saveShopState();
   syncShopToCloud();
