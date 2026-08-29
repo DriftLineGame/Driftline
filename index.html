@@ -1263,6 +1263,12 @@
 
   #leaderboard-list{position:relative; z-index:2; padding:18px 16px 100px; max-width:480px; margin:0 auto;}
   .lb-loading{text-align:center; padding:60px 20px; color:rgba(255,255,255,0.55); font-size:13.5px;}
+  .signin-required-prompt{
+    text-align:center; padding:60px 24px 20px; max-width:300px; margin:0 auto;
+  }
+  .signin-required-icon{font-size:42px; margin-bottom:10px;}
+  .signin-required-prompt h3{font-family:'Bricolage Grotesque'; font-weight:800; font-size:19px; color:#fff; margin:0 0 8px;}
+  .signin-required-prompt p{font-size:13px; color:rgba(255,255,255,0.65); line-height:1.5; margin:0 0 20px;}
 
   /* ---------- Fish Market ---------- */
   #market-content{position:relative; z-index:2; padding:18px 16px 100px; max-width:480px; margin:0 auto;}
@@ -1626,6 +1632,17 @@
   .lb-avatar{width:26px; flex:0 0 auto; font-size:18px; text-align:center;}
   .lb-name{flex:1; font-weight:700; font-size:14.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;}
   .sub-badge{font-size:13px; margin-left:4px; vertical-align:middle;}
+  .platinum-name{
+    background:linear-gradient(90deg, #4fe0ff, #0e86c4, #7c5cff, #4fe0ff);
+    background-size:300% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:platinumNameShift 4s ease-in-out infinite;
+    font-weight:800;
+  }
+  @keyframes platinumNameShift{
+    0%,100%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+  }
   .lb-points{flex:0 0 auto; font-weight:800; font-size:13.5px; color:#00e5ff; font-variant-numeric:tabular-nums;}
   .lb-row.lb-top1 .lb-points{color:#ffd23f;}
 
@@ -2386,7 +2403,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.31</h2>
+    <h2 id="version-popup-number">v2.4</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2544,7 +2561,7 @@
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
   <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.31 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.4 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -4128,6 +4145,7 @@ function hapticBuzz(tierKey){
 
 /* ====================== FISHING FLOW ====================== */
 function isAbyssalUnlocked(){
+  if(getActiveSubscriptionTier()==='platinum') return true;
   const caught = new Set(loadBag().map(c=>c.name));
   return FISH_DATA.ultimate.every(name=>caught.has(name));
 }
@@ -5441,9 +5459,10 @@ const DAILY_WRITE_LIMIT = 100;
 
 // ---- Subscription tiers (paid for with Chum Coins -- no real money yet) ----
 const SUBSCRIPTION_TIERS = {
-  free:    { label:'Free',    multiplier:1,  badge:null, badgeColor:null },
-  plus:    { label:'Plus',    multiplier:2,  badge:'\u2B50', badgeColor:'#0e86c4' },
-  premium: { label:'Premium', multiplier:10, badge:'\u{1F451}', badgeColor:'#ffd23f' }
+  free:    { label:'Free',     multiplier:1,   badge:null, badgeColor:null, gradientName:false, unlocksAllCosmetics:false, unlocksAbyssal:false },
+  plus:    { label:'Plus',     multiplier:2,   badge:'\u2B50', badgeColor:'#0e86c4', gradientName:false, unlocksAllCosmetics:false, unlocksAbyssal:false },
+  premium: { label:'Premium',  multiplier:10,  badge:'\u{1F451}', badgeColor:'#ffd23f', gradientName:false, unlocksAllCosmetics:false, unlocksAbyssal:false },
+  platinum:{ label:'Platinum', multiplier:100, badge:'\u{1F48E}', badgeColor:'#7dd8ff', gradientName:true, unlocksAllCosmetics:true, unlocksAbyssal:true }
 };
 // dailyEquivalent = price if paying the day-rate every day for that period --
 // shown crossed out next to the real price so players see the real discount.
@@ -5460,6 +5479,11 @@ const SUBSCRIPTION_PRICING = {
     day:   { cc: 125,   days: 1,   dailyEquivalent: null },
     month: { cc: 3000,  days: 30,  dailyEquivalent: 3750 },
     year:  { cc: 27375, days: 365, dailyEquivalent: 45625 }
+  },
+  platinum: {
+    day:   { cc: 950,    days: 1,   dailyEquivalent: null },
+    month: { cc: 22800,  days: 30,  dailyEquivalent: 28500 },
+    year:  { cc: 208050, days: 365, dailyEquivalent: 346750 }
   }
 };
 function getActiveSubscriptionEntries(){
@@ -5493,6 +5517,14 @@ function subscriptionBadgeHtml(tier){
   const t = SUBSCRIPTION_TIERS[tier];
   if(!t || !t.badge) return '';
   return `<span class="sub-badge" style="color:${t.badgeColor};" title="${t.label}">${t.badge}</span>`;
+}
+function subscriptionNameClass(tier){
+  const t = SUBSCRIPTION_TIERS[tier];
+  return (t && t.gradientName) ? 'platinum-name' : '';
+}
+function wrapPlayerName(name, tier){
+  const cls = subscriptionNameClass(tier);
+  return cls ? `<span class="${cls}">${name}</span>` : name;
 }
 function previewSubscriptionPurchase(tierKey, durationKey){
   // Used by the confirm dialog so players see exactly what buying this
@@ -5539,6 +5571,18 @@ function purchaseSubscription(tierKey, durationKey){
   saveShopState();
   syncShopToCloud();
   return { ok:true, tier:tierKey, days:plan.days };
+}
+function ensureAdminPlatinum(){
+  // The admin account always has Platinum, at no cost, auto-renewed --
+  // this checks on every load/sign-in and only acts if the current grant
+  // is missing or has actually expired, so it never spams redundant writes.
+  if(!isDriftlineAdmin()) return;
+  const active = getActiveSubscriptionEntries();
+  if(active.some(s=>s.tier==='platinum')) return;
+  shopState.subscriptions = [{ tier:'platinum', expiresAt: Date.now() + 365*86400000 }];
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
 }
 
 function isDriftlineAdmin(){
@@ -5617,10 +5661,11 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.31';
+const GAME_VERSION = '2.4';
 const GAME_VERSION_CHANGELOG = [
-  'Renamed "reads" and "writes" to plain-language "Checks" and "Actions" everywhere in the app \u2014 same daily limits as before, just clearer names',
-  'The technical Firestore terms are still there in fine print on the Subscription Policy page, for anyone who wants the detail'
+  'New top subscription tier: Platinum \u2014 10,000/10,000 daily Checks & Actions (10x Premium)',
+  'Platinum unlocks a glowing gradient name, every avatar/hook/marker cosmetic with no buying needed, and the Abyssal fish tier with no catch requirement',
+  'Signing out now requires signing back in to view the Leaderboard or the Fish Market \u2014 your local fishing still works fine either way'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6608,7 +6653,7 @@ function renderShopView(){
 
   html += `<h3 class="shop-section-title">\u{1F3A3} Avatar Icons</h3>`;
   html += `<div class="shop-grid">` + AVATAR_COSMETICS.map(c=>{
-    const owned = shopState.ownedCosmetics.avatars.includes(c.id);
+    const owned = isCosmeticEffectivelyOwned('avatar', c.id);
     const equipped = shopState.equipped.avatar === c.id;
     return `<div class="shop-card">
       <div class="shop-card-icon">${c.emoji}</div>
@@ -6621,7 +6666,7 @@ function renderShopView(){
 
   html += `<h3 class="shop-section-title">\u{1FA9D} Hook Skins</h3>`;
   html += `<div class="shop-grid">` + HOOK_COSMETICS.map(c=>{
-    const owned = shopState.ownedCosmetics.hooks.includes(c.id);
+    const owned = isCosmeticEffectivelyOwned('hook', c.id);
     const equipped = shopState.equipped.hook === c.id;
     return `<div class="shop-card">
       <div class="shop-card-icon" style="color:${c.color}">\u2014</div>
@@ -6634,7 +6679,7 @@ function renderShopView(){
 
   html += `<h3 class="shop-section-title">\u{1F4CD} Map Marker Colors</h3>`;
   html += `<div class="shop-grid">` + MARKER_COSMETICS.map(c=>{
-    const owned = shopState.ownedCosmetics.markers.includes(c.id);
+    const owned = isCosmeticEffectivelyOwned('marker', c.id);
     const equipped = shopState.equipped.marker === c.id;
     return `<div class="shop-card">
       <div class="shop-card-icon"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};border:2px solid #fff;box-shadow:0 0 0 2px ${c.color}"></span></div>
@@ -6801,6 +6846,14 @@ function cosmeticOwnedKeyFor(type){
   if(type==='avatar') return 'avatars';
   if(type==='hook') return 'hooks';
   return 'markers';
+}
+function isCosmeticEffectivelyOwned(type, id){
+  // Platinum unlocks every cosmetic WHILE active -- this is a live check,
+  // not a permanent grant, so it correctly reverts if the subscription
+  // lapses (same "perk applies while subscribed" model as the usage
+  // multiplier itself).
+  if(getActiveSubscriptionTier()==='platinum') return true;
+  return shopState.ownedCosmetics[cosmeticOwnedKeyFor(type)].includes(id);
 }
 function buyCosmetic(type, id){
   const list = cosmeticListFor(type);
@@ -7533,7 +7586,7 @@ function renderAccountDrawer(){
     const bag = loadBag();
     const points = computePoints(bag);
     const achCount = (shopState.unlockedAchievements||[]).length;
-    $('account-name').innerHTML = session.displayName + subscriptionBadgeHtml(getActiveSubscriptionTier());
+    $('account-name').innerHTML = wrapPlayerName(session.displayName, getActiveSubscriptionTier()) + subscriptionBadgeHtml(getActiveSubscriptionTier());
     $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches \u00b7 ${achCount}/${ACHIEVEMENTS.length} achievements`;
     $('account-rank').textContent = 'Checking your rank...';
     updateAccountUsageCard();
@@ -7632,6 +7685,7 @@ async function afterAuthSuccess(result){
     saveGoldTrap();
   }
 
+  ensureAdminPlatinum();
   saveShopState();
   syncShopToCloud();
   updateEquippedVisuals();
@@ -7896,6 +7950,10 @@ let lbPeriod = 'all';
 
 async function openLeaderboard(){
   $('leaderboard-fullscreen').classList.add('show');
+  if(!session){
+    $('leaderboard-list').innerHTML = signInRequiredHtml('leaderboard');
+    return;
+  }
   $('leaderboard-list').innerHTML = '<div class="lb-loading">Loading leaderboard\u2026</div>';
   ensureAudioCtx();
   playTone(660, 0, 0.12, 'triangle', 0.1);
@@ -7953,12 +8011,24 @@ function startMarketCountdownTicker(){
 function stopMarketCountdownTicker(){
   clearInterval(marketCountdownTickInterval);
 }
+function signInRequiredHtml(featureLabel){
+  return `<div class="signin-required-prompt">
+    <div class="signin-required-icon">\u{1F512}</div>
+    <h3>Sign In to Continue</h3>
+    <p>Create a free account to see the ${featureLabel} \u2014 takes seconds, no email needed.</p>
+    <button class="btn btn-primary" id="signin-required-btn" style="width:100%;">Sign In / Sign Up</button>
+  </div>`;
+}
 function switchMarketView(view){
   marketView = view;
   document.querySelectorAll('[data-market-view]').forEach(t=>t.classList.toggle('active', t.dataset.marketView===view));
   renderMarketContent();
 }
 function renderMarketContent(){
+  if(!session){
+    $('market-content').innerHTML = signInRequiredHtml('Fish Market');
+    return;
+  }
   if(marketView === 'general') renderGeneralMarket();
   else if(marketView === 'user') renderUserMarket();
   else if(marketView === 'subscriptions') renderSubscriptionsView();
@@ -7987,12 +8057,19 @@ function renderSubscriptionsView(){
   }
   html += `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Paid entirely with Chum Coins you've earned \u2014 no real money involved. Buying the <strong>same</strong> tier again stacks on top (more days AND more daily usage while both overlap). Buying a <strong>different</strong> tier replaces what you have.</p>`;
 
-  ['plus','premium'].forEach(tierKey=>{
+  ['plus','premium','platinum'].forEach(tierKey=>{
     const t = SUBSCRIPTION_TIERS[tierKey];
     const pricing = SUBSCRIPTION_PRICING[tierKey];
-    const perks = tierKey==='premium'
-      ? [`${t.multiplier}x daily Checks &amp; Actions (1,000/1,000 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`, `Early access to new features before anyone else`]
-      : [`${t.multiplier}x daily Checks &amp; Actions (200/200 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`];
+    const usageAmount = (100*t.multiplier).toLocaleString();
+    const perks = [`${t.multiplier}x daily Checks &amp; Actions (${usageAmount}/${usageAmount} a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`];
+    if(tierKey==='premium'){
+      perks.push('Early access to new features before anyone else');
+    }
+    if(tierKey==='platinum'){
+      perks.push('Your name shows in a glowing blue gradient everywhere it appears');
+      perks.push('Every avatar icon, hook skin, and map marker color \u2014 unlocked, no buying needed');
+      perks.push('The Abyssal fish tier is unlocked immediately, no catch requirement');
+    }
     html += `<div class="sub-tier-card" style="--sub-color:${t.badgeColor};">
       <div class="sub-tier-head"><span class="sub-tier-badge">${t.badge}</span><span class="sub-tier-name">${t.label}</span></div>
       <ul class="sub-perk-list">${perks.map(p=>`<li>${p}</li>`).join('')}</ul>
@@ -8587,7 +8664,7 @@ function renderBattleLeaderboardList(){
     return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-avatar">${avatarObj.emoji}</div>
-      <div class="lb-name">${p.displayName}${subBadge}${isMe?' (you)':''}</div>
+      <div class="lb-name">${wrapPlayerName(p.displayName, p.subTier)}${subBadge}${isMe?' (you)':''}</div>
       <div class="lb-points">${winPct}% <span style="opacity:0.6; font-weight:600;">(${p.wins}-${p.losses}-${p.draws})</span></div>
     </div>`;
   }).join('');
@@ -8629,7 +8706,7 @@ function renderLeaderboard(list, period){
     return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-avatar">${avatarObj.emoji}</div>
-      <div class="lb-name">${p.displayName}${subBadge}${isMe?' (you)':''}</div>
+      <div class="lb-name">${wrapPlayerName(p.displayName, p.subTier)}${subBadge}${isMe?' (you)':''}</div>
       <div class="lb-points" data-target="${p.points}">0 pts</div>
     </div>`;
   }).join('');
@@ -8734,6 +8811,7 @@ function beginGame(pt, accuracy){
   silentlyBackfillAchievements();
   updateDailyStreak();
   checkWeeklyChallenge();
+  ensureAdminPlatinum();
   updatePrawnChip();
   startPrawnTicker();
   updateCrabChip();
@@ -8917,7 +8995,15 @@ $('market-close').addEventListener('click', closeMarket);
 document.querySelectorAll('[data-market-view]').forEach(btn=>{
   btn.addEventListener('click', ()=> switchMarketView(btn.dataset.marketView));
 });
+function handleSignInRequiredClick(e, closeFn){
+  const btn = e.target.closest('#signin-required-btn');
+  if(!btn) return false;
+  if(closeFn) closeFn();
+  openAccountDrawer();
+  return true;
+}
 $('market-content').addEventListener('click', (e)=>{
+  if(handleSignInRequiredClick(e, closeMarket)) return;
   const buyGm = e.target.closest('[data-buy-gm]');
   if(buyGm){
     const [tierKey, fishName, price] = buyGm.dataset.buyGm.split('|');
@@ -8976,6 +9062,9 @@ $('market-digest-close').addEventListener('click', ()=>{
   markDigestSeen();
 });
 $('ratio-chip').addEventListener('click', showRatioDetail);
+$('leaderboard-list').addEventListener('click', (e)=>{
+  handleSignInRequiredClick(e, closeLeaderboard);
+});
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
 document.querySelectorAll('.lb-period-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
