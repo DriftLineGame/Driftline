@@ -712,6 +712,66 @@
     background:radial-gradient(circle at 30% 30%, #8a6a45, #4a3620 75%);
   }
 
+  #gold-chip{
+    cursor:pointer;
+    padding:7px 12px; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink-dim);
+    display:flex; align-items:center; gap:6px;
+    transition:transform .15s ease;
+  }
+  #gold-chip:active{transform:scale(0.95);}
+  #gold-chip.ready{
+    color:#3a2705; border-color:rgba(255,210,63,0.5) !important;
+    background:linear-gradient(90deg,#ffd23f,#ffb23f) !important;
+  }
+  #gold-overlay{
+    position:fixed; inset:0; z-index:821;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    background:
+      radial-gradient(120% 55% at 50% 0%, rgba(196,140,20,0.18), transparent 60%),
+      linear-gradient(180deg, #241a04 0%, #1a1203 35%, #100b02 65%, #0a0601 100%);
+    transition:opacity .4s ease;
+    overflow:hidden; padding:24px;
+  }
+  #gold-overlay.active{opacity:1; pointer-events:auto;}
+  #gold-content{position:relative; z-index:3; width:100%; max-width:360px; text-align:center; height:100%; display:flex; align-items:center; justify-content:center;}
+  #gold-seafloor{
+    position:fixed; left:0; right:0; bottom:0; height:22%; z-index:1; pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 16px),
+      linear-gradient(180deg, #3a2c0f 0%, #241a08 55%, #150f04 100%);
+    box-shadow:0 -26px 46px rgba(0,0,0,0.5) inset;
+  }
+  .gold-card{
+    position:relative; z-index:3;
+    background:rgba(20,16,6,0.55); border:1px solid rgba(255,210,63,0.25); border-radius:26px;
+    padding:30px 24px 26px; backdrop-filter:blur(10px); color:#fff;
+  }
+  .gold-icon-big{font-size:52px; margin-bottom:12px; filter:drop-shadow(0 0 14px rgba(255,210,63,0.4));}
+  .gold-title{font-family:'Bricolage Grotesque'; font-size:22px; font-weight:800; margin:0 0 10px;}
+  .gold-desc{font-size:13.5px; color:rgba(255,255,255,0.68); line-height:1.55; margin:0 0 22px;}
+  .gold-countdown{font-family:'Bricolage Grotesque'; font-size:32px; font-weight:800; color:#ffd23f; margin-bottom:6px; font-variant-numeric:tabular-nums;}
+  .gold-sub{font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:22px;}
+  .gold-card .btn-primary{background:linear-gradient(160deg,#ffd23f,#c9860a); color:#2b1a04;}
+  #gold-close{
+    position:fixed; top:14px; right:14px; z-index:5; width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #gold-close svg{width:16px; height:16px; stroke:#fff;}
+  #gold-trap-icon{
+    position:absolute; left:50%; top:80%; transform:translate(-50%,-50%); font-size:40px; z-index:2;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+  }
+  .gold-reward-amount{
+    font-family:'Bricolage Grotesque'; font-size:44px; font-weight:800; color:#ffd23f;
+    margin-bottom:6px; font-variant-numeric:tabular-nums;
+  }
+  .gold-sparkle{
+    position:absolute; z-index:4; pointer-events:none; font-size:16px;
+    filter:drop-shadow(0 0 4px rgba(255,210,63,0.8));
+  }
+
   /* ---------- Battle Challenge duration picker ---------- */
   #battle-challenge-scrim{
     position:fixed; inset:0; z-index:950; background:rgba(10,25,35,0.55);
@@ -870,6 +930,8 @@
   .fr-decline{background:#eef2f6; color:var(--ink-dim);}
   .fr-battle{background:linear-gradient(90deg,#9455e0,#e0356f); color:#fff; font-size:15px; padding:8px 12px !important;}
   .fr-battle.disabled{background:#eef2f6; color:#c3cdd4; cursor:not-allowed;}
+  .fr-remove{background:#eef2f6; color:var(--ink-dim); font-size:13px; padding:8px 12px !important; transition:background .15s ease, color .15s ease;}
+  .fr-remove.confirming{background:#ffe4e4; color:#c0392b;}
   .friends-pending-tag{font-size:11px; color:var(--ink-dim); font-weight:700; flex:0 0 auto;}
   .friends-empty{text-align:center; padding:30px 20px; color:var(--ink-dim); font-size:13px;}
 
@@ -1819,6 +1881,10 @@
     <span class="boost-flame">🦀</span>
     <span id="crab-chip-text">Set a Crab Trap</span>
   </div>
+  <div id="gold-chip" class="glass hidden" style="border-radius:999px;">
+    <span class="boost-flame">🪙</span>
+    <span id="gold-chip-text">Search for Gold</span>
+  </div>
   <div id="battle-chip" class="glass hidden" style="border-radius:999px;">
     <span class="boost-flame">⚔️</span>
     <span id="battle-chip-text">Battle: 23h 59m</span>
@@ -1935,6 +2001,12 @@
   <div id="crab-seafloor"></div>
   <button id="crab-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   <div id="crab-content"></div>
+</div>
+
+<div id="gold-overlay">
+  <div id="gold-seafloor"></div>
+  <button id="gold-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <div id="gold-content"></div>
 </div>
 
 <!-- Bag drawer -->
@@ -2231,7 +2303,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.1</h2>
+    <h2 id="version-popup-number">v2.2</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2388,7 +2460,7 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.1 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.2 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -2528,10 +2600,10 @@
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
     await setDoc(ref, {
-      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null, battles: null,
+      displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null, gold: null, battles: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
-    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null, crab: null, battles: null };
+    return { uid, displayName, points: 0, bag: [], shop: null, prawn: null, crab: null, gold: null, battles: null };
   }
 
   async function signIn(username, pin){
@@ -2546,7 +2618,7 @@
     if(pinHash !== data.pinHash){
       throw new Error('Incorrect PIN.');
     }
-    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null, crab: data.crab || null, battles: data.battles || null };
+    return { uid, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], shop: data.shop || null, prawn: data.prawn || null, crab: data.crab || null, gold: data.gold || null, battles: data.battles || null };
   }
 
   async function syncBag(uid, bag, points){
@@ -2586,6 +2658,10 @@
   async function syncCrabTrap(uid, crabState){
     const ref = doc(db, 'players', uid);
     await updateDoc(ref, { crab: crabState });
+  }
+  async function syncGoldTrap(uid, goldState){
+    const ref = doc(db, 'players', uid);
+    await updateDoc(ref, { gold: goldState });
   }
 
   function normUidLookup(username){
@@ -2751,6 +2827,20 @@
       }
     } else {
       await updateDoc(myRef, { incomingRequests: remainingIncoming });
+    }
+  }
+  async function removeFriend(myUid, friendUid){
+    const myRef = doc(db, 'players', myUid);
+    const mySnap = await getDoc(myRef);
+    if(!mySnap.exists()) throw new Error('Account not found.');
+    const myFriends = (mySnap.data().friends||[]).filter(u=>u!==friendUid);
+    await updateDoc(myRef, { friends: myFriends });
+
+    const theirRef = doc(db, 'players', friendUid);
+    const theirSnap = await getDoc(theirRef);
+    if(theirSnap.exists()){
+      const theirFriends = (theirSnap.data().friends||[]).filter(u=>u!==myUid);
+      await updateDoc(theirRef, { friends: theirFriends });
     }
   }
 
@@ -2996,9 +3086,9 @@
   }
 
   window.DriftlineCloud = {
-    signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap,
+    signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap, syncGoldTrap,
     fetchLeaderboard, fetchAllPlayersForPeriods,
-    sendFriendRequest, respondFriendRequest, fetchFriendsState, fetchPlayerByUid,
+    sendFriendRequest, respondFriendRequest, removeFriend, fetchFriendsState, fetchPlayerByUid,
     sendBattleChallenge, respondBattleChallenge, completeBattle, forfeitBattle, fetchBattleState, fetchBattleLeaderboard,
     createListing, cancelListing, repriceListing, fetchActiveListings, fetchMyListings, purchaseListing, adjustCoinsSpent
   };
@@ -3047,8 +3137,8 @@ const SHARE_BOOST_AMOUNT = 20;           // +20% bite chance while boosted
 const SHARE_ODDS_CAP = 98;               // odds can never exceed this, even boosted
 
 let map, userMarker, accuracyCircle, regionCircle, hotspotLayers = [];
-let prawnTrapMarker = null, crabTrapMarker = null;
-let prawnTrapMarkerReady = false, crabTrapMarkerReady = false;
+let prawnTrapMarker = null, crabTrapMarker = null, goldTrapMarker = null;
+let prawnTrapMarkerReady = false, crabTrapMarkerReady = false, goldTrapMarkerReady = false;
 let center = null;               // {lat,lng} — region anchor, refreshed every 5 min
 let castLog = loadCastLog();     // local-only rolling log of recent cast attempts, for the hourly ratio chip
 let pendingHotspotTransition = null; // a freshly-spawned replacement hotspot the map should fly to next
@@ -3083,6 +3173,8 @@ let prawnTrap = loadPrawnTrap(); // null | { lat,lng,deployedAt,resolveAt,odds,w
 let prawnTickInterval = null;
 let crabTrap = loadCrabTrap();   // null | { lat,lng,deployedAt,resolveAt,odds,wasHotspot,attempts }
 let crabTickInterval = null;
+let goldTrap = loadGoldTrap();   // null | { lat,lng,deployedAt,resolveAt }
+let goldTickInterval = null;
 let authMode = 'signin';         // 'signin' | 'signup'
 
 const $ = (id)=>document.getElementById(id);
@@ -3333,6 +3425,30 @@ function saveCrabTrap(){
 function syncCrabTrapToCloud(){
   if(!session || !window.DriftlineCloud) return;
   window.DriftlineCloud.syncCrabTrap(session.uid, crabTrap).catch(()=>{});
+}
+function loadGoldTrap(){
+  try{
+    const t = JSON.parse(localStorage.getItem('driftline_gold')||'null');
+    return (t && typeof t==='object') ? t : null;
+  }catch(e){ return null; }
+}
+function saveGoldTrap(){
+  if(goldTrap) localStorage.setItem('driftline_gold', JSON.stringify(goldTrap));
+  else localStorage.removeItem('driftline_gold');
+}
+function syncGoldTrapToCloud(){
+  if(!session || !window.DriftlineCloud) return;
+  window.DriftlineCloud.syncGoldTrap(session.uid, goldTrap).catch(()=>{});
+}
+function grantCoins(amount){
+  // Mirror image of spendCoins() -- DECREASES coinsSpent (rather than
+  // increasing it) so the balance goes UP, using the same atomic
+  // increment() mechanism, safe against the exact race condition the
+  // Fish Market trading system already had to solve for.
+  shopState.coinsSpent = (shopState.coinsSpent||0) - amount;
+  if(session && window.DriftlineCloud){
+    window.DriftlineCloud.adjustCoinsSpent(session.uid, -amount).catch(()=>{});
+  }
 }
 
 /* ====================== GEO / MATH HELPERS ====================== */
@@ -3650,6 +3766,7 @@ function initMap(centerPt){
   // Restore any trap already in progress from before a reload.
   renderPrawnTrapMarker();
   renderCrabTrapMarker();
+  renderGoldTrapMarker();
 }
 function renderPrawnTrapMarker(){
   if(prawnTrapMarker){ map.removeLayer(prawnTrapMarker); prawnTrapMarker = null; }
@@ -3690,6 +3807,27 @@ function refreshCrabTrapMarkerReadyState(){
   if(ready === crabTrapMarkerReady) return;
   crabTrapMarkerReady = ready;
   const el = crabTrapMarker.getElement();
+  const inner = el && el.querySelector('.trap-marker');
+  if(inner) inner.classList.toggle('ready', ready);
+}
+function renderGoldTrapMarker(){
+  if(goldTrapMarker){ map.removeLayer(goldTrapMarker); goldTrapMarker = null; }
+  if(!goldTrap || !map) return;
+  goldTrapMarkerReady = isGoldTrapReady();
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="trap-marker ${goldTrapMarkerReady?'ready':''}" style="--trap-color:#ffd23f;">\u{1FA99}</div>`,
+    iconSize:[36,36], iconAnchor:[18,18]
+  });
+  goldTrapMarker = L.marker([goldTrap.lat, goldTrap.lng], { icon, zIndexOffset:500 }).addTo(map);
+  goldTrapMarker.on('click', openGoldOverlay);
+}
+function refreshGoldTrapMarkerReadyState(){
+  if(!goldTrapMarker) return;
+  const ready = isGoldTrapReady();
+  if(ready === goldTrapMarkerReady) return;
+  goldTrapMarkerReady = ready;
+  const el = goldTrapMarker.getElement();
   const inner = el && el.querySelector('.trap-marker');
   if(inner) inner.classList.toggle('ready', ready);
 }
@@ -4403,6 +4541,257 @@ function renderCrabResults(results, attempts){
     closeCrabOverlay();
     setTimeout(showPendingCelebrations, 400);
   });
+}
+
+/* ====================== GOLD POT (deep sea gold searching) ====================== */
+// Same drop-wait-rise choreography as the Crab Trap, reskinned gold and
+// with a sparkle-burst reveal on rise -- but structurally much simpler,
+// since the payout is a flat coin roll instead of catch-attempt odds.
+const GOLD_TRAP_MS = 3*60*60*1000; // 3 hours
+function isGoldTrapReady(){
+  return !!goldTrap && Date.now() >= goldTrap.resolveAt;
+}
+function fmtGoldTime(ms){
+  const h = Math.floor(ms/3600000);
+  const m = Math.floor((ms%3600000)/60000);
+  const s = Math.floor((ms%60000)/1000);
+  return h>0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}:${String(s).padStart(2,'0')}`;
+}
+function updateGoldChip(){
+  const chip = $('gold-chip');
+  const text = $('gold-chip-text');
+  if(!chip || !text) return;
+  refreshGoldTrapMarkerReadyState();
+  if(!goldTrap){
+    chip.classList.remove('ready');
+    text.textContent = 'Search for Gold';
+  } else if(isGoldTrapReady()){
+    chip.classList.add('ready');
+    text.textContent = 'Gold ready! Tap to collect';
+    if($('gold-overlay').classList.contains('active')) renderGoldState();
+  } else {
+    chip.classList.remove('ready');
+    const remain = goldTrap.resolveAt - Date.now();
+    text.textContent = `Pot: ${fmtGoldTime(remain)}`;
+    const liveCountdown = $('gold-live-countdown');
+    if(liveCountdown) liveCountdown.textContent = fmtGoldTime(remain);
+  }
+}
+function startGoldTicker(){
+  clearInterval(goldTickInterval);
+  goldTickInterval = setInterval(updateGoldChip, 1000);
+}
+function openGoldOverlay(){
+  $('gold-overlay').classList.add('active');
+  renderGoldState();
+}
+function closeGoldOverlay(){
+  $('gold-overlay').classList.remove('active');
+  removeGoldIcon();
+}
+function showRestingGoldIcon(){
+  removeGoldIcon();
+  const overlay = $('gold-overlay');
+  const icon = document.createElement('div');
+  icon.id = 'gold-trap-icon';
+  icon.textContent = '\u{1FA99}';
+  icon.style.left = (window.innerWidth/2)+'px';
+  icon.style.top = (window.innerHeight*0.80)+'px';
+  icon.style.opacity = '1';
+  overlay.appendChild(icon);
+}
+function removeGoldIcon(){
+  const el = $('gold-trap-icon');
+  if(el) el.remove();
+}
+function renderGoldState(){
+  const content = $('gold-content');
+  if(!goldTrap){
+    removeGoldIcon();
+    content.innerHTML = `
+      <div class="gold-card">
+        <div class="gold-icon-big">\u{1FA99}</div>
+        <h3 class="gold-title">Search for Gold</h3>
+        <p class="gold-desc">Drop a pot and let it sink to the sea floor. Come back in 3 hours to pull it up \u2014 instead of fish, you'll find between 5 and 20 Chum Coins waiting inside.</p>
+        <button class="btn btn-primary" id="gold-deploy-btn" style="width:100%;">Drop Pot Here</button>
+      </div>`;
+    wireGoldContentButtons();
+    return;
+  }
+  showRestingGoldIcon();
+  if(!isGoldTrapReady()){
+    const remain = goldTrap.resolveAt - Date.now();
+    content.innerHTML = `
+      <div class="gold-card">
+        <div class="gold-icon-big">\u{1FA99}</div>
+        <h3 class="gold-title">Pot Is Down</h3>
+        <div class="gold-countdown" id="gold-live-countdown">${fmtGoldTime(remain)}</div>
+        <div class="gold-sub">until you can pull it back up</div>
+        <p class="gold-desc">It's sitting on the sea floor right now. Keep fishing \u2014 this chip up top will tell you when it's ready.</p>
+      </div>`;
+    wireGoldContentButtons();
+    return;
+  }
+  content.innerHTML = `
+    <div class="gold-card">
+      <div class="gold-icon-big">\u{1FA99}</div>
+      <h3 class="gold-title">Pot Is Ready!</h3>
+      <p class="gold-desc">Time to pull it up from the sea floor and see what you found.</p>
+      <button class="btn btn-primary" id="gold-collect-btn" style="width:100%;">Pull Up Pot</button>
+    </div>`;
+  wireGoldContentButtons();
+}
+function wireGoldContentButtons(){
+  const deployBtn = $('gold-deploy-btn');
+  if(deployBtn) deployBtn.addEventListener('click', deployGoldTrap);
+  const collectBtn = $('gold-collect-btn');
+  if(collectBtn) collectBtn.addEventListener('click', collectGoldTrap);
+}
+function spawnGoldSediment(x, y){
+  const overlay = $('gold-overlay');
+  for(let i=0;i<10;i++){
+    const s = document.createElement('div');
+    s.className = 'sediment';
+    s.style.background = 'radial-gradient(circle at 30% 30%, #d4a840, #6b4f16 75%)';
+    const size = 3+Math.random()*6;
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = x+'px';
+    s.style.top = y+'px';
+    overlay.appendChild(s);
+    const dx = (Math.random()*2-1)*70;
+    const dy = -(10+Math.random()*40);
+    s.animate([
+      { transform:'translate(-50%,-50%) translate(0,0)', opacity:0.9 },
+      { transform:`translate(-50%,-50%) translate(${dx*0.6}px, ${dy}px)`, opacity:0.8, offset:0.4 },
+      { transform:`translate(-50%,-50%) translate(${dx}px, ${dy*0.3}px)`, opacity:0 }
+    ], { duration: 500+Math.random()*300, easing:'cubic-bezier(.2,.7,.4,1)' })
+    .finished.then(()=>s.remove()).catch(()=>s.remove());
+  }
+}
+function spawnGoldSparkles(x, y){
+  // The "custom gold pan" moment -- a burst of glinting sparkles distinct
+  // from the crab trap's plain sediment-only rise, selling the idea that
+  // what's coming up is treasure, not a catch.
+  const overlay = $('gold-overlay');
+  const glyphs = ['\u2728','\u{1F31F}','\u{1FA99}'];
+  for(let i=0;i<14;i++){
+    const s = document.createElement('div');
+    s.className = 'gold-sparkle';
+    s.textContent = glyphs[Math.floor(Math.random()*glyphs.length)];
+    s.style.left = x+'px';
+    s.style.top = y+'px';
+    overlay.appendChild(s);
+    const angle = Math.random()*Math.PI*2;
+    const dist = 40+Math.random()*90;
+    const dx = Math.cos(angle)*dist;
+    const dy = Math.sin(angle)*dist - 30;
+    s.animate([
+      { transform:'translate(-50%,-50%) scale(0.3) rotate(0deg)', opacity:1 },
+      { transform:`translate(${dx*0.5-50}%,${dy*0.5-50}%) scale(1.1) rotate(90deg)`, opacity:1, offset:0.4 },
+      { transform:`translate(calc(${dx}px - 50%),calc(${dy}px - 50%)) scale(0.4) rotate(200deg)`, opacity:0 }
+    ], { duration: 700+Math.random()*400, easing:'cubic-bezier(.2,.7,.3,1)' })
+    .finished.then(()=>s.remove()).catch(()=>s.remove());
+  }
+}
+function animateGoldPotDrop(onLand){
+  const overlay = $('gold-overlay');
+  removeGoldIcon();
+  const icon = document.createElement('div');
+  icon.id = 'gold-trap-icon';
+  icon.textContent = '\u{1FA99}';
+  const x = window.innerWidth/2;
+  const floorY = window.innerHeight*0.80;
+  const startY = -60;
+  icon.style.left = x+'px';
+  icon.style.top = startY+'px';
+  icon.style.opacity = '0';
+  overlay.appendChild(icon);
+
+  const anim = icon.animate([
+    { top: startY+'px', opacity:0, transform:'translate(-50%,-50%) rotate(-10deg) scale(0.9)' },
+    { top: (floorY*0.55)+'px', opacity:1, transform:'translate(-50%,-50%) rotate(8deg) scale(1)', offset:0.55 },
+    { top: floorY+'px', opacity:1, transform:'translate(-50%,-50%) rotate(0deg) scale(1.05)' }
+  ], { duration:1500, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+  anim.finished.then(()=>{
+    spawnGoldSediment(x, floorY);
+    playThudSound();
+    if('vibrate' in navigator) navigator.vibrate(40);
+    icon.animate([
+      { transform:'translate(-50%,-50%) scale(1.05)' },
+      { transform:'translate(-50%,-50%) scale(0.94)' },
+      { transform:'translate(-50%,-50%) scale(1)' }
+    ], { duration:220, easing:'ease-out' });
+    if(onLand) onLand();
+  }).catch(()=>{ if(onLand) onLand(); });
+}
+function animateGoldPotRise(onDone){
+  const icon = $('gold-trap-icon');
+  if(!icon){ if(onDone) onDone(); return; }
+  const x = window.innerWidth/2;
+  const floorY = window.innerHeight*0.80;
+  spawnGoldSediment(x, floorY);
+  spawnGoldSparkles(x, floorY);
+  playThudSound();
+  if('vibrate' in navigator) navigator.vibrate([30,20,50]);
+
+  const anim = icon.animate([
+    { top: floorY+'px', opacity:1, transform:'translate(-50%,-50%) rotate(0deg)' },
+    { top: (floorY*0.4)+'px', opacity:1, transform:'translate(-50%,-50%) rotate(-8deg)', offset:0.6 },
+    { top:'-60px', opacity:0, transform:'translate(-50%,-50%) rotate(10deg)' }
+  ], { duration:1300, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+  anim.finished.then(()=>{
+    icon.remove();
+    if(onDone) onDone();
+  }).catch(()=>{ icon.remove(); if(onDone) onDone(); });
+}
+function deployGoldTrap(){
+  if(!liveLatLng){ showToast("Still locating you \u2014 hang tight for a GPS fix."); return; }
+  if(goldTrap){ showToast('You already have a gold pot out.'); return; }
+  const now = Date.now();
+  goldTrap = {
+    lat: liveLatLng.lat, lng: liveLatLng.lng,
+    deployedAt: now, resolveAt: now + GOLD_TRAP_MS
+  };
+  saveGoldTrap();
+  syncGoldTrapToCloud();
+  updateGoldChip();
+  renderGoldTrapMarker();
+
+  $('gold-content').innerHTML = '';
+  animateGoldPotDrop(()=>{
+    showToast('\u{1FA99} Gold pot dropped! Check back in 3 hours.');
+    setTimeout(closeGoldOverlay, 700);
+  });
+}
+function collectGoldTrap(){
+  if(!goldTrap || !isGoldTrapReady()) return;
+  const reward = 5 + Math.floor(Math.random()*16); // 5-20 inclusive
+
+  animateGoldPotRise(()=>{
+    grantCoins(reward);
+    goldTrap = null;
+    saveGoldTrap();
+    syncGoldTrapToCloud();
+    updateGoldChip();
+    renderGoldTrapMarker();
+    updateMarketBalanceDisplay();
+    renderGoldResult(reward);
+  });
+}
+function renderGoldResult(reward){
+  const content = $('gold-content');
+  content.innerHTML = `
+    <div class="gold-card">
+      <div class="gold-icon-big">\u{1FA99}</div>
+      <h3 class="gold-title">Found Gold!</h3>
+      <div class="gold-reward-amount">+${reward} \u{1FA99}</div>
+      <p class="gold-desc">Chum Coins added straight to your balance. Drop another pot anytime.</p>
+      <button class="btn btn-primary" id="gold-done-btn" style="width:100%;">Nice</button>
+    </div>`;
+  $('gold-done-btn').addEventListener('click', closeGoldOverlay);
 }
 
 function attemptCast(){
@@ -5144,12 +5533,13 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.1';
+const GAME_VERSION = '2.2';
 const GAME_VERSION_CHANGELOG = [
-  'Buying the same subscription tier again while it\u2019s still active now stacks instead of replacing \u2014 more days AND double usage while both terms overlap',
-  'Buying a different tier (e.g. Premium while Plus is active) still replaces, starting fresh',
-  'The purchase confirm screen now clearly explains stacking vs. replacing before you buy',
-  'Your Subscriptions tab in the Market now shows your live current usage limit, including any active stacking'
+  'New: Search for Gold \u2014 drop a pot like a crab trap, wait 3 hours, pull up 5\u201320 Chum Coins',
+  'You can now remove a friend from your Friends list (2-tap confirm so it can\u2019t happen by accident)',
+  'The tutorial now covers the Fish Market, Stock Values, Plus/Premium subscriptions, and Search for Gold \u2014 replay it anytime from Settings',
+  'Fixed a bug where signing into an account on a different device could silently lose an in-progress gold pot',
+  'Fixed a bug where the Market could stay open behind the tutorial spotlight in some cases'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6475,7 +6865,7 @@ function renderRodSettings(){
 /* ====================== INTERACTIVE TUTORIAL ====================== */
 // Bump this whenever a significant new feature ships so the tour
 // auto-triggers again for everyone, even people who've seen an older one.
-const TUTORIAL_VERSION = 1;
+const TUTORIAL_VERSION = 2;
 
 const TUTORIAL_STEPS = [
   { title:'Welcome to Driftline! \u{1F3A3}', desc:"Let's take a quick tour of everything the app can do. Tap Next to continue \u2014 you can replay this anytime from Settings.", target:null },
@@ -6503,6 +6893,11 @@ const TUTORIAL_STEPS = [
   { title:'Friend Battles', desc:'Challenge a friend to a head-to-head from the Friends screen \u2014 30 minutes to 72 hours, most points wins. Pick how visible scores are during the match, and either player can forfeit if needed. This chip tracks any battle you\u2019re in.', target:'battle-chip', action:'close-all' },
   { title:'Prawn Trap', desc:'A slower way to fish: set a trap at your location, then come back in an hour to pull it up. It rolls 1\u20135 catch attempts using the bite chance from when you set it \u2014 keep an eye on this chip.', target:'prawn-chip', action:'open-prawn' },
   { title:'Crab Trap', desc:'A heavier trap that sinks all the way to the sea floor. It takes 2 hours, but rolls 3\u201310 catch attempts \u2014 more patience, more potential payoff.', target:'crab-chip', action:'open-crab' },
+  { title:'Search for Gold', desc:'Drop a pot instead of a fish trap \u2014 3 hours down, then pull it up for a flat 5\u201320 Chum Coins, no fishing odds involved. A simple, steady side income while you play.', target:'gold-chip', action:'open-gold' },
+  { title:'The Fish Market', desc:'Tap here for a live economy: buy fish directly, trade with other players, or just track prices. Prices actually move \u2014 every fish tier has a real, changing value.', target:'market-fab', action:'open-market' },
+  { title:'Buy & Sell Fish', desc:'General Market sells a rotating selection straight from the game at the current price. User Market is real player-to-player trading \u2014 list a fish from your Bag, or buy someone else\u2019s listing directly.', target:null, action:'open-market' },
+  { title:'Stock Values', desc:'Every fish tier has its own price history \u2014 updated every 2 hours, viewable by Day, Week, or Month. Prices can swing meaningfully day to day, so it pays to check before a big trade.', target:null, action:'open-market-stocks' },
+  { title:'Plus & Premium', desc:'Free accounts get 100 cloud reads and 100 writes a day \u2014 plenty for normal play, but if you want more, Plus and Premium raise that ceiling (2x and 10x) using Chum Coins you\u2019ve already earned. No real money involved.', target:null, action:'open-market-subscriptions' },
   { title:'World Events', desc:'Every few hours, something happens across the whole map \u2014 a Feeding Frenzy boosts everyone\u2019s odds, or a specific rare fish starts migrating and becomes far easier to find. Watch for the banner, and keep an eye on this chip when one\u2019s live.', target:'world-event-chip' },
   { title:'Catch Rate', desc:'This little button tracks your personal bite rate for the current hour of day, based on your own casting history \u2014 tap it anytime for the exact numbers.', target:'ratio-chip' },
   { title:'How Odds Really Work', desc:'Your bite chance stacks from several layers: a base rate, a big jump if you\u2019re standing in a real hotspot, a permanent bonus from your rod level, and any temporary boosts on top \u2014 lures, shares, challenges, events. Everything is capped at 98%, no matter how much stacks.', target:null, bigText:true },
@@ -6554,11 +6949,13 @@ function closeAllOverlaysForTutorial(){
   closeSettingsDrawer();
   closeShop();
   closeLeaderboard();
+  closeMarket();
   closeFishDetail();
   closeFriendsDrawer();
   closeFriendGear();
   closePrawnOverlay();
   closeCrabOverlay();
+  closeGoldOverlay();
   closeBattleOverlay();
   closeBattleChallengeModal();
   closeBattleStartOverlay();
@@ -6573,6 +6970,10 @@ function applyTutorialAction(action){
     case 'open-friends': closeAllOverlaysForTutorial(); openAccountDrawer(); break;
     case 'open-prawn': closeAllOverlaysForTutorial(); openPrawnOverlay(); break;
     case 'open-crab': closeAllOverlaysForTutorial(); openCrabOverlay(); break;
+    case 'open-gold': closeAllOverlaysForTutorial(); openGoldOverlay(); break;
+    case 'open-market': closeAllOverlaysForTutorial(); openMarket(); switchMarketView('general'); break;
+    case 'open-market-stocks': closeAllOverlaysForTutorial(); openMarket(); switchMarketView('stocks'); break;
+    case 'open-market-subscriptions': closeAllOverlaysForTutorial(); openMarket(); switchMarketView('subscriptions'); break;
     case 'close-all': closeAllOverlaysForTutorial(); break;
   }
 }
@@ -7140,6 +7541,8 @@ async function afterAuthSuccess(result){
     savePrawnTrap();
     crabTrap = result.crab || null;
     saveCrabTrap();
+    goldTrap = result.gold || null;
+    saveGoldTrap();
   }
 
   saveShopState();
@@ -7147,8 +7550,10 @@ async function afterAuthSuccess(result){
   updateEquippedVisuals();
   updatePrawnChip();
   updateCrabChip();
+  updateGoldChip();
   renderPrawnTrapMarker();
   renderCrabTrapMarker();
+  renderGoldTrapMarker();
 
   ensureBagCatchIds();
   updateBagBadge();
@@ -7185,9 +7590,11 @@ function handleSignOut(){
   updateEquippedVisuals();
   updatePrawnChip();
   updateCrabChip();
+  updateGoldChip();
   updateBattleChip();
   renderPrawnTrapMarker();
   renderCrabTrapMarker();
+  renderGoldTrapMarker();
   if(bagViewMode) renderBag();
   renderAccountDrawer();
   checkSigninReminder();
@@ -7250,6 +7657,7 @@ function renderFriendsDrawer(){
         <div class="friends-row-name" id="friend-name-${uid}" data-fr-view="${uid}">Loading\u2026</div>
         <div class="friends-row-actions">
           <button class="fr-battle ${hasActiveBattle?'disabled':''}" data-battle-target="${uid}" title="${hasActiveBattle?'Finish your current battle first':'Challenge to a battle'}">\u2694\uFE0F</button>
+          <button class="fr-remove" data-fr-remove="${uid}" title="Remove friend">\u2715</button>
         </div>
       </div>`).join('');
   } else {
@@ -7323,6 +7731,18 @@ async function handleFriendRequestAction(uid, accept){
     renderFriendsDrawer();
   }catch(e){
     showToast("Couldn't update that request \u2014 try again.");
+  }
+}
+async function handleRemoveFriend(uid){
+  if(!session || !window.DriftlineCloud) return;
+  try{
+    await window.DriftlineCloud.removeFriend(session.uid, uid);
+    showToast('Friend removed.');
+    delete friendsProfileCache[uid];
+    await refreshFriendsState();
+    renderFriendsDrawer();
+  }catch(e){
+    showToast("Couldn't remove that friend \u2014 try again.");
   }
 }
 async function openFriendGear(uid){
@@ -8172,6 +8592,7 @@ function beginGame(pt, accuracy){
   $('timer-chip').classList.remove('hidden');
   $('prawn-chip').classList.remove('hidden');
   $('crab-chip').classList.remove('hidden');
+  $('gold-chip').classList.remove('hidden');
 
   const saved = loadState();
   if(saved && saved.center && saved.mapMode === mapMode && distMeters(saved.center, center) < 200 && saved.refreshDeadline > Date.now()){
@@ -8196,6 +8617,8 @@ function beginGame(pt, accuracy){
   startPrawnTicker();
   updateCrabChip();
   startCrabTicker();
+  updateGoldChip();
+  startGoldTicker();
   startBattleTicker();
   startWorldEventTicker();
   ensureBagCatchIds();
@@ -8591,6 +9014,26 @@ $('friends-content').addEventListener('click', (e)=>{
     openBattleChallengeModal(uid);
     return;
   }
+  const removeBtn = e.target.closest('[data-fr-remove]');
+  if(removeBtn){
+    if(!removeBtn.classList.contains('confirming')){
+      // 2-tap confirm: first tap just arms it, so an accidental tap can't
+      // instantly remove someone -- same lightweight pattern the map mode
+      // switch already uses.
+      document.querySelectorAll('.fr-remove.confirming').forEach(b=>{ b.classList.remove('confirming'); b.textContent = '\u2715'; });
+      removeBtn.classList.add('confirming');
+      removeBtn.textContent = 'Confirm?';
+      setTimeout(()=>{
+        if(removeBtn.classList.contains('confirming')){
+          removeBtn.classList.remove('confirming');
+          removeBtn.textContent = '\u2715';
+        }
+      }, 3000);
+      return;
+    }
+    handleRemoveFriend(removeBtn.dataset.frRemove);
+    return;
+  }
   const row = e.target.closest('[data-fr-view]');
   if(row) openFriendGear(row.dataset.frView);
 });
@@ -8629,6 +9072,8 @@ $('prawn-chip').addEventListener('click', openPrawnOverlay);
 /* ---- Crab Trap listeners ---- */
 $('crab-chip').addEventListener('click', openCrabOverlay);
 $('crab-close').addEventListener('click', closeCrabOverlay);
+$('gold-chip').addEventListener('click', openGoldOverlay);
+$('gold-close').addEventListener('click', closeGoldOverlay);
 
 window.addEventListener('resize', updateFabPosition);
 
