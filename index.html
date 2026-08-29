@@ -2052,7 +2052,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v1.7</h2>
+    <h2 id="version-popup-number">v1.71</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2143,7 +2143,7 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.7 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.71 — What's New</button>
 </div>
 
 <!-- Interactive tutorial -->
@@ -4638,12 +4638,11 @@ function hashStr(s){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '1.7';
+const GAME_VERSION = '1.71';
 const GAME_VERSION_CHANGELOG = [
-  'Stock Values now has Day / Week / Month buttons to see price history at each timeframe',
-  'Fixed a bug where thin price history could break the chart',
-  'Added a live countdown to the next market price update',
-  'This version pop-up is new \u2014 quick notes every update from now on'
+  'Fixed a real bug: small price drops (like 725\u2192724) were showing as "+0%" in red instead of the correct negative % in green',
+  'Market price changes now show a decimal (like -0.3%) when the real change is too small to round to a whole percent, instead of silently showing 0%',
+  'Applied the fix everywhere a price change is shown: the Market Update pop-up and the Stock Values chart'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
