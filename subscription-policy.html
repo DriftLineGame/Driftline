@@ -65,13 +65,16 @@ This is a hobby project, not a company, and this isn't written by a lawyer. It's
 <p>Plus and Premium are paid for entirely with <strong>Chum Coins</strong> — the in-game currency you earn by fishing. No real money, credit card, or payment processor is involved anywhere in this game right now. Chum Coins have no cash value and can't be exchanged for real currency.</p>
 
 <h2>What the daily usage limit actually is</h2>
-<p>Every free player gets 100 cloud "reads" and 100 cloud "writes" per day — roughly, 100 times the game can check something from the server (like a leaderboard) and 100 times it can save something to the server (like a new catch or a trade). This resets every day at midnight.</p>
+<p>Every free player gets 100 <strong>Checks</strong> and 100 <strong>Actions</strong> per day. A Check is looking something up from the server — the leaderboard, the market, a friend's gear. An Action is saving or changing something on the server — a catch syncing, a trade going through, a battle move. This resets every day at midnight.</p>
 <p>This limit exists to keep hosting costs sustainable so the game can stay free for everyone. It is <strong>not</strong> a security feature and isn't meant to be one.</p>
+<div class="callout" style="font-size:12.5px; margin:10px 0 0;">
+<strong>Technical note:</strong> "Checks" and "Actions" correspond directly to what Google Firestore (the database this game runs on) calls <em>reads</em> and <em>writes</em>. They're the same underlying count — just named for what they actually mean to you as a player, instead of database jargon.
+</div>
 
 <h2>What Plus and Premium change</h2>
 <ul>
-  <li><strong>Plus:</strong> 2x the daily reads and writes (200/200), plus a badge next to your name wherever it appears</li>
-  <li><strong>Premium:</strong> 10x the daily reads and writes (1,000/1,000), the badge, and priority access to try new features before they're released to everyone</li>
+  <li><strong>Plus:</strong> 2x the daily Checks and Actions (200/200), plus a badge next to your name wherever it appears</li>
+  <li><strong>Premium:</strong> 10x the daily Checks and Actions (1,000/1,000), the badge, and priority access to try new features before they're released to everyone</li>
 </ul>
 <p>That's the whole promise. A subscription makes the ceiling higher — it doesn't change how fishing, catching, or scoring works, and it doesn't give any competitive advantage in gameplay itself.</p>
 
