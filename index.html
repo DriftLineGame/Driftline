@@ -4,6 +4,33 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Driftline — Live Fishing Grounds</title>
+<meta name="description" content="Your real coastline, turned into a fishing game. 1,500+ fish, real GPS hotspots, and a live player market. Free to play.">
+
+<!-- Social share preview (Open Graph + Twitter Card) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Driftline — Live Fishing Grounds">
+<meta property="og:description" content="Your real coastline, turned into a fishing game. 1,500+ fish, real GPS hotspots, and a live player market. Free to play.">
+<meta property="og:image" content="https://driftlinegame.github.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://driftlinegame.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Driftline — Live Fishing Grounds">
+<meta name="twitter:description" content="Your real coastline, turned into a fishing game. 1,500+ fish, real GPS hotspots, and a live player market.">
+<meta name="twitter:image" content="https://driftlinegame.github.io/og-image.png">
+
+<!-- Add to Home Screen (iOS Safari) -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Driftline">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e86c4">
+
+<!-- Add to Home Screen (Android/Chrome) + favicon -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -938,6 +965,27 @@
     font-size:13px; font-weight:700; color:var(--cyan); background:rgba(14,134,196,0.08);
     border-radius:12px; padding:10px 14px; margin-bottom:16px;
   }
+  #account-usage-card{
+    background:#f4f9fb; border:1px solid var(--line); border-radius:16px;
+    padding:14px 16px; margin-bottom:16px;
+  }
+  #account-usage-head{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12.5px; font-weight:800; color:var(--ink); margin-bottom:8px;
+  }
+  #account-usage-numbers{color:var(--ink-dim); font-weight:700;}
+  #account-usage-bars{display:flex; flex-direction:column; gap:5px; margin-bottom:8px;}
+  .account-usage-bar{height:6px; border-radius:999px; background:rgba(18,41,58,0.08); overflow:hidden;}
+  .account-usage-fill{height:100%; border-radius:999px; background:linear-gradient(90deg,#39c66b,#0e86c4); transition:width .3s ease;}
+  .account-usage-fill.warn{background:linear-gradient(90deg,#ffb23f,#ff6b6b);}
+  #account-usage-note{font-size:11px; color:var(--ink-dim); margin:0 0 10px;}
+  #account-pro-teaser{
+    display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:12px;
+    background:linear-gradient(100deg, rgba(255,210,63,0.16), rgba(14,134,196,0.1));
+    border:1px solid rgba(255,180,60,0.35);
+  }
+  #account-pro-teaser span:first-child{font-size:12px; font-weight:800; color:#b8720a;}
+  #account-pro-teaser span:last-child{font-size:11px; color:var(--ink-dim); font-weight:600;}
   #account-signed-in .btn-primary{width:100%; margin-bottom:10px;}
   #account-signed-in .btn-ghost{width:100%; text-decoration:none; background:rgba(18,41,58,0.05); border-radius:999px; padding:11px;}
 
@@ -1828,6 +1876,21 @@
       <div class="gear-swatch"><span class="gear-swatch-dot" id="account-boat-swatch"></span><label>Boat</label></div>
     </div>
     <div id="account-rank"></div>
+    <div id="account-usage-card">
+      <div id="account-usage-head">
+        <span>Daily Free Usage</span>
+        <span id="account-usage-numbers">0/100 reads · 0/100 writes</span>
+      </div>
+      <div id="account-usage-bars">
+        <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-read-fill"></div></div>
+        <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-write-fill"></div></div>
+      </div>
+      <p id="account-usage-note">Resets every day at midnight. This keeps the game free for everyone.</p>
+      <div id="account-pro-teaser">
+        <span>⭐ Pro Tier</span>
+        <span>Coming later — unlimited reads/writes, priority sync, exclusive cosmetics</span>
+      </div>
+    </div>
     <button class="btn btn-primary" id="open-shop-btn">🧰 Tackle Shop</button>
     <button class="btn btn-primary" id="open-friends-btn" style="position:relative;">👥 Friends
       <span class="bag-badge hidden" id="friends-alert" style="top:-6px; right:-6px;">0</span>
@@ -2052,7 +2115,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v1.71</h2>
+    <h2 id="version-popup-number">v1.8</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2143,7 +2206,8 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.71 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.8 — What's New</button>
+  <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
 </div>
 
 <!-- Interactive tutorial -->
@@ -2185,8 +2249,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, increment,
-    collection, query, orderBy, limit, where, getDocs
+    getFirestore, doc, getDoc as _rawGetDoc, setDoc as _rawSetDoc, updateDoc as _rawUpdateDoc, runTransaction as _rawRunTransaction, increment,
+    collection, query, orderBy, limit, where, getDocs as _rawGetDocs
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -2200,6 +2264,60 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+
+  // ---- Soft daily read/write limiter ----
+  // Every Firestore call in this module goes through these wrappers instead
+  // of the raw SDK functions directly (same names, so nothing below this
+  // point had to change) -- this is a COST-CONTROL guard against
+  // accidental runaway usage on the standard client, not a real security
+  // boundary. This app uses a lightweight custom PIN system rather than
+  // real Firebase Authentication, so Firestore's rules have no
+  // cryptographically trustworthy way to know which of our accounts is
+  // making a request -- a determined person editing their own copy of the
+  // page's JS could bypass this. The actual threat this protects against
+  // is "someone's browser tab looping or a bug hammering the database,"
+  // which is the realistic free-tier cost risk for a hobby project.
+  function limitCheck(kind){
+    if(!window.driftlineCanUse || window.driftlineCanUse(kind)) return;
+    const err = new Error('Daily free-tier limit reached \u2014 resets at midnight.');
+    err.isDailyLimit = true;
+    throw err;
+  }
+  function limitRecord(kind, n){
+    if(window.driftlineRecordUsage) window.driftlineRecordUsage(kind, n||1);
+  }
+  async function getDoc(ref){
+    limitCheck('read');
+    const snap = await _rawGetDoc(ref);
+    limitRecord('read', 1);
+    return snap;
+  }
+  async function getDocs(q){
+    limitCheck('read');
+    const snap = await _rawGetDocs(q);
+    limitRecord('read', Math.max(1, snap.size));
+    return snap;
+  }
+  async function setDoc(ref, data){
+    limitCheck('write');
+    const result = await _rawSetDoc(ref, data);
+    limitRecord('write', 1);
+    return result;
+  }
+  async function updateDoc(ref, data){
+    limitCheck('write');
+    const result = await _rawUpdateDoc(ref, data);
+    limitRecord('write', 1);
+    return result;
+  }
+  async function runTransaction(dbRef, updateFn, estReads, estWrites){
+    limitCheck('read');
+    limitCheck('write');
+    const result = await _rawRunTransaction(dbRef, updateFn);
+    limitRecord('read', estReads||3);
+    limitRecord('write', estWrites||3);
+    return result;
+  }
 
   async function hashPin(pin){
     const enc = new TextEncoder().encode('driftline-salt-v1-' + pin);
@@ -4621,6 +4739,61 @@ function hashStr(s){
   return hash;
 }
 
+/* ====================== DAILY USAGE LIMITER (soft, cost-control) ====================== */
+// Free tier: 100 reads + 100 writes per calendar day per player, tracked
+// locally per-device. This is a fair-use guard against accidental runaway
+// usage (a stuck loop, a bug, someone leaving five tabs open) -- NOT a
+// security boundary. See the long comment in the Firebase module for why a
+// real hard limit isn't possible without switching off the current
+// lightweight PIN-based accounts to real Firebase Authentication.
+//
+// The admin account (set below) is exempt entirely. Change this to your
+// own in-game username before publishing.
+const DRIFTLINE_ADMIN_USERNAME = 'admin'; // <-- CHANGE THIS to your own Driftline username
+const DAILY_READ_LIMIT = 100;
+const DAILY_WRITE_LIMIT = 100;
+
+function isDriftlineAdmin(){
+  return !!(session && session.displayName && session.displayName.toLowerCase() === DRIFTLINE_ADMIN_USERNAME.toLowerCase());
+}
+function loadDailyUsage(){
+  const todayStr = new Date().toDateString();
+  let usage;
+  try{ usage = JSON.parse(localStorage.getItem('driftline_daily_usage')||'null'); }catch(e){ usage = null; }
+  if(!usage || typeof usage!=='object' || usage.date !== todayStr){
+    usage = { date: todayStr, reads: 0, writes: 0 };
+  }
+  return usage;
+}
+function saveDailyUsage(usage){
+  localStorage.setItem('driftline_daily_usage', JSON.stringify(usage));
+}
+window.driftlineCanUse = function(kind){
+  if(isDriftlineAdmin()) return true;
+  const usage = loadDailyUsage();
+  return kind==='write' ? usage.writes < DAILY_WRITE_LIMIT : usage.reads < DAILY_READ_LIMIT;
+};
+window.driftlineRecordUsage = function(kind, n){
+  if(isDriftlineAdmin()) return;
+  const usage = loadDailyUsage();
+  if(kind==='write') usage.writes += (n||1); else usage.reads += (n||1);
+  saveDailyUsage(usage);
+  maybeShowLimitReachedNotice(usage);
+};
+function dailyUsageStatus(){
+  if(isDriftlineAdmin()) return { reads:0, writes:0, readLimit:'\u221E', writeLimit:'\u221E', unlimited:true };
+  const usage = loadDailyUsage();
+  return { reads: usage.reads, writes: usage.writes, readLimit: DAILY_READ_LIMIT, writeLimit: DAILY_WRITE_LIMIT, unlimited:false };
+}
+let limitNoticeShownToday = false;
+function maybeShowLimitReachedNotice(usage){
+  if(limitNoticeShownToday) return;
+  if(usage.reads >= DAILY_READ_LIMIT || usage.writes >= DAILY_WRITE_LIMIT){
+    limitNoticeShownToday = true;
+    showToast("You've reached today's free-tier limit \u2014 your progress is still saved locally, cloud sync resumes at midnight.");
+  }
+}
+
 /* ====================== FISH MARKET (deterministic per-tier pricing) ====================== */
 // Same trick as the weekly challenge and world events: everything is a pure
 // function of time, seeded by a hash, so every player sees the identical
@@ -4638,11 +4811,13 @@ function hashStr(s){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '1.71';
+const GAME_VERSION = '1.8';
 const GAME_VERSION_CHANGELOG = [
-  'Fixed a real bug: small price drops (like 725\u2192724) were showing as "+0%" in red instead of the correct negative % in green',
-  'Market price changes now show a decimal (like -0.3%) when the real change is too small to round to a whole percent, instead of silently showing 0%',
-  'Applied the fix everywhere a price change is shown: the Market Update pop-up and the Stock Values chart'
+  'Sharing the Driftline link now shows a real preview card (title, description, image) instead of a bare URL',
+  'Add to Home Screen now gives Driftline a proper icon and splash screen on iOS and Android, instead of a plain bookmark',
+  'Added a Privacy Policy page, linked from the bottom of Settings',
+  'Added a free-tier daily usage limit (100 reads / 100 writes per day) to keep the game sustainable for everyone \u2014 see your usage in Account',
+  'Account now shows your daily usage and a preview of what a future Pro Tier will unlock'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6514,6 +6689,7 @@ function renderAccountDrawer(){
     $('account-name').textContent = session.displayName;
     $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches \u00b7 ${achCount}/${ACHIEVEMENTS.length} achievements`;
     $('account-rank').textContent = 'Checking your rank...';
+    updateAccountUsageCard();
     if(window.DriftlineCloud){
       const RANK_CHECK_LIMIT = 50; // keeps this cheap on Firestore's free tier
       window.DriftlineCloud.fetchLeaderboard(RANK_CHECK_LIMIT).then(list=>{
@@ -6532,6 +6708,26 @@ function renderAccountDrawer(){
     signedIn.classList.add('hidden');
     $('account-error').textContent = '';
   }
+}
+function updateAccountUsageCard(){
+  const status = dailyUsageStatus();
+  if(status.unlimited){
+    $('account-usage-numbers').textContent = 'Unlimited (admin)';
+    $('account-usage-read-fill').style.width = '100%';
+    $('account-usage-write-fill').style.width = '100%';
+    $('account-usage-note').textContent = 'Admin accounts skip the daily free-tier limit entirely.';
+    return;
+  }
+  $('account-usage-numbers').textContent = `${status.reads}/${status.readLimit} reads \u00b7 ${status.writes}/${status.writeLimit} writes`;
+  const readPct = Math.min(100, (status.reads/status.readLimit)*100);
+  const writePct = Math.min(100, (status.writes/status.writeLimit)*100);
+  const readFill = $('account-usage-read-fill');
+  const writeFill = $('account-usage-write-fill');
+  readFill.style.width = readPct + '%';
+  writeFill.style.width = writePct + '%';
+  readFill.classList.toggle('warn', readPct >= 80);
+  writeFill.classList.toggle('warn', writePct >= 80);
+  $('account-usage-note').textContent = 'Resets every day at midnight. This keeps the game free for everyone.';
 }
 async function handleAuthSubmit(){
   if(!window.DriftlineCloud){ $('account-error').textContent = 'Still connecting \u2014 try again in a moment.'; return; }
