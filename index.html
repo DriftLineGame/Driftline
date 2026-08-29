@@ -1099,30 +1099,52 @@
   #market-content{position:relative; z-index:2; padding:18px 16px 100px; max-width:480px; margin:0 auto;}
   .mk-section-title{color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; margin:18px 0 10px;}
   .mk-section-title:first-child{margin-top:0;}
+
+  #mk-mechanics-info{
+    background:linear-gradient(100deg, rgba(255,210,63,0.1), rgba(57,198,107,0.1));
+    border:1px solid rgba(255,255,255,0.16); border-radius:16px;
+    padding:12px 14px; margin-bottom:16px;
+  }
+  .mk-mechanics-row{
+    display:flex; align-items:center; justify-content:space-between; padding:5px 0;
+    font-size:12px; color:rgba(255,255,255,0.7); font-weight:600;
+  }
+  .mk-mechanics-row span:last-child{font-weight:800; color:#fff;}
+  .mk-mechanics-row:last-child span:last-child{
+    display:inline-flex; align-items:center; gap:6px; color:#39ff8f;
+  }
+  .mk-mechanics-row:last-child span:last-child::before{
+    content:''; width:7px; height:7px; border-radius:50%; background:#39ff8f;
+    box-shadow:0 0 8px #39ff8f; animation:mkLivePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes mkLivePulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.7);}}
+
   .mk-tier-card{
     background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:18px;
-    padding:14px; margin-bottom:12px;
+    padding:14px; margin-bottom:12px; border-left:3px solid var(--mk-tier-color, rgba(255,255,255,0.14));
+    box-shadow:0 4px 20px -8px var(--mk-tier-glow, transparent);
   }
   .mk-tier-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
-  .mk-tier-name{font-weight:800; font-size:13px;}
+  .mk-tier-name{font-weight:800; font-size:13.5px; letter-spacing:0.01em;}
   .mk-tier-price{font-size:12px; color:rgba(255,255,255,0.65); font-weight:700;}
   .mk-fish-row{
-    display:flex; align-items:center; gap:10px; padding:9px 0;
+    display:flex; align-items:center; gap:10px; padding:10px 0;
     border-top:1px solid rgba(255,255,255,0.08);
   }
   .mk-fish-row:first-of-type{border-top:none;}
-  .mk-fish-icon{font-size:18px; flex:0 0 auto;}
+  .mk-fish-icon{font-size:19px; flex:0 0 auto;}
   .mk-fish-name{flex:1; min-width:0; font-size:12.5px; font-weight:700; color:#fff;}
-  .mk-fish-variance{font-size:10.5px; font-weight:700;}
-  .mk-fish-variance.up{color:#ff6b6b;}
-  .mk-fish-variance.down{color:#39ff8f;}
+  .mk-fish-variance{font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:999px;}
+  .mk-fish-variance.up{color:#ff6b6b; background:rgba(255,107,107,0.14);}
+  .mk-fish-variance.down{color:#39ff8f; background:rgba(57,255,143,0.14);}
   .mk-buy-btn{
     appearance:none; border:none; cursor:pointer; touch-action:manipulation;
     padding:7px 12px; border-radius:999px; font-weight:800; font-size:11.5px;
     background:linear-gradient(100deg,#ffd23f,#ff8a3f); color:#1a0f08; white-space:nowrap;
+    box-shadow:0 4px 12px rgba(255,138,63,0.3);
   }
   .mk-buy-btn:active{transform:scale(0.95);}
-  .mk-buy-btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .mk-buy-btn:disabled{opacity:0.4; cursor:not-allowed; box-shadow:none;}
   .mk-listing-card{
     background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:16px;
     padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px;
@@ -6748,12 +6770,38 @@ function openMarket(){
   $('market-fullscreen').classList.add('show');
   updateMarketBalanceDisplay();
   renderMarketContent();
+  startMarketCountdownTicker();
 }
 function updateMarketBalanceDisplay(){
   const el = $('market-balance');
   if(el) el.textContent = `${getCoinsBalance().toLocaleString()} \u{1FA99}`;
 }
-function closeMarket(){ $('market-fullscreen').classList.remove('show'); }
+function closeMarket(){ $('market-fullscreen').classList.remove('show'); stopMarketCountdownTicker(); }
+function marketNextTickCountdownText(){
+  const nextTickAt = (marketTickIndex(Date.now())+1) * MARKET_TICK_MS + MARKET_GENESIS_MS;
+  const remain = Math.max(0, nextTickAt - Date.now());
+  const h = Math.floor(remain/3600000);
+  const m = Math.floor((remain%3600000)/60000);
+  return h>0 ? `${h}h ${m}m` : `${m}m`;
+}
+function marketMechanicsInfoHtml(){
+  return `<div id="mk-mechanics-info">
+    <div class="mk-mechanics-row"><span>\u23F1\uFE0F Prices update</span><span>every 2 hours</span></div>
+    <div class="mk-mechanics-row"><span>\u{1F4CA} Max daily swing</span><span>\u00b124%</span></div>
+    <div class="mk-mechanics-row"><span>\u23F3 Next update</span><span id="mk-next-tick-countdown">${marketNextTickCountdownText()}</span></div>
+  </div>`;
+}
+let marketCountdownTickInterval = null;
+function startMarketCountdownTicker(){
+  clearInterval(marketCountdownTickInterval);
+  marketCountdownTickInterval = setInterval(()=>{
+    const el = document.getElementById('mk-next-tick-countdown');
+    if(el) el.textContent = marketNextTickCountdownText();
+  }, 30000);
+}
+function stopMarketCountdownTicker(){
+  clearInterval(marketCountdownTickInterval);
+}
 function switchMarketView(view){
   marketView = view;
   document.querySelectorAll('[data-market-view]').forEach(t=>t.classList.toggle('active', t.dataset.marketView===view));
@@ -6769,11 +6817,12 @@ function renderGeneralMarket(){
   const content = $('market-content');
   const featured = todaysFeaturedMarketFish();
   const tierLabels = { common:'Common', hard:'Hard Catch', rare:'Rare', superrare:'Super Rare' };
-  let html = `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Today\u2019s 3 featured fish per class refresh at midnight. Everything else in that class trades at the flat daily price.</p>`;
+  let html = marketMechanicsInfoHtml();
+  html += `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Today\u2019s 3 featured fish per class refresh at midnight. Everything else in that class trades at the current tier price.</p>`;
   MARKET_NPC_ELIGIBLE_TIERS.forEach(tierKey=>{
     const t = tierMeta(tierKey);
     const data = featured[tierKey];
-    html += `<div class="mk-tier-card">
+    html += `<div class="mk-tier-card" style="--mk-tier-color:${t.hex}; --mk-tier-glow:${t.hex}55;">
       <div class="mk-tier-head">
         <span class="mk-tier-name" style="color:${t.hex};">${tierLabels[tierKey]}</span>
         <span class="mk-tier-price">${data.basePrice.toLocaleString()} \u{1FA99} base</span>
@@ -7107,7 +7156,8 @@ function openRepriceModal(listingId, tierKey){
 function renderStockValues(){
   const content = $('market-content');
   const tiers = ['common','hard','rare','superrare','ultimate','abyssal'];
-  let html = `<div class="mk-tier-select">` + tiers.map(tk=>{
+  let html = marketMechanicsInfoHtml();
+  html += `<div class="mk-tier-select">` + tiers.map(tk=>{
     const t = tierMeta(tk);
     return `<button class="mk-tier-chip ${tk===marketStockTierSelected?'active':''}" data-stock-tier="${tk}" style="${tk===marketStockTierSelected?`background:${t.hex};color:#04121f;`:''}">${t.label}</button>`;
   }).join('') + `</div><div id="mk-chart-wrap"></div>`;
@@ -7119,6 +7169,15 @@ function renderMarketChart(tierKey){
   const hist = marketDailyHistoryForTier(tierKey);
   const t = tierMeta(tierKey);
   const prices = hist.map(h=>h.price);
+  if(prices.length < 2){
+    // Not enough daily closes recorded yet (e.g. right after a cache reset) --
+    // show the live price without a chart rather than risk a divide-by-zero
+    // producing an invisible/broken line.
+    wrap.innerHTML = `
+      <div id="mk-chart-current">${Math.round(prices[0]||0).toLocaleString()} \u{1FA99}</div>
+      <div id="mk-chart-change">Building price history\u2026 check back after the next update.</div>`;
+    return;
+  }
   const min = Math.min(...prices), max = Math.max(...prices);
   const range = Math.max(1, max-min);
   const w = 300, h = 120, pad = 6;
@@ -7127,6 +7186,7 @@ function renderMarketChart(tierKey){
     const y = pad + (1-(p-min)/range) * (h-pad*2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
+  const areaPoints = `${pad},${h-pad} ` + points + ` ${w-pad},${h-pad}`;
   const current = Math.round(prices[prices.length-1]);
   const first = prices[0];
   const changePct = Math.round((prices[prices.length-1]/first - 1)*100);
@@ -7134,6 +7194,13 @@ function renderMarketChart(tierKey){
     <div id="mk-chart-current">${current.toLocaleString()} \u{1FA99}</div>
     <div id="mk-chart-change" class="${changePct>=0?'up':'down'}">${changePct>=0?'+':''}${changePct}% \u00b7 last 30 days</div>
     <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; margin-top:10px;">
+      <defs>
+        <linearGradient id="mk-chart-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${t.hex}" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="${t.hex}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${areaPoints}" fill="url(#mk-chart-fill)"/>
       <polyline points="${points}" fill="none" stroke="${t.hex}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
 }
