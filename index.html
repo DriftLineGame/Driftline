@@ -1484,6 +1484,22 @@
   #limit-reached-visit-market{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;}
   #limit-reached-dismiss{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15);}
 
+  #settings-stock-report-btn.attention{
+    background:linear-gradient(270deg, #ffd23f, #ff8a3f, #39c66b, #ffd23f);
+    background-size:300% 300%;
+    color:#1a0f08; border:none; font-weight:800;
+    animation:stockReportGradient 3s ease infinite, stockReportPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes stockReportGradient{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
+  @keyframes stockReportPulse{
+    0%,100%{transform:scale(1); box-shadow:0 0 0 rgba(255,180,60,0);}
+    50%{transform:scale(1.015); box-shadow:0 0 18px rgba(255,180,60,0.55);}
+  }
+
   #sub-ad-overlay{
     position:fixed; inset:0; z-index:997; overflow-y:auto;
     display:flex; align-items:center; justify-content:center; padding:24px;
@@ -2303,7 +2319,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.2</h2>
+    <h2 id="version-popup-number">v2.21</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2460,7 +2476,8 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.2 — What's New</button>
+  <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.21 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -5533,13 +5550,11 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.2';
+const GAME_VERSION = '2.21';
 const GAME_VERSION_CHANGELOG = [
-  'New: Search for Gold \u2014 drop a pot like a crab trap, wait 3 hours, pull up 5\u201320 Chum Coins',
-  'You can now remove a friend from your Friends list (2-tap confirm so it can\u2019t happen by accident)',
-  'The tutorial now covers the Fish Market, Stock Values, Plus/Premium subscriptions, and Search for Gold \u2014 replay it anytime from Settings',
-  'Fixed a bug where signing into an account on a different device could silently lose an in-progress gold pot',
-  'Fixed a bug where the Market could stay open behind the tutorial spotlight in some cases'
+  'New Stock Report button in Settings \u2014 always shows the latest market changes on demand',
+  'The button glows with a moving gradient whenever there\u2019s a market update you haven\u2019t seen yet, so it\u2019s easy to spot',
+  'Tapping it (or the automatic pop-up) marks it as seen \u2014 the glow won\u2019t come back until the next real change'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6798,6 +6813,7 @@ function openSettingsDrawer(){
   renderWeeklyChallengeSettings();
   renderAchievementsSettings();
   renderMapModeSettings();
+  updateStockReportButtonState();
   $('settings-scrim').classList.add('show');
   $('settings-drawer').classList.add('show');
 }
@@ -8251,7 +8267,41 @@ function checkMarketTickDigest(){
   localStorage.setItem('driftline_market_last_digest_prices', JSON.stringify(newPrices));
 
   if(isFirstEverCheck) return; // fresh install/first session: nothing to compare against yet
+
+  // Store the exact comparison pair used for THIS digest, separately from
+  // the rolling "current prices" snapshot above, so the manual Stock
+  // Report button can redisplay precisely what was (or would have been)
+  // shown, even after several more ticks have quietly passed since.
+  localStorage.setItem('driftline_market_last_digest_pair', JSON.stringify({ old: oldPrices, new: newPrices }));
+  markDigestUnseen();
   showMarketDigest(oldPrices, newPrices);
+}
+function markDigestUnseen(){
+  localStorage.setItem('driftline_market_digest_unseen', 'true');
+  updateStockReportButtonState();
+}
+function markDigestSeen(){
+  localStorage.setItem('driftline_market_digest_unseen', 'false');
+  updateStockReportButtonState();
+}
+function hasUnseenDigest(){
+  return localStorage.getItem('driftline_market_digest_unseen') === 'true';
+}
+function updateStockReportButtonState(){
+  const btn = $('settings-stock-report-btn');
+  if(!btn) return;
+  const unseen = hasUnseenDigest();
+  btn.classList.toggle('attention', unseen);
+  btn.textContent = unseen ? '\u{1F4CA} New Stock Report Available!' : '\u{1F4CA} Stock Report';
+}
+function showLatestStockReport(){
+  let pair;
+  try{ pair = JSON.parse(localStorage.getItem('driftline_market_last_digest_pair')||'null'); }catch(e){ pair = null; }
+  if(!pair || !pair.old || !pair.new){
+    showToast('No stock report yet \u2014 check back after the market\u2019s first update.');
+    return;
+  }
+  showMarketDigest(pair.old, pair.new);
 }
 function showMarketDigest(oldPrices, newPrices){
   const tiers = ['common','hard','rare','superrare','ultimate','abyssal'];
@@ -8852,6 +8902,7 @@ $('market-sold-close').addEventListener('click', ()=>{
 });
 $('market-digest-close').addEventListener('click', ()=>{
   $('market-digest-overlay').classList.remove('show');
+  markDigestSeen();
 });
 $('ratio-chip').addEventListener('click', showRatioDetail);
 $('leaderboard-close').addEventListener('click', closeLeaderboard);
@@ -8904,6 +8955,10 @@ $('settings-scrim').addEventListener('click', (e)=>{
 $('replay-tutorial-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
   startTutorial();
+});
+$('settings-stock-report-btn').addEventListener('click', ()=>{
+  closeSettingsDrawer();
+  showLatestStockReport();
 });
 $('settings-version-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
