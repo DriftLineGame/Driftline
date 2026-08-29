@@ -1335,6 +1335,35 @@
   .mkd-change.down{color:#39ff8f;}
   .mkd-change.flat{color:rgba(255,255,255,0.5);}
 
+  .sub-active-banner{
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(100deg, rgba(255,210,63,0.18), rgba(14,134,196,0.14));
+    border:1px solid rgba(255,210,63,0.4); border-radius:14px; padding:12px 16px;
+    color:#fff; font-size:13px; font-weight:700; margin-bottom:14px;
+  }
+  .sub-tier-card{
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:20px;
+    padding:18px; margin-bottom:14px; border-top:3px solid var(--sub-color, #fff);
+  }
+  .sub-tier-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .sub-tier-badge{font-size:26px;}
+  .sub-tier-name{font-family:'Bricolage Grotesque'; font-weight:800; font-size:19px; color:#fff;}
+  .sub-perk-list{list-style:none; margin:0 0 16px; padding:0; display:flex; flex-direction:column; gap:7px;}
+  .sub-perk-list li{
+    font-size:12.5px; color:rgba(255,255,255,0.8); font-weight:600; padding-left:20px; position:relative;
+  }
+  .sub-perk-list li::before{content:'✓'; position:absolute; left:0; color:var(--sub-color, #39ff8f); font-weight:800;}
+  .sub-duration-row{display:flex; gap:8px;}
+  .sub-duration-btn{
+    flex:1; appearance:none; border:1.5px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05);
+    border-radius:14px; padding:12px 6px; cursor:pointer; touch-action:manipulation;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .sub-duration-btn:active{transform:scale(0.96); background:rgba(255,255,255,0.1);}
+  .sub-dur-label{font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase;}
+  .sub-dur-price{font-size:13.5px; font-weight:800; color:#fff;}
+  .sub-dur-save{font-size:9.5px; font-weight:800; color:#39ff8f; background:rgba(57,255,143,0.14); padding:2px 6px; border-radius:999px;}
+
   #version-popup-overlay{
     position:fixed; inset:0; z-index:998; overflow:hidden;
     display:flex; align-items:center; justify-content:center; padding:24px;
@@ -1353,6 +1382,24 @@
     font-size:12.5px; font-weight:600; color:rgba(255,255,255,0.85); line-height:1.4;
   }
   #version-popup-list li::before{content:'• '; color:#4fe0ff; font-weight:800;}
+
+  #usage-warning-overlay{
+    position:fixed; inset:0; z-index:999; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(255,138,63,0.32), transparent 60%),
+      linear-gradient(180deg, #261405 0%, #180d03 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #usage-warning-overlay.show{opacity:1; pointer-events:auto;}
+  #usage-warning-card{position:relative; z-index:2; width:100%; max-width:320px; text-align:center;}
+  #usage-warning-icon{font-size:44px; margin-bottom:4px;}
+  #usage-warning-count{font-family:'Bricolage Grotesque'; font-weight:800; font-size:64px; color:#ffb23f; line-height:1;}
+  #usage-warning-card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; color:#fff; margin:2px 0 10px;}
+  #usage-warning-detail{font-size:13px; color:rgba(255,255,255,0.7); font-weight:700; margin:0 0 14px;}
+  .usage-warning-sub{font-size:12.5px; color:rgba(255,255,255,0.6); margin:0 0 4px; line-height:1.5;}
+  #usage-warning-visit-market{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;}
+  #usage-warning-dismiss{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15);}
 
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
@@ -1374,6 +1421,7 @@
   .lb-rank{width:34px; flex:0 0 auto; font-weight:800; font-size:15px; text-align:center; color:#fff;}
   .lb-avatar{width:26px; flex:0 0 auto; font-size:18px; text-align:center;}
   .lb-name{flex:1; font-weight:700; font-size:14.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;}
+  .sub-badge{font-size:13px; margin-left:4px; vertical-align:middle;}
   .lb-points{flex:0 0 auto; font-weight:800; font-size:13.5px; color:#00e5ff; font-variant-numeric:tabular-nums;}
   .lb-row.lb-top1 .lb-points{color:#ffd23f;}
 
@@ -1887,8 +1935,8 @@
       </div>
       <p id="account-usage-note">Resets every day at midnight. This keeps the game free for everyone.</p>
       <div id="account-pro-teaser">
-        <span>⭐ Pro Tier</span>
-        <span>Coming later — unlimited reads/writes, priority sync, exclusive cosmetics</span>
+        <span>⭐ Want more?</span>
+        <span>Plus and Premium plans give you more daily usage, paid for entirely with Chum Coins — open the Market to see plans</span>
       </div>
     </div>
     <button class="btn btn-primary" id="open-shop-btn">🧰 Tackle Shop</button>
@@ -2051,6 +2099,7 @@
       <button class="lb-period-tab active" data-market-view="general">General</button>
       <button class="lb-period-tab" data-market-view="user">User Market</button>
       <button class="lb-period-tab" data-market-view="stocks">Stock Values</button>
+      <button class="lb-period-tab" data-market-view="subscriptions">⭐ Subscriptions</button>
     </div>
   </div>
   <div id="market-content"></div>
@@ -2115,9 +2164,21 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v1.8</h2>
+    <h2 id="version-popup-number">v1.9</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
+  </div>
+</div>
+
+<div id="usage-warning-overlay">
+  <div id="usage-warning-card">
+    <div id="usage-warning-icon">⏳</div>
+    <div id="usage-warning-count">10</div>
+    <h2>Left Today</h2>
+    <p id="usage-warning-detail">10 reads · 10 writes remaining today</p>
+    <p class="usage-warning-sub">Upgrade to Plus or Premium for more daily reads and writes — paid for with Chum Coins you've already earned.</p>
+    <button class="btn btn-primary" id="usage-warning-visit-market" style="width:100%; margin-top:6px;">🏪 Visit the Market</button>
+    <button class="btn btn-ghost" id="usage-warning-dismiss" style="width:100%; margin-top:8px;">Not Now</button>
   </div>
 </div>
 
@@ -2206,7 +2267,7 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.8 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.9 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
 </div>
 
@@ -2773,13 +2834,19 @@
     snap.forEach(d=>{
       const data = d.data();
       const record = (data.battles && data.battles.record) || { wins:0, losses:0, draws:0, gamesPlayed:0 };
-      out.push({ uid: d.id, displayName: data.displayName, avatar: avatarIdFromData(data), ...record });
+      out.push({ uid: d.id, displayName: data.displayName, avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data), ...record });
     });
     return out;
   }
 
   function avatarIdFromData(data){
     return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
+  }
+  function subscriptionTierFromData(data){
+    const sub = data.shop && data.shop.subscription;
+    if(!sub || !sub.tier || sub.tier==='free') return 'free';
+    if(!sub.expiresAt || Date.now() >= sub.expiresAt) return 'free';
+    return sub.tier;
   }
 
   async function fetchLeaderboard(max){
@@ -2788,7 +2855,7 @@
     const out = [];
     snap.forEach(d => {
       const data = d.data();
-      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, avatar: avatarIdFromData(data) });
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data) });
     });
     return out;
   }
@@ -2801,7 +2868,7 @@
     const out = [];
     snap.forEach(d => {
       const data = d.data();
-      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], avatar: avatarIdFromData(data) });
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data) });
     });
     return out;
   }
@@ -3036,6 +3103,7 @@ function defaultShopState(){
     unlockedAchievements: [],
     lineSlowUntil: null,
     lineSlowAmount: 0,
+    subscription: null, // { tier:'plus'|'premium', expiresAt } or null for free tier
     updatedAt: 0
   };
 }
@@ -3069,6 +3137,7 @@ function normalizeShopState(s){
     unlockedAchievements: s.unlockedAchievements||[],
     lineSlowUntil: s.lineSlowUntil||null,
     lineSlowAmount: s.lineSlowAmount||0,
+    subscription: (s.subscription && typeof s.subscription==='object') ? s.subscription : null,
     updatedAt: s.updatedAt||0
   };
 }
@@ -4753,6 +4822,58 @@ const DRIFTLINE_ADMIN_USERNAME = 'admin'; // <-- CHANGE THIS to your own Driftli
 const DAILY_READ_LIMIT = 100;
 const DAILY_WRITE_LIMIT = 100;
 
+// ---- Subscription tiers (paid for with Chum Coins -- no real money yet) ----
+const SUBSCRIPTION_TIERS = {
+  free:    { label:'Free',    multiplier:1,  badge:null, badgeColor:null },
+  plus:    { label:'Plus',    multiplier:2,  badge:'\u2B50', badgeColor:'#0e86c4' },
+  premium: { label:'Premium', multiplier:10, badge:'\u{1F451}', badgeColor:'#ffd23f' }
+};
+// dailyEquivalent = price if paying the day-rate every day for that period --
+// shown crossed out next to the real price so players see the real discount.
+// EASY TO EDIT: change any cc/dailyEquivalent value here, nothing else needs updating.
+const SUBSCRIPTION_PRICING = {
+  plus: {
+    day:   { cc: 30,    days: 1,   dailyEquivalent: null },
+    month: { cc: 750,   days: 30,  dailyEquivalent: 900 },
+    year:  { cc: 9050,  days: 365, dailyEquivalent: 10950 }
+  },
+  premium: {
+    day:   { cc: 125,   days: 1,   dailyEquivalent: null },
+    month: { cc: 3000,  days: 30,  dailyEquivalent: 3750 },
+    year:  { cc: 36000, days: 365, dailyEquivalent: 45625 }
+  }
+};
+function getActiveSubscriptionTier(){
+  const sub = shopState.subscription;
+  if(!sub || !sub.tier || sub.tier==='free') return 'free';
+  if(!sub.expiresAt || Date.now() >= sub.expiresAt) return 'free'; // expired -- quietly falls back to free
+  return sub.tier;
+}
+function effectiveDailyLimits(){
+  const tier = getActiveSubscriptionTier();
+  const mult = SUBSCRIPTION_TIERS[tier].multiplier;
+  return { readLimit: DAILY_READ_LIMIT*mult, writeLimit: DAILY_WRITE_LIMIT*mult };
+}
+function subscriptionBadgeHtml(tier){
+  const t = SUBSCRIPTION_TIERS[tier];
+  if(!t || !t.badge) return '';
+  return `<span class="sub-badge" style="color:${t.badgeColor};" title="${t.label}">${t.badge}</span>`;
+}
+function purchaseSubscription(tierKey, durationKey){
+  const plan = SUBSCRIPTION_PRICING[tierKey] && SUBSCRIPTION_PRICING[tierKey][durationKey];
+  if(!plan) return { ok:false, message:'Invalid plan.' };
+  if(getCoinsBalance() < plan.cc) return { ok:false, message:'Not enough Chum Coins.' };
+  spendCoins(plan.cc);
+  // Buying any subscription REPLACES whatever's currently active (no
+  // stacking/prorating) -- simplest to reason about and avoids edge cases
+  // like "what happens if you buy Plus while Premium is still active."
+  shopState.subscription = { tier: tierKey, expiresAt: Date.now() + plan.days*86400000 };
+  shopState.updatedAt = Date.now();
+  saveShopState();
+  syncShopToCloud();
+  return { ok:true, tier:tierKey, days:plan.days };
+}
+
 function isDriftlineAdmin(){
   return !!(session && session.displayName && session.displayName.toLowerCase() === DRIFTLINE_ADMIN_USERNAME.toLowerCase());
 }
@@ -4771,27 +4892,42 @@ function saveDailyUsage(usage){
 window.driftlineCanUse = function(kind){
   if(isDriftlineAdmin()) return true;
   const usage = loadDailyUsage();
-  return kind==='write' ? usage.writes < DAILY_WRITE_LIMIT : usage.reads < DAILY_READ_LIMIT;
+  const limits = effectiveDailyLimits();
+  return kind==='write' ? usage.writes < limits.writeLimit : usage.reads < limits.readLimit;
 };
 window.driftlineRecordUsage = function(kind, n){
   if(isDriftlineAdmin()) return;
   const usage = loadDailyUsage();
   if(kind==='write') usage.writes += (n||1); else usage.reads += (n||1);
   saveDailyUsage(usage);
-  maybeShowLimitReachedNotice(usage);
+  checkUsageWarnings(usage);
 };
 function dailyUsageStatus(){
-  if(isDriftlineAdmin()) return { reads:0, writes:0, readLimit:'\u221E', writeLimit:'\u221E', unlimited:true };
+  if(isDriftlineAdmin()) return { reads:0, writes:0, readLimit:'\u221E', writeLimit:'\u221E', unlimited:true, tier:'admin' };
   const usage = loadDailyUsage();
-  return { reads: usage.reads, writes: usage.writes, readLimit: DAILY_READ_LIMIT, writeLimit: DAILY_WRITE_LIMIT, unlimited:false };
+  const limits = effectiveDailyLimits();
+  return { reads: usage.reads, writes: usage.writes, readLimit: limits.readLimit, writeLimit: limits.writeLimit, unlimited:false, tier: getActiveSubscriptionTier() };
 }
-let limitNoticeShownToday = false;
-function maybeShowLimitReachedNotice(usage){
-  if(limitNoticeShownToday) return;
-  if(usage.reads >= DAILY_READ_LIMIT || usage.writes >= DAILY_WRITE_LIMIT){
-    limitNoticeShownToday = true;
-    showToast("You've reached today's free-tier limit \u2014 your progress is still saved locally, cloud sync resumes at midnight.");
+let tenLeftWarningShownToday = false;
+let limitReachedNoticeShownToday = false;
+function checkUsageWarnings(usage){
+  const limits = effectiveDailyLimits();
+  const readsLeft = limits.readLimit - usage.reads;
+  const writesLeft = limits.writeLimit - usage.writes;
+  if(!tenLeftWarningShownToday && (readsLeft <= 10 || writesLeft <= 10) && readsLeft > 0 && writesLeft > 0){
+    tenLeftWarningShownToday = true;
+    showUsageWarningOverlay(readsLeft, writesLeft);
   }
+  if(!limitReachedNoticeShownToday && (usage.reads >= limits.readLimit || usage.writes >= limits.writeLimit)){
+    limitReachedNoticeShownToday = true;
+    showToast("You've reached today's limit \u2014 your progress is still saved locally, cloud sync resumes at midnight.");
+  }
+}
+function showUsageWarningOverlay(readsLeft, writesLeft){
+  const lowest = Math.min(readsLeft, writesLeft);
+  $('usage-warning-count').textContent = lowest;
+  $('usage-warning-detail').textContent = `${readsLeft} reads \u00b7 ${writesLeft} writes remaining today`;
+  $('usage-warning-overlay').classList.add('show');
 }
 
 /* ====================== FISH MARKET (deterministic per-tier pricing) ====================== */
@@ -4811,13 +4947,13 @@ function maybeShowLimitReachedNotice(usage){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '1.8';
+const GAME_VERSION = '1.9';
 const GAME_VERSION_CHANGELOG = [
-  'Sharing the Driftline link now shows a real preview card (title, description, image) instead of a bare URL',
-  'Add to Home Screen now gives Driftline a proper icon and splash screen on iOS and Android, instead of a plain bookmark',
-  'Added a Privacy Policy page, linked from the bottom of Settings',
-  'Added a free-tier daily usage limit (100 reads / 100 writes per day) to keep the game sustainable for everyone \u2014 see your usage in Account',
-  'Account now shows your daily usage and a preview of what a future Pro Tier will unlock'
+  'New: Plus and Premium subscriptions, paid entirely with Chum Coins you\u2019ve earned \u2014 no real money',
+  'Plus = 2x daily reads/writes (200/200) + a badge next to your name. Premium = 10x (1,000/1,000) + badge + early access to new features',
+  'Buy any plan by the day, month, or year in the Market\u2019s new Subscriptions tab \u2014 longer plans cost less per day',
+  'A full-screen heads-up now appears when you\u2019re down to your last 10 reads or writes for the day',
+  'Subscriber badges now show next to your name on every leaderboard, not just your own Account'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6686,7 +6822,7 @@ function renderAccountDrawer(){
     const bag = loadBag();
     const points = computePoints(bag);
     const achCount = (shopState.unlockedAchievements||[]).length;
-    $('account-name').textContent = session.displayName;
+    $('account-name').innerHTML = session.displayName + subscriptionBadgeHtml(getActiveSubscriptionTier());
     $('account-points').textContent = `${points} points \u00b7 ${bag.length} catches \u00b7 ${achCount}/${ACHIEVEMENTS.length} achievements`;
     $('account-rank').textContent = 'Checking your rank...';
     updateAccountUsageCard();
@@ -6727,7 +6863,8 @@ function updateAccountUsageCard(){
   writeFill.style.width = writePct + '%';
   readFill.classList.toggle('warn', readPct >= 80);
   writeFill.classList.toggle('warn', writePct >= 80);
-  $('account-usage-note').textContent = 'Resets every day at midnight. This keeps the game free for everyone.';
+  const tierLabel = SUBSCRIPTION_TIERS[status.tier] ? SUBSCRIPTION_TIERS[status.tier].label : 'Free';
+  $('account-usage-note').textContent = `${tierLabel} tier \u00b7 resets every day at midnight.`;
 }
 async function handleAuthSubmit(){
   if(!window.DriftlineCloud){ $('account-error').textContent = 'Still connecting \u2014 try again in a moment.'; return; }
@@ -7094,7 +7231,61 @@ function switchMarketView(view){
 function renderMarketContent(){
   if(marketView === 'general') renderGeneralMarket();
   else if(marketView === 'user') renderUserMarket();
+  else if(marketView === 'subscriptions') renderSubscriptionsView();
   else renderStockValues();
+}
+
+function renderSubscriptionsView(){
+  const content = $('market-content');
+  if(!session){
+    content.innerHTML = `<div class="lb-loading">Sign in to subscribe with your Chum Coins.</div>`;
+    return;
+  }
+  const currentTier = getActiveSubscriptionTier();
+  const sub = shopState.subscription;
+  let html = '';
+  if(currentTier !== 'free' && sub && sub.expiresAt){
+    const daysLeft = Math.max(1, Math.ceil((sub.expiresAt - Date.now())/86400000));
+    const t = SUBSCRIPTION_TIERS[currentTier];
+    html += `<div class="sub-active-banner">
+      <span>${t.badge} You're on <strong>${t.label}</strong></span>
+      <span>${daysLeft} day${daysLeft===1?'':'s'} left</span>
+    </div>`;
+  }
+  html += `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Paid entirely with Chum Coins you've earned \u2014 no real money involved. Buying a new plan replaces whatever's currently active.</p>`;
+
+  ['plus','premium'].forEach(tierKey=>{
+    const t = SUBSCRIPTION_TIERS[tierKey];
+    const pricing = SUBSCRIPTION_PRICING[tierKey];
+    const perks = tierKey==='premium'
+      ? [`${t.multiplier}x daily reads &amp; writes (1,000/1,000 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`, `Early access to new features before anyone else`]
+      : [`${t.multiplier}x daily reads &amp; writes (200/200 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`];
+    html += `<div class="sub-tier-card" style="--sub-color:${t.badgeColor};">
+      <div class="sub-tier-head"><span class="sub-tier-badge">${t.badge}</span><span class="sub-tier-name">${t.label}</span></div>
+      <ul class="sub-perk-list">${perks.map(p=>`<li>${p}</li>`).join('')}</ul>
+      <div class="sub-duration-row">
+        ${['day','month','year'].map(durKey=>{
+          const plan = pricing[durKey];
+          const durLabel = durKey==='day'?'1 Day':durKey==='month'?'1 Month':'1 Year';
+          const savings = plan.dailyEquivalent ? Math.round((1 - plan.cc/plan.dailyEquivalent)*100) : null;
+          return `<button class="sub-duration-btn" data-buy-sub="${tierKey}|${durKey}">
+            <span class="sub-dur-label">${durLabel}</span>
+            <span class="sub-dur-price">${plan.cc.toLocaleString()} \u{1FA99}</span>
+            ${savings ? `<span class="sub-dur-save">Save ${savings}%</span>` : ''}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  content.innerHTML = html;
+}
+async function buySubscription(tierKey, durationKey){
+  const result = purchaseSubscription(tierKey, durationKey);
+  if(!result.ok){ showToast(result.message); return; }
+  const t = SUBSCRIPTION_TIERS[result.tier];
+  showToast(`${t.badge} ${t.label} activated for ${result.days} day${result.days===1?'':'s'}!`);
+  updateMarketBalanceDisplay();
+  renderSubscriptionsView();
 }
 
 function renderGeneralMarket(){
@@ -7601,10 +7792,11 @@ function renderBattleLeaderboardList(){
     if(topClass[i]) cls.push(topClass[i]);
     const avatarObj = AVATAR_COSMETICS.find(c=>c.id===p.avatar) || AVATAR_COSMETICS[0];
     const winPct = p.gamesPlayed>0 ? Math.round(p.wins/p.gamesPlayed*100) : 0;
+    const subBadge = subscriptionBadgeHtml(p.subTier);
     return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-avatar">${avatarObj.emoji}</div>
-      <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
+      <div class="lb-name">${p.displayName}${subBadge}${isMe?' (you)':''}</div>
       <div class="lb-points">${winPct}% <span style="opacity:0.6; font-weight:600;">(${p.wins}-${p.losses}-${p.draws})</span></div>
     </div>`;
   }).join('');
@@ -7642,10 +7834,11 @@ function renderLeaderboard(list, period){
     if(isMe) cls.push('lb-me');
     if(topClass[i]) cls.push(topClass[i]);
     const avatarObj = AVATAR_COSMETICS.find(c=>c.id===p.avatar) || AVATAR_COSMETICS[0];
+    const subBadge = subscriptionBadgeHtml(p.subTier);
     return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-avatar">${avatarObj.emoji}</div>
-      <div class="lb-name">${p.displayName}${isMe?' (you)':''}</div>
+      <div class="lb-name">${p.displayName}${subBadge}${isMe?' (you)':''}</div>
       <div class="lb-points" data-target="${p.points}">0 pts</div>
     </div>`;
   }).join('');
@@ -7946,6 +8139,12 @@ $('market-content').addEventListener('click', (e)=>{
   if(chartPeriod){
     marketChartPeriod = chartPeriod.dataset.chartPeriod;
     renderStockValues();
+    return;
+  }
+  const buySub = e.target.closest('[data-buy-sub]');
+  if(buySub){
+    const [tierKey, durationKey] = buySub.dataset.buySub.split('|');
+    buySubscription(tierKey, durationKey);
   }
 });
 $('market-sell-close').addEventListener('click', closeSellModal);
@@ -8028,6 +8227,14 @@ $('settings-version-btn').addEventListener('click', ()=>{
 });
 $('version-popup-close').addEventListener('click', ()=>{
   $('version-popup-overlay').classList.remove('show');
+});
+$('usage-warning-dismiss').addEventListener('click', ()=>{
+  $('usage-warning-overlay').classList.remove('show');
+});
+$('usage-warning-visit-market').addEventListener('click', ()=>{
+  $('usage-warning-overlay').classList.remove('show');
+  openMarket();
+  switchMarketView('subscriptions');
 });
 
 /* ---- Map Mode switch (2-tap confirm since it regenerates every hotspot) ---- */
