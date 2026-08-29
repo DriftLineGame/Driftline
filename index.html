@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1175,6 +1174,7 @@
   #mk-chart-change{font-size:12.5px; font-weight:700; margin-top:2px;}
   #mk-chart-change.up{color:#ff6b6b;}
   #mk-chart-change.down{color:#39ff8f;}
+  #mk-chart-change.flat{color:rgba(255,255,255,0.5);}
 
   #market-sell-scrim{
     position:fixed; inset:0; z-index:970; background:rgba(10,25,35,0.6);
@@ -1285,6 +1285,7 @@
   .mkd-change{font-weight:800;}
   .mkd-change.up{color:#ff6b6b;}
   .mkd-change.down{color:#39ff8f;}
+  .mkd-change.flat{color:rgba(255,255,255,0.5);}
 
   #version-popup-overlay{
     position:fixed; inset:0; z-index:998; overflow:hidden;
@@ -5390,6 +5391,23 @@ function updateBagBadge(){
   }
 }
 function tierMeta(key){ return TIERS.find(t=>t.key===key) || TIERS[0]; }
+function formatPctChange(before, after){
+  // Whole-number rounding was hiding real changes: a small decrease like
+  // 725->724 (-0.14%) rounded to "0%" and, since the direction check ran
+  // on that already-rounded zero, displayed as a gain instead of a loss.
+  // This shows real precision for small moves and always colors by the
+  // TRUE unrounded direction, never the rounded display value.
+  if(!(before > 0) || after === before){
+    return { text: '0%', dir: 'flat' };
+  }
+  const rawPct = (after/before - 1)*100;
+  const rounded = Math.round(rawPct);
+  const text = rounded === 0
+    ? (rawPct>=0?'+':'') + rawPct.toFixed(1) + '%'
+    : (rounded>=0?'+':'') + rounded + '%';
+  const dir = rawPct > 0 ? 'up' : 'down';
+  return { text, dir };
+}
 
 function renderBag(){
   const bag = loadBag();
@@ -7184,12 +7202,12 @@ function showMarketDigest(oldPrices, newPrices){
   const rows = tiers.map(tk=>{
     const before = oldPrices[tk] || newPrices[tk];
     const after = newPrices[tk];
-    const pct = before>0 ? Math.round((after/before-1)*100) : 0;
+    const change = formatPctChange(before, after);
     const t = tierMeta(tk);
     return `<div class="mkd-row">
       <span style="color:${t.hex};">${t.label}</span>
       <span>${Math.round(before).toLocaleString()} \u2192 ${Math.round(after).toLocaleString()} \u{1FA99}
-        <span class="mkd-change ${pct>=0?'up':'down'}">(${pct>=0?'+':''}${pct}%)</span>
+        <span class="mkd-change ${change.dir}">(${change.text})</span>
       </span>
     </div>`;
   }).join('');
@@ -7274,10 +7292,10 @@ function renderMarketChart(tierKey){
   const areaPoints = `${pad},${h-pad} ` + points + ` ${w-pad},${h-pad}`;
   const current = Math.round(prices[prices.length-1]);
   const first = prices[0];
-  const changePct = Math.round((prices[prices.length-1]/first - 1)*100);
+  const change = formatPctChange(first, prices[prices.length-1]);
   wrap.innerHTML = `
     <div id="mk-chart-current">${current.toLocaleString()} \u{1FA99}</div>
-    <div id="mk-chart-change" class="${changePct>=0?'up':'down'}">${changePct>=0?'+':''}${changePct}% \u00b7 ${periodLabel}</div>
+    <div id="mk-chart-change" class="${change.dir}">${change.text} \u00b7 ${periodLabel}</div>
     <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; margin-top:10px;">
       <defs>
         <linearGradient id="mk-chart-fill" x1="0" y1="0" x2="0" y2="1">
