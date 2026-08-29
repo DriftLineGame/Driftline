@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Driftline</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#12293a; --ink-dim:#5a7688; --line:#dfeaf1; --accent:#0e86c4; --bg:#eef5fb; }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; line-height:1.6; font-size:15.5px;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:0 22px;}
+  header{
+    background:linear-gradient(160deg, #3fd6ff, #0b6fa3);
+    padding:44px 22px 34px; margin-bottom:8px;
+  }
+  header .inner{max-width:640px; margin:0 auto;}
+  header h1{
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:30px;
+    color:#fff; margin:0 0 6px;
+  }
+  header p{color:rgba(255,255,255,0.88); margin:0; font-size:14px; font-weight:600;}
+  a.back{
+    display:inline-flex; align-items:center; gap:6px; color:#fff; text-decoration:none;
+    font-weight:700; font-size:13.5px; margin-bottom:18px; opacity:0.9;
+  }
+  h2{
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:19px;
+    color:var(--ink); margin:34px 0 10px;
+  }
+  h2:first-of-type{margin-top:26px;}
+  p{color:var(--ink); margin:0 0 12px;}
+  ul{margin:0 0 12px; padding-left:20px;}
+  li{margin-bottom:6px;}
+  .callout{
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:16px 18px; margin:18px 0; font-size:14.5px; color:var(--ink-dim);
+  }
+  .updated{color:var(--ink-dim); font-size:13px; margin-top:36px; padding-top:16px; border-top:1px solid var(--line);}
+  strong{color:var(--ink);}
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <a class="back" href="./">← Back to Driftline</a>
+    <h1>Privacy Policy</h1>
+    <p>What Driftline collects, and why — plain language, no legal jargon.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="callout">
+This is a hobby project, not a company, and this isn't written by a lawyer. It's an honest, plain-language explanation of what the game actually does with your data. If you want specifics on anything below, you're welcome to ask.
+</div>
+
+<h2>Location data (GPS)</h2>
+<p>Driftline is a real-world game — fishing hotspots are placed on the map around <strong>your actual location</strong>, so the app needs your device's GPS to work at all.</p>
+<ul>
+  <li>Your location is used <strong>on your own device</strong> to generate nearby hotspots, measure your distance to them, and record where each fish was caught.</li>
+  <li>The coordinates of each catch (not a continuous location trail — just a point per catch) are saved to your player profile so your catch history and map history work correctly.</li>
+  <li>Your live, continuous location is <strong>never</strong> broadcast to other players. Other players cannot see where you are or where you've been.</li>
+  <li>You can deny location permission at any time in your browser/device settings — the game just won't be able to generate hotspots without it.</li>
+</ul>
+
+<h2>Account data</h2>
+<p>If you create an account, Driftline stores:</p>
+<ul>
+  <li>Your chosen username and a hashed version of your PIN (the actual PIN itself is never stored — only a one-way hash of it)</li>
+  <li>Your points, coins, catches, achievements, and other gameplay progress</li>
+  <li>Friend connections and battle history, if you use those features</li>
+</ul>
+<p>This account system is intentionally lightweight (there's no email, phone number, or real-world identity required or collected). That also means it isn't bank-grade security — treat your PIN the way you'd treat a game password, not a financial one.</p>
+
+<h2>Where your data lives</h2>
+<p>Gameplay and account data is stored in Google Firebase (Firestore), a third-party cloud database provider. Driftline doesn't sell, rent, or share your data with advertisers or other third parties. Nobody's data is used for anything other than making the game work.</p>
+
+<h2>The player market</h2>
+<p>If you list a fish for sale, other players can see the fish, its price, and your username in the marketplace. Trades are recorded (who sold what, to whom, for how much) so both sides of a transaction can see accurate history.</p>
+
+<h2>What we don't do</h2>
+<ul>
+  <li>We don't track you across other websites or apps</li>
+  <li>We don't use your location for anything other than the game itself</li>
+  <li>We don't run ads or share data with ad networks</li>
+</ul>
+
+<h2>Deleting your data</h2>
+<p>There's currently no self-serve "delete my account" button in the app. If you'd like your data removed, reach out and it can be deleted manually.</p>
+
+<h2>Children</h2>
+<p>Driftline doesn't knowingly collect data from children, and the account system has no way to verify age. If you believe a child has created an account, reach out and it will be removed.</p>
+
+<h2>Changes to this policy</h2>
+<p>If what the game collects or how it's used ever changes meaningfully, this page will be updated to reflect that.</p>
+
+<div class="updated">Last updated: alongside Driftline's Fish Market release.</div>
+
+</div>
+</body>
+</html>
