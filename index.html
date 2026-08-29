@@ -1401,6 +1401,73 @@
   #usage-warning-visit-market{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;}
   #usage-warning-dismiss{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15);}
 
+  #limit-reached-overlay{
+    position:fixed; inset:0; z-index:999; overflow-y:auto;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(255,80,80,0.28), transparent 60%),
+      linear-gradient(180deg, #26060a 0%, #180405 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #limit-reached-overlay.show{opacity:1; pointer-events:auto;}
+  #limit-reached-card{position:relative; z-index:2; width:100%; max-width:340px; text-align:center; padding:20px 0;}
+  #limit-reached-icon{font-size:44px; margin-bottom:6px;}
+  #limit-reached-card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:21px; color:#fff; margin:0 0 10px;}
+  .limit-reached-sub{font-size:12.5px; color:rgba(255,255,255,0.7); line-height:1.5; margin:0 0 14px;}
+  #limit-reached-list{list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:7px; text-align:left;}
+  #limit-reached-list li{
+    padding:9px 14px; background:rgba(255,255,255,0.06); border-radius:12px;
+    font-size:12.5px; font-weight:600; color:rgba(255,255,255,0.85);
+  }
+  #limit-reached-visit-market{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;}
+  #limit-reached-dismiss{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15);}
+
+  #sub-ad-overlay{
+    position:fixed; inset:0; z-index:997; overflow-y:auto;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(255,210,63,0.28), transparent 60%),
+      linear-gradient(180deg, #201705 0%, #150e03 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #sub-ad-overlay.show{opacity:1; pointer-events:auto;}
+  #sub-ad-card{position:relative; z-index:2; width:100%; max-width:340px; text-align:center; padding-top:6px;}
+  #sub-ad-close{
+    position:absolute; top:-6px; right:-2px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.08); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #sub-ad-close svg{width:14px; height:14px; stroke:#fff;}
+  #sub-ad-icon{font-size:38px; margin-bottom:6px;}
+  #sub-ad-card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; color:#fff; margin:0 0 16px;}
+  #sub-ad-tiers{display:flex; gap:10px; margin-bottom:14px;}
+  .sub-ad-tier{flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:14px 10px;}
+  .sub-ad-tier-head{font-size:18px; margin-bottom:8px;}
+  .sub-ad-tier-head span{display:block; font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; color:#fff; margin-top:2px;}
+  .sub-ad-tier-perk{font-size:10.5px; color:rgba(255,255,255,0.7); font-weight:600; line-height:1.4; margin-bottom:8px; min-height:28px;}
+  .sub-ad-tier-price{font-size:11px; color:#ffd23f; font-weight:800;}
+  .sub-ad-sub{font-size:11.5px; color:rgba(255,255,255,0.55); margin:0 0 14px;}
+  #sub-ad-view-plans{background:linear-gradient(160deg,#ffd23f,#ff8a3f); color:#1a0f08;}
+  #sub-ad-maybe-later{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15);}
+
+  #purchase-confirm-scrim{
+    position:fixed; inset:0; z-index:1000; background:rgba(10,25,35,0.62);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #purchase-confirm-scrim.show{opacity:1; pointer-events:auto;}
+  #purchase-confirm-card{
+    width:100%; max-width:320px; border-radius:26px; padding:28px 24px 22px; text-align:center;
+    background:#ffffff; box-shadow:0 30px 70px rgba(0,0,0,0.3);
+    transform:translateY(16px) scale(0.96); opacity:0;
+    transition:transform .3s cubic-bezier(.2,.9,.25,1), opacity .25s ease;
+  }
+  #purchase-confirm-scrim.show #purchase-confirm-card{transform:translateY(0) scale(1); opacity:1;}
+  #purchase-confirm-icon{font-size:34px; margin-bottom:6px;}
+  #purchase-confirm-title{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px; color:var(--ink); margin-bottom:4px;}
+  #purchase-confirm-desc{font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:10px;}
+  #purchase-confirm-price{font-family:'Bricolage Grotesque'; font-weight:800; font-size:24px; color:#0e86c4;}
+  #purchase-confirm-yes:disabled{opacity:0.5; pointer-events:none;}
+
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
     background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); margin-bottom:9px;
@@ -2164,7 +2231,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v1.9</h2>
+    <h2 id="version-popup-number">v2.0</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2179,6 +2246,60 @@
     <p class="usage-warning-sub">Upgrade to Plus or Premium for more daily reads and writes — paid for with Chum Coins you've already earned.</p>
     <button class="btn btn-primary" id="usage-warning-visit-market" style="width:100%; margin-top:6px;">🏪 Visit the Market</button>
     <button class="btn btn-ghost" id="usage-warning-dismiss" style="width:100%; margin-top:8px;">Not Now</button>
+  </div>
+</div>
+
+<div id="limit-reached-overlay">
+  <div id="limit-reached-card">
+    <div id="limit-reached-icon">🚫</div>
+    <h2>Today's Limit Reached</h2>
+    <p class="limit-reached-sub">Your fishing, catches, and everything already on this device still work fine and are saved locally. These need the cloud, so they're paused until your limit resets at midnight:</p>
+    <ul id="limit-reached-list">
+      <li>🏆 Leaderboards (loading or refreshing)</li>
+      <li>👥 Friends (requests, viewing gear)</li>
+      <li>⚔️ Battles (starting, revealing, forfeiting)</li>
+      <li>🏪 Market (buying, selling, browsing listings)</li>
+      <li>☁️ Syncing new catches to the cloud (they're still saved on this device)</li>
+    </ul>
+    <button class="btn btn-primary" id="limit-reached-visit-market" style="width:100%; margin-top:6px;">⭐ See Plus &amp; Premium</button>
+    <button class="btn btn-ghost" id="limit-reached-dismiss" style="width:100%; margin-top:8px;">Got It</button>
+  </div>
+</div>
+
+<div id="sub-ad-overlay">
+  <div id="sub-ad-card">
+    <button id="sub-ad-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div id="sub-ad-icon">⭐</div>
+    <h2>Get More Out of Driftline</h2>
+    <div id="sub-ad-tiers">
+      <div class="sub-ad-tier">
+        <div class="sub-ad-tier-head">⭐ <span>Plus</span></div>
+        <div class="sub-ad-tier-perk">2x daily reads &amp; writes</div>
+        <div class="sub-ad-tier-price">from 30 🪙/day</div>
+      </div>
+      <div class="sub-ad-tier">
+        <div class="sub-ad-tier-head">👑 <span>Premium</span></div>
+        <div class="sub-ad-tier-perk">10x daily usage + badge + early access</div>
+        <div class="sub-ad-tier-price">from 125 🪙/day</div>
+      </div>
+    </div>
+    <p class="sub-ad-sub">Paid entirely with Chum Coins you've earned — no real money.</p>
+    <button class="btn btn-primary" id="sub-ad-view-plans" style="width:100%; margin-top:4px;">See Plans</button>
+    <button class="btn btn-ghost" id="sub-ad-maybe-later" style="width:100%; margin-top:8px;">Maybe Later</button>
+  </div>
+</div>
+
+<!-- Generic purchase confirmation -- every buy button in the game routes
+     through this before spending anything, so an accidental double-tap
+     can't double-charge. -->
+<div id="purchase-confirm-scrim">
+  <div id="purchase-confirm-card">
+    <div id="purchase-confirm-icon">🛒</div>
+    <div id="purchase-confirm-title">Confirm Purchase</div>
+    <div id="purchase-confirm-desc">Item name</div>
+    <div id="purchase-confirm-price">100 🪙</div>
+    <button class="btn btn-primary" id="purchase-confirm-yes" style="width:100%; margin-top:14px;">Confirm</button>
+    <button class="btn btn-ghost" id="purchase-confirm-cancel" style="width:100%; margin-top:8px;">Cancel</button>
   </div>
 </div>
 
@@ -2267,8 +2388,9 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.9 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.0 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
+  <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
 
 <!-- Interactive tutorial -->
@@ -3161,6 +3283,27 @@ function spendCoins(amount){
   if(session && window.DriftlineCloud){
     window.DriftlineCloud.adjustCoinsSpent(session.uid, amount).catch(()=>{});
   }
+}
+/* ---- Generic purchase confirmation ----
+   Every buy button in the game routes through requestPurchaseConfirm()
+   before any coins actually get spent. This is the ONE place that guards
+   against accidental double-taps double-charging someone -- the Confirm
+   button disables itself the instant it's tapped, and the pending action
+   is cleared before it ever runs, so even a very fast double-tap can only
+   trigger the purchase once. */
+let pendingPurchaseAction = null;
+function requestPurchaseConfirm(icon, title, desc, priceText, onConfirm){
+  pendingPurchaseAction = onConfirm;
+  $('purchase-confirm-icon').textContent = icon;
+  $('purchase-confirm-title').textContent = title;
+  $('purchase-confirm-desc').textContent = desc;
+  $('purchase-confirm-price').textContent = priceText;
+  $('purchase-confirm-yes').disabled = false;
+  $('purchase-confirm-scrim').classList.add('show');
+}
+function closePurchaseConfirm(){
+  pendingPurchaseAction = null;
+  $('purchase-confirm-scrim').classList.remove('show');
 }
 function loadPrawnTrap(){
   try{
@@ -4830,17 +4973,19 @@ const SUBSCRIPTION_TIERS = {
 };
 // dailyEquivalent = price if paying the day-rate every day for that period --
 // shown crossed out next to the real price so players see the real discount.
+// Month = exactly 20% off the day-rate x30, Year = exactly 40% off the
+// day-rate x365, rounded to whole Chum Coins.
 // EASY TO EDIT: change any cc/dailyEquivalent value here, nothing else needs updating.
 const SUBSCRIPTION_PRICING = {
   plus: {
-    day:   { cc: 30,    days: 1,   dailyEquivalent: null },
-    month: { cc: 750,   days: 30,  dailyEquivalent: 900 },
-    year:  { cc: 9050,  days: 365, dailyEquivalent: 10950 }
+    day:   { cc: 30,   days: 1,   dailyEquivalent: null },
+    month: { cc: 720,  days: 30,  dailyEquivalent: 900 },
+    year:  { cc: 6570, days: 365, dailyEquivalent: 10950 }
   },
   premium: {
     day:   { cc: 125,   days: 1,   dailyEquivalent: null },
     month: { cc: 3000,  days: 30,  dailyEquivalent: 3750 },
-    year:  { cc: 36000, days: 365, dailyEquivalent: 45625 }
+    year:  { cc: 27375, days: 365, dailyEquivalent: 45625 }
   }
 };
 function getActiveSubscriptionTier(){
@@ -4920,7 +5065,7 @@ function checkUsageWarnings(usage){
   }
   if(!limitReachedNoticeShownToday && (usage.reads >= limits.readLimit || usage.writes >= limits.writeLimit)){
     limitReachedNoticeShownToday = true;
-    showToast("You've reached today's limit \u2014 your progress is still saved locally, cloud sync resumes at midnight.");
+    showLimitReachedOverlay();
   }
 }
 function showUsageWarningOverlay(readsLeft, writesLeft){
@@ -4928,6 +5073,9 @@ function showUsageWarningOverlay(readsLeft, writesLeft){
   $('usage-warning-count').textContent = lowest;
   $('usage-warning-detail').textContent = `${readsLeft} reads \u00b7 ${writesLeft} writes remaining today`;
   $('usage-warning-overlay').classList.add('show');
+}
+function showLimitReachedOverlay(){
+  $('limit-reached-overlay').classList.add('show');
 }
 
 /* ====================== FISH MARKET (deterministic per-tier pricing) ====================== */
@@ -4947,13 +5095,13 @@ function showUsageWarningOverlay(readsLeft, writesLeft){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '1.9';
+const GAME_VERSION = '2.0';
 const GAME_VERSION_CHANGELOG = [
-  'New: Plus and Premium subscriptions, paid entirely with Chum Coins you\u2019ve earned \u2014 no real money',
-  'Plus = 2x daily reads/writes (200/200) + a badge next to your name. Premium = 10x (1,000/1,000) + badge + early access to new features',
-  'Buy any plan by the day, month, or year in the Market\u2019s new Subscriptions tab \u2014 longer plans cost less per day',
-  'A full-screen heads-up now appears when you\u2019re down to your last 10 reads or writes for the day',
-  'Subscriber badges now show next to your name on every leaderboard, not just your own Account'
+  'Plus/Premium monthly plans are now exactly 20% off, yearly plans exactly 40% off the daily rate',
+  'Every purchase in the game (subscriptions, shop items, cosmetics, market fish) now shows a Confirm step first, so an accidental double-tap can never double-charge you',
+  'Hitting your daily limit now explains exactly what pauses (leaderboards, friends, battles, market, cloud sync) instead of just a vague message',
+  'New Subscription Policy page, linked in Settings, explaining exactly what Plus/Premium do and don\u2019t promise',
+  'Non-subscribers will now see a dismissible Plus/Premium reminder on load \u2014 tap out anytime'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6043,6 +6191,10 @@ function renderGearView(){
 function buyRodToken(){
   const price = nextRodTokenPrice();
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('🎣', 'Confirm Purchase', 'Rod Token (+1 rod level)', `${price.toLocaleString()} \u{1FA99}`, ()=>reallyBuyRodToken(price));
+}
+function reallyBuyRodToken(price){
+  if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
   spendCoins(price);
   shopState.bonusRodLevels = (shopState.bonusRodLevels||0)+1;
   shopState.updatedAt = Date.now();
@@ -6055,6 +6207,10 @@ const MAP_REGEN_PRICE = 100;
 const MAP_FREEZE_PRICE = 60;
 function buyMapRegen(){
   if(getCoinsBalance() < MAP_REGEN_PRICE){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('\u{1F5FA}\uFE0F', 'Confirm Purchase', 'Instant Map Regen', `${MAP_REGEN_PRICE.toLocaleString()} \u{1FA99}`, reallyBuyMapRegen);
+}
+function reallyBuyMapRegen(){
+  if(getCoinsBalance() < MAP_REGEN_PRICE){ showToast('Not enough Chum Coins.'); return; }
   spendCoins(MAP_REGEN_PRICE);
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -6065,6 +6221,10 @@ function buyMapRegen(){
 }
 function buyMapFreeze(){
   if(getCoinsBalance() < MAP_FREEZE_PRICE){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('\u2744\uFE0F', 'Confirm Purchase', 'Map Freezer (+30 min)', `${MAP_FREEZE_PRICE.toLocaleString()} \u{1FA99}`, reallyBuyMapFreeze);
+}
+function reallyBuyMapFreeze(){
+  if(getCoinsBalance() < MAP_FREEZE_PRICE){ showToast('Not enough Chum Coins.'); return; }
   spendCoins(MAP_FREEZE_PRICE);
   shopState.updatedAt = Date.now();
   saveShopState();
@@ -6074,6 +6234,12 @@ function buyMapFreeze(){
   renderShop();
 }
 function buyItem(key){
+  const item = SHOP_ITEMS[key];
+  if(!item) return;
+  if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('🎒', 'Confirm Purchase', item.name, `${item.price.toLocaleString()} \u{1FA99}`, ()=>reallyBuyItem(key));
+}
+function reallyBuyItem(key){
   const item = SHOP_ITEMS[key];
   if(!item) return;
   if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
@@ -6113,6 +6279,15 @@ function cosmeticOwnedKeyFor(type){
   return 'markers';
 }
 function buyCosmetic(type, id){
+  const list = cosmeticListFor(type);
+  const item = list.find(c=>c.id===id);
+  if(!item) return;
+  const owned = shopState.ownedCosmetics[cosmeticOwnedKeyFor(type)];
+  if(owned.includes(id)) return;
+  if(getCoinsBalance() < item.price){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('✨', 'Confirm Purchase', item.name, `${item.price.toLocaleString()} \u{1FA99}`, ()=>reallyBuyCosmetic(type, id));
+}
+function reallyBuyCosmetic(type, id){
   const list = cosmeticListFor(type);
   const item = list.find(c=>c.id===id);
   if(!item) return;
@@ -7280,6 +7455,13 @@ function renderSubscriptionsView(){
   content.innerHTML = html;
 }
 async function buySubscription(tierKey, durationKey){
+  const plan = SUBSCRIPTION_PRICING[tierKey] && SUBSCRIPTION_PRICING[tierKey][durationKey];
+  if(!plan) return;
+  const t = SUBSCRIPTION_TIERS[tierKey];
+  const durLabel = durationKey==='day'?'1 Day':durationKey==='month'?'1 Month':'1 Year';
+  requestPurchaseConfirm(t.badge, 'Confirm Purchase', `${t.label} \u2014 ${durLabel}`, `${plan.cc.toLocaleString()} \u{1FA99}`, ()=>reallyBuySubscription(tierKey, durationKey));
+}
+async function reallyBuySubscription(tierKey, durationKey){
   const result = purchaseSubscription(tierKey, durationKey);
   if(!result.ok){ showToast(result.message); return; }
   const t = SUBSCRIPTION_TIERS[result.tier];
@@ -7364,6 +7546,10 @@ function showMarketBuyAnimation(fishName, tierKey, price){
   }, 1450);
 }
 async function buyFromGeneralMarket(tierKey, fishName, price){
+  if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
+  requestPurchaseConfirm('🐟', 'Confirm Purchase', fishName, `${price.toLocaleString()} \u{1FA99}`, ()=>reallyBuyFromGeneralMarket(tierKey, fishName, price));
+}
+async function reallyBuyFromGeneralMarket(tierKey, fishName, price){
   if(getCoinsBalance() < price){ showToast('Not enough Chum Coins.'); return; }
   // The fish about to be added to the bag increases computePoints() by its
   // own point value -- offset that in the same spend, or the purchase
@@ -7454,6 +7640,13 @@ function renderUserMarketList(){
   content.innerHTML = html;
 }
 async function buyUserListing(listingId){
+  if(!session || !window.DriftlineCloud) return;
+  const listing = (userMarketListingsCache||[]).find(l=>l.id===listingId);
+  const fishName = listing ? listing.fishName : 'this fish';
+  const price = listing ? listing.askPrice : null;
+  requestPurchaseConfirm('🐟', 'Confirm Purchase', fishName, price!==null ? `${price.toLocaleString()} \u{1FA99}` : 'from another player', ()=>reallyBuyUserListing(listingId));
+}
+async function reallyBuyUserListing(listingId){
   if(!session || !window.DriftlineCloud) return;
   try{
     const result = await window.DriftlineCloud.purchaseListing(listingId, session.uid, session.displayName);
@@ -7960,6 +8153,17 @@ function beginGame(pt, accuracy){
     startMarketSaleTicker();
   }
   maybeAutoStartTutorial();
+  maybeShowSubAd();
+}
+function maybeShowSubAd(){
+  // Every load, not just once -- but delayed so it doesn't stack on top of
+  // the version popup / market digest / tutorial if those are also firing
+  // this session, and skipped entirely for anyone already on Plus/Premium.
+  setTimeout(()=>{
+    if(getActiveSubscriptionTier() === 'free'){
+      $('sub-ad-overlay').classList.add('show');
+    }
+  }, 2200);
 }
 
 function requestLocation(btnEl){
@@ -8235,6 +8439,36 @@ $('usage-warning-visit-market').addEventListener('click', ()=>{
   $('usage-warning-overlay').classList.remove('show');
   openMarket();
   switchMarketView('subscriptions');
+});
+$('limit-reached-dismiss').addEventListener('click', ()=>{
+  $('limit-reached-overlay').classList.remove('show');
+});
+$('limit-reached-visit-market').addEventListener('click', ()=>{
+  $('limit-reached-overlay').classList.remove('show');
+  openMarket();
+  switchMarketView('subscriptions');
+});
+$('sub-ad-close').addEventListener('click', ()=>{ $('sub-ad-overlay').classList.remove('show'); });
+$('sub-ad-maybe-later').addEventListener('click', ()=>{ $('sub-ad-overlay').classList.remove('show'); });
+$('sub-ad-view-plans').addEventListener('click', ()=>{
+  $('sub-ad-overlay').classList.remove('show');
+  openMarket();
+  switchMarketView('subscriptions');
+});
+$('sub-ad-overlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'sub-ad-overlay') $('sub-ad-overlay').classList.remove('show');
+});
+$('purchase-confirm-cancel').addEventListener('click', closePurchaseConfirm);
+$('purchase-confirm-scrim').addEventListener('click', (e)=>{
+  if(e.target.id === 'purchase-confirm-scrim') closePurchaseConfirm();
+});
+$('purchase-confirm-yes').addEventListener('click', ()=>{
+  if(!pendingPurchaseAction){ closePurchaseConfirm(); return; }
+  $('purchase-confirm-yes').disabled = true; // belt-and-suspenders: blocks a second tap even before the scrim finishes fading
+  const action = pendingPurchaseAction;
+  pendingPurchaseAction = null;
+  $('purchase-confirm-scrim').classList.remove('show');
+  action();
 });
 
 /* ---- Map Mode switch (2-tap confirm since it regenerates every hotspot) ---- */
