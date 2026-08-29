@@ -5851,7 +5851,12 @@ function startWorldEventTicker(){
 let marketSaleTickInterval = null;
 function startMarketSaleTicker(){
   clearInterval(marketSaleTickInterval);
-  marketSaleTickInterval = setInterval(checkForSoldListings, 60000);
+  // Was polling every 60s regardless of whether the player was anywhere
+  // near the Market -- a real, avoidable source of background reads for
+  // something that doesn't need near-instant responsiveness. 5 minutes
+  // (matching the price-digest ticker's cadence) is still fast enough to
+  // feel timely.
+  marketSaleTickInterval = setInterval(checkForSoldListings, 5*60000);
 }
 function showWorldEventBanner(event){
   const banner = document.createElement('div');
