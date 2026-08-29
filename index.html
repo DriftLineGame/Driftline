@@ -77,6 +77,38 @@
       radial-gradient(120% 90% at 50% -10%, #cdeeff 0%, #eaf6fc 45%, #ffffff 100%);
     text-align:center; padding:32px;
   }
+  /* Signature moment: light refracting through open water, the first
+     thing anyone sees. Two independently-drifting layers of repeating
+     conic gradients, screen/overlay-blended, create a shimmering caustic
+     interference pattern -- pure CSS, no images, GPU-friendly transforms. */
+  .caustic-layer{
+    position:absolute; inset:-30%; z-index:1; pointer-events:none;
+    mix-blend-mode:screen; opacity:0.28; filter:blur(3px);
+    background:
+      repeating-conic-gradient(from 0deg at 22% 28%, transparent 0deg 13deg, rgba(255,255,255,0.65) 14.5deg 16deg, transparent 17.5deg 30deg),
+      repeating-conic-gradient(from 50deg at 78% 62%, transparent 0deg 9deg, rgba(180,232,255,0.55) 10.5deg 12deg, transparent 13.5deg 24deg);
+    animation:causticFlow1 12s ease-in-out infinite;
+  }
+  .caustic-layer.layer2{
+    mix-blend-mode:overlay; opacity:0.2;
+    background:
+      repeating-conic-gradient(from 25deg at 65% 20%, transparent 0deg 11deg, rgba(255,255,255,0.5) 12deg 13.5deg, transparent 15deg 26deg),
+      repeating-conic-gradient(from 80deg at 30% 75%, transparent 0deg 8deg, rgba(140,210,255,0.5) 9deg 10.5deg, transparent 12deg 22deg);
+    animation:causticFlow2 17s ease-in-out infinite reverse;
+  }
+  @keyframes causticFlow1{
+    0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
+    33%{ transform:translate(3%,-2%) rotate(7deg) scale(1.08); }
+    66%{ transform:translate(-2%,3%) rotate(-5deg) scale(1.04); }
+  }
+  @keyframes causticFlow2{
+    0%,100%{ transform:translate(0,0) rotate(0deg) scale(1.1); }
+    50%{ transform:translate(-4%,2%) rotate(-9deg) scale(1); }
+  }
+  @keyframes startFadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
   .start-blob{
     position:absolute; border-radius:50%; filter:blur(60px); opacity:0.22; pointer-events:none;
     animation:lbDrift 9s ease-in-out infinite;
@@ -87,21 +119,27 @@
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 12px 34px rgba(63,214,255,0.35);
     margin-bottom:14px; position:relative; z-index:2;
+    animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) both, brandGlow 3.4s ease-in-out infinite 0.9s;
+  }
+  @keyframes brandGlow{
+    0%,100%{ box-shadow:0 12px 34px rgba(63,214,255,0.35); }
+    50%{ box-shadow:0 12px 44px rgba(63,214,255,0.55), 0 0 30px rgba(63,214,255,0.28); }
   }
   .brand-mark svg{width:32px; height:32px;}
-  #start-screen h1{position:relative; z-index:2; font-size:28px; margin:0 0 12px; letter-spacing:-0.02em; font-weight:800;}
+  #start-screen h1{position:relative; z-index:2; font-size:28px; margin:0 0 12px; letter-spacing:-0.02em; font-weight:800; animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) .08s both;}
   #start-fish-strip{
     position:relative; z-index:2; display:flex; flex-wrap:wrap; justify-content:center; gap:6px;
     max-width:320px; margin:0 0 14px;
+    animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) .16s both;
   }
   .start-fish-chip{
     font-size:11px; font-weight:700; padding:5px 10px; border-radius:999px;
     border:1.5px solid; background:#ffffffcc; white-space:nowrap;
   }
-  #start-screen p{position:relative; z-index:2; color:var(--ink-dim); font-size:12.5px; line-height:1.5; max-width:280px; margin:0 0 6px;}
-  #start-screen p.start-required{color:var(--ink); font-weight:700; font-size:12.5px; margin:0 0 20px;}
+  #start-screen p{position:relative; z-index:2; color:var(--ink-dim); font-size:12.5px; line-height:1.5; max-width:280px; margin:0 0 6px; animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) .24s both;}
+  #start-screen p.start-required{color:var(--ink); font-weight:700; font-size:12.5px; margin:0 0 20px; animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) .30s both;}
   #start-screen p strong{color:var(--ink); font-weight:700;}
-  #start-screen .btn{position:relative; z-index:2;}
+  #start-screen .btn{position:relative; z-index:2; animation:startFadeUp .7s cubic-bezier(.2,.8,.2,1) .38s both;}
   .btn{
     appearance:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;
     border-radius:999px; padding:15px 26px; font-size:15px; font-weight:700;
@@ -111,12 +149,31 @@
   .btn:active{transform:scale(0.96);}
   .btn-primary{background:linear-gradient(160deg,#4fe0ff,#0e86c4); color:#02121e; box-shadow:0 10px 26px rgba(63,214,255,0.32);}
   .btn-primary:disabled{background:#284a5e; color:#7a97a8; box-shadow:none; cursor:not-allowed; opacity:0.8;}
+  #use-location-btn{position:relative; overflow:hidden;}
+  #use-location-btn::after{
+    content:''; position:absolute; top:0; left:-60%; width:35%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation:btnShimmer 3.4s ease-in-out infinite; animation-delay:1.3s;
+    pointer-events:none;
+  }
+  @keyframes btnShimmer{
+    0%{ left:-60%; }
+    38%{ left:130%; }
+    100%{ left:130%; }
+  }
   .btn-ghost{background:transparent; color:var(--ink-dim); font-weight:600; font-size:13px; text-decoration:underline; padding:10px;}
   #geo-status{margin-top:16px; font-size:13px; color:#d1364f; max-width:280px; display:none;}
   #manual-coords{margin-top:14px; display:none; flex-direction:column; gap:8px; width:100%; max-width:280px;}
   #manual-coords input{
     background:#f1f7fb; border:1px solid var(--line); color:var(--ink); border-radius:10px;
     padding:11px 13px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .caustic-layer{animation:none;}
+    .brand-mark{animation:none; box-shadow:0 12px 34px rgba(63,214,255,0.35);}
+    #start-screen h1, #start-fish-strip, #start-screen p, #start-screen .btn{animation:none; opacity:1; transform:none;}
+    #use-location-btn::after{display:none;}
+    .start-blob{animation:none;}
   }
 
   /* ---------- Top bar ---------- */
@@ -1821,6 +1878,8 @@
 
 <!-- Start screen -->
 <div id="start-screen">
+  <div class="caustic-layer"></div>
+  <div class="caustic-layer layer2"></div>
   <div class="start-blob" style="width:220px;height:220px;top:-70px;left:-60px;background:#39ff8f;"></div>
   <div class="start-blob" style="width:190px;height:190px;top:70px;right:-70px;background:#ffd23f;animation-delay:-3s;"></div>
   <div class="start-blob" style="width:230px;height:230px;bottom:60px;left:-80px;background:#ff2d78;animation-delay:-6s;"></div>
@@ -2319,7 +2378,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.21</h2>
+    <h2 id="version-popup-number">v2.3</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2477,7 +2536,7 @@
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
   <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.21 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.3 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -5550,11 +5609,11 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.21';
+const GAME_VERSION = '2.3';
 const GAME_VERSION_CHANGELOG = [
-  'New Stock Report button in Settings \u2014 always shows the latest market changes on demand',
-  'The button glows with a moving gradient whenever there\u2019s a market update you haven\u2019t seen yet, so it\u2019s easy to spot',
-  'Tapping it (or the automatic pop-up) marks it as seen \u2014 the glow won\u2019t come back until the next real change'
+  'The opening screen got a full visual polish \u2014 a subtle animated caustic light effect (like light through open water), a glowing logo, and a staggered entrance as everything appears',
+  'The main "Find My Fishing Grounds" button now has a periodic light sweep to draw the eye',
+  'All of it respects reduced-motion settings for anyone who prefers a calmer experience'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
