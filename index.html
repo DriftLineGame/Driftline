@@ -1464,7 +1464,7 @@
   #purchase-confirm-scrim.show #purchase-confirm-card{transform:translateY(0) scale(1); opacity:1;}
   #purchase-confirm-icon{font-size:34px; margin-bottom:6px;}
   #purchase-confirm-title{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px; color:var(--ink); margin-bottom:4px;}
-  #purchase-confirm-desc{font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:10px;}
+  #purchase-confirm-desc{font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:10px; white-space:pre-line; line-height:1.5;}
   #purchase-confirm-price{font-family:'Bricolage Grotesque'; font-weight:800; font-size:24px; color:#0e86c4;}
   #purchase-confirm-yes:disabled{opacity:0.5; pointer-events:none;}
 
@@ -2231,7 +2231,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.0</h2>
+    <h2 id="version-popup-number">v2.1</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2388,7 +2388,7 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.0 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.1 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -2965,10 +2965,10 @@
     return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
   }
   function subscriptionTierFromData(data){
-    const sub = data.shop && data.shop.subscription;
-    if(!sub || !sub.tier || sub.tier==='free') return 'free';
-    if(!sub.expiresAt || Date.now() >= sub.expiresAt) return 'free';
-    return sub.tier;
+    const list = data.shop && data.shop.subscriptions;
+    if(!Array.isArray(list) || !list.length) return 'free';
+    const active = list.find(s => s && s.expiresAt > Date.now());
+    return active ? active.tier : 'free';
   }
 
   async function fetchLeaderboard(max){
@@ -3225,7 +3225,7 @@ function defaultShopState(){
     unlockedAchievements: [],
     lineSlowUntil: null,
     lineSlowAmount: 0,
-    subscription: null, // { tier:'plus'|'premium', expiresAt } or null for free tier
+    subscriptions: [], // array of { tier:'plus'|'premium', expiresAt } -- can hold multiple stacked entries of the same tier
     updatedAt: 0
   };
 }
@@ -3259,7 +3259,8 @@ function normalizeShopState(s){
     unlockedAchievements: s.unlockedAchievements||[],
     lineSlowUntil: s.lineSlowUntil||null,
     lineSlowAmount: s.lineSlowAmount||0,
-    subscription: (s.subscription && typeof s.subscription==='object') ? s.subscription : null,
+    subscriptions: Array.isArray(s.subscriptions) ? s.subscriptions
+      : (s.subscription && typeof s.subscription==='object' ? [s.subscription] : []), // migrates the old single-object shape
     updatedAt: s.updatedAt||0
   };
 }
@@ -4988,31 +4989,79 @@ const SUBSCRIPTION_PRICING = {
     year:  { cc: 27375, days: 365, dailyEquivalent: 45625 }
   }
 };
+function getActiveSubscriptionEntries(){
+  // Multiple entries of the SAME tier can be active at once (stacked
+  // purchases) -- each with its own independent expiry. Different tiers
+  // never coexist; buying a different tier replaces everything (see
+  // purchaseSubscription). Expired entries are pruned here, not just
+  // filtered, so shopState.subscriptions never grows unbounded.
+  const list = Array.isArray(shopState.subscriptions) ? shopState.subscriptions : [];
+  const active = list.filter(s => s && s.expiresAt > Date.now());
+  if(active.length !== list.length){
+    shopState.subscriptions = active;
+    saveShopState();
+  }
+  return active;
+}
 function getActiveSubscriptionTier(){
-  const sub = shopState.subscription;
-  if(!sub || !sub.tier || sub.tier==='free') return 'free';
-  if(!sub.expiresAt || Date.now() >= sub.expiresAt) return 'free'; // expired -- quietly falls back to free
-  return sub.tier;
+  const active = getActiveSubscriptionEntries();
+  return active.length ? active[0].tier : 'free';
 }
 function effectiveDailyLimits(){
-  const tier = getActiveSubscriptionTier();
-  const mult = SUBSCRIPTION_TIERS[tier].multiplier;
-  return { readLimit: DAILY_READ_LIMIT*mult, writeLimit: DAILY_WRITE_LIMIT*mult };
+  const active = getActiveSubscriptionEntries();
+  if(!active.length) return { readLimit: DAILY_READ_LIMIT, writeLimit: DAILY_WRITE_LIMIT };
+  // Each currently-active entry contributes its own full multiplier --
+  // this is what makes two overlapping Plus purchases genuinely add up to
+  // 400/400 instead of just extending a single 200/200.
+  const totalMult = active.reduce((sum, s) => sum + SUBSCRIPTION_TIERS[s.tier].multiplier, 0);
+  return { readLimit: DAILY_READ_LIMIT*totalMult, writeLimit: DAILY_WRITE_LIMIT*totalMult };
 }
 function subscriptionBadgeHtml(tier){
   const t = SUBSCRIPTION_TIERS[tier];
   if(!t || !t.badge) return '';
   return `<span class="sub-badge" style="color:${t.badgeColor};" title="${t.label}">${t.badge}</span>`;
 }
+function previewSubscriptionPurchase(tierKey, durationKey){
+  // Used by the confirm dialog so players see exactly what buying this
+  // will do BEFORE they commit -- especially important for the stacking
+  // case, which isn't obvious just from the price.
+  const plan = SUBSCRIPTION_PRICING[tierKey] && SUBSCRIPTION_PRICING[tierKey][durationKey];
+  if(!plan) return null;
+  const active = getActiveSubscriptionEntries();
+  const sameTierActive = active.filter(s => s.tier === tierKey);
+  const otherTierActive = active.filter(s => s.tier !== tierKey);
+  if(sameTierActive.length){
+    const latestExpiry = Math.max(...sameTierActive.map(s=>s.expiresAt));
+    return {
+      mode: 'stack',
+      note: `You already have ${SUBSCRIPTION_TIERS[tierKey].label} until ${new Date(latestExpiry).toLocaleDateString()}. This adds ${plan.days} more day${plan.days===1?'':'s'} on top, and while both overlap you'll get double usage.`
+    };
+  }
+  if(otherTierActive.length){
+    return {
+      mode: 'replace',
+      note: `You currently have ${SUBSCRIPTION_TIERS[otherTierActive[0].tier].label} active. Buying ${SUBSCRIPTION_TIERS[tierKey].label} replaces it, starting fresh from today.`
+    };
+  }
+  return { mode: 'new', note: null };
+}
 function purchaseSubscription(tierKey, durationKey){
   const plan = SUBSCRIPTION_PRICING[tierKey] && SUBSCRIPTION_PRICING[tierKey][durationKey];
   if(!plan) return { ok:false, message:'Invalid plan.' };
   if(getCoinsBalance() < plan.cc) return { ok:false, message:'Not enough Chum Coins.' };
   spendCoins(plan.cc);
-  // Buying any subscription REPLACES whatever's currently active (no
-  // stacking/prorating) -- simplest to reason about and avoids edge cases
-  // like "what happens if you buy Plus while Premium is still active."
-  shopState.subscription = { tier: tierKey, expiresAt: Date.now() + plan.days*86400000 };
+  const active = getActiveSubscriptionEntries();
+  const sameTierActive = active.filter(s => s.tier === tierKey);
+  const otherTierActive = active.filter(s => s.tier !== tierKey);
+  const newEntry = { tier: tierKey, expiresAt: Date.now() + plan.days*86400000 };
+  if(otherTierActive.length){
+    // Different tier already active -- replace entirely, per design.
+    shopState.subscriptions = [newEntry];
+  } else {
+    // Same tier (or nothing) active -- stack: keep existing entries and
+    // add this as a new, independently-expiring entry.
+    shopState.subscriptions = [...sameTierActive, newEntry];
+  }
   shopState.updatedAt = Date.now();
   saveShopState();
   syncShopToCloud();
@@ -5095,13 +5144,12 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.0';
+const GAME_VERSION = '2.1';
 const GAME_VERSION_CHANGELOG = [
-  'Plus/Premium monthly plans are now exactly 20% off, yearly plans exactly 40% off the daily rate',
-  'Every purchase in the game (subscriptions, shop items, cosmetics, market fish) now shows a Confirm step first, so an accidental double-tap can never double-charge you',
-  'Hitting your daily limit now explains exactly what pauses (leaderboards, friends, battles, market, cloud sync) instead of just a vague message',
-  'New Subscription Policy page, linked in Settings, explaining exactly what Plus/Premium do and don\u2019t promise',
-  'Non-subscribers will now see a dismissible Plus/Premium reminder on load \u2014 tap out anytime'
+  'Buying the same subscription tier again while it\u2019s still active now stacks instead of replacing \u2014 more days AND double usage while both terms overlap',
+  'Buying a different tier (e.g. Premium while Plus is active) still replaces, starting fresh',
+  'The purchase confirm screen now clearly explains stacking vs. replacing before you buy',
+  'Your Subscriptions tab in the Market now shows your live current usage limit, including any active stacking'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -7416,18 +7464,21 @@ function renderSubscriptionsView(){
     content.innerHTML = `<div class="lb-loading">Sign in to subscribe with your Chum Coins.</div>`;
     return;
   }
+  const active = getActiveSubscriptionEntries();
   const currentTier = getActiveSubscriptionTier();
-  const sub = shopState.subscription;
   let html = '';
-  if(currentTier !== 'free' && sub && sub.expiresAt){
-    const daysLeft = Math.max(1, Math.ceil((sub.expiresAt - Date.now())/86400000));
+  if(active.length){
     const t = SUBSCRIPTION_TIERS[currentTier];
+    const limits = effectiveDailyLimits();
+    const latestExpiry = Math.max(...active.map(s=>s.expiresAt));
+    const daysLeft = Math.max(1, Math.ceil((latestExpiry - Date.now())/86400000));
+    const stackNote = active.length > 1 ? ` \u00b7 ${active.length} stacked terms` : '';
     html += `<div class="sub-active-banner">
-      <span>${t.badge} You're on <strong>${t.label}</strong></span>
-      <span>${daysLeft} day${daysLeft===1?'':'s'} left</span>
+      <span>${t.badge} You're on <strong>${t.label}</strong>${stackNote}</span>
+      <span>${limits.readLimit}/${limits.writeLimit} today \u00b7 ${daysLeft}d left</span>
     </div>`;
   }
-  html += `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Paid entirely with Chum Coins you've earned \u2014 no real money involved. Buying a new plan replaces whatever's currently active.</p>`;
+  html += `<p style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; margin:0 0 16px;">Paid entirely with Chum Coins you've earned \u2014 no real money involved. Buying the <strong>same</strong> tier again stacks on top (more days AND more daily usage while both overlap). Buying a <strong>different</strong> tier replaces what you have.</p>`;
 
   ['plus','premium'].forEach(tierKey=>{
     const t = SUBSCRIPTION_TIERS[tierKey];
@@ -7459,13 +7510,19 @@ async function buySubscription(tierKey, durationKey){
   if(!plan) return;
   const t = SUBSCRIPTION_TIERS[tierKey];
   const durLabel = durationKey==='day'?'1 Day':durationKey==='month'?'1 Month':'1 Year';
-  requestPurchaseConfirm(t.badge, 'Confirm Purchase', `${t.label} \u2014 ${durLabel}`, `${plan.cc.toLocaleString()} \u{1FA99}`, ()=>reallyBuySubscription(tierKey, durationKey));
+  const preview = previewSubscriptionPurchase(tierKey, durationKey);
+  const desc = preview && preview.note ? `${t.label} \u2014 ${durLabel}\n${preview.note}` : `${t.label} \u2014 ${durLabel}`;
+  requestPurchaseConfirm(t.badge, 'Confirm Purchase', desc, `${plan.cc.toLocaleString()} \u{1FA99}`, ()=>reallyBuySubscription(tierKey, durationKey));
 }
 async function reallyBuySubscription(tierKey, durationKey){
+  const wasStacking = getActiveSubscriptionEntries().some(s=>s.tier===tierKey);
   const result = purchaseSubscription(tierKey, durationKey);
   if(!result.ok){ showToast(result.message); return; }
   const t = SUBSCRIPTION_TIERS[result.tier];
-  showToast(`${t.badge} ${t.label} activated for ${result.days} day${result.days===1?'':'s'}!`);
+  const msg = wasStacking
+    ? `${t.badge} +${result.days} more day${result.days===1?'':'s'} of ${t.label} added \u2014 usage doubles while both terms overlap!`
+    : `${t.badge} ${t.label} activated for ${result.days} day${result.days===1?'':'s'}!`;
+  showToast(msg);
   updateMarketBalanceDisplay();
   renderSubscriptionsView();
 }
