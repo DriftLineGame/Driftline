@@ -1093,8 +1093,10 @@
     font-size:12.5px; font-weight:800; color:var(--ink); margin-bottom:8px;
   }
   #account-usage-numbers{color:var(--ink-dim); font-weight:700;}
-  #account-usage-bars{display:flex; flex-direction:column; gap:5px; margin-bottom:8px;}
-  .account-usage-bar{height:6px; border-radius:999px; background:rgba(18,41,58,0.08); overflow:hidden;}
+  #account-usage-bars{display:flex; flex-direction:column; gap:7px; margin-bottom:8px;}
+  .account-usage-bar-row{display:flex; align-items:center; gap:8px;}
+  .account-usage-bar{flex:1; height:6px; border-radius:999px; background:rgba(18,41,58,0.08); overflow:hidden;}
+  .account-usage-bar-label{font-size:10px; font-weight:800; color:var(--ink-dim); width:46px; flex:0 0 auto; text-align:right;}
   .account-usage-fill{height:100%; border-radius:999px; background:linear-gradient(90deg,#39c66b,#0e86c4); transition:width .3s ease;}
   .account-usage-fill.warn{background:linear-gradient(90deg,#ffb23f,#ff6b6b);}
   #account-usage-note{font-size:11px; color:var(--ink-dim); margin:0 0 10px;}
@@ -2141,11 +2143,17 @@
     <div id="account-usage-card">
       <div id="account-usage-head">
         <span>Daily Free Usage</span>
-        <span id="account-usage-numbers">0/100 reads · 0/100 writes</span>
+        <span id="account-usage-numbers">0/100 Checks · 0/100 Actions</span>
       </div>
       <div id="account-usage-bars">
-        <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-read-fill"></div></div>
-        <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-write-fill"></div></div>
+        <div class="account-usage-bar-row">
+          <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-read-fill"></div></div>
+          <span class="account-usage-bar-label">Checks</span>
+        </div>
+        <div class="account-usage-bar-row">
+          <div class="account-usage-bar"><div class="account-usage-fill" id="account-usage-write-fill"></div></div>
+          <span class="account-usage-bar-label">Actions</span>
+        </div>
       </div>
       <p id="account-usage-note">Resets every day at midnight. This keeps the game free for everyone.</p>
       <div id="account-pro-teaser">
@@ -2378,7 +2386,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.3</h2>
+    <h2 id="version-popup-number">v2.31</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2389,8 +2397,8 @@
     <div id="usage-warning-icon">⏳</div>
     <div id="usage-warning-count">10</div>
     <h2>Left Today</h2>
-    <p id="usage-warning-detail">10 reads · 10 writes remaining today</p>
-    <p class="usage-warning-sub">Upgrade to Plus or Premium for more daily reads and writes — paid for with Chum Coins you've already earned.</p>
+    <p id="usage-warning-detail">10 Checks · 10 Actions remaining today</p>
+    <p class="usage-warning-sub">Upgrade to Plus or Premium for more daily Checks &amp; Actions — paid for with Chum Coins you've already earned.</p>
     <button class="btn btn-primary" id="usage-warning-visit-market" style="width:100%; margin-top:6px;">🏪 Visit the Market</button>
     <button class="btn btn-ghost" id="usage-warning-dismiss" style="width:100%; margin-top:8px;">Not Now</button>
   </div>
@@ -2400,7 +2408,7 @@
   <div id="limit-reached-card">
     <div id="limit-reached-icon">🚫</div>
     <h2>Today's Limit Reached</h2>
-    <p class="limit-reached-sub">Your fishing, catches, and everything already on this device still work fine and are saved locally. These need the cloud, so they're paused until your limit resets at midnight:</p>
+    <p class="limit-reached-sub">Your fishing, catches, and everything already on this device still work fine and are saved locally. These need the cloud — a Check or an Action — so they're paused until your limit resets at midnight:</p>
     <ul id="limit-reached-list">
       <li>🏆 Leaderboards (loading or refreshing)</li>
       <li>👥 Friends (requests, viewing gear)</li>
@@ -2421,7 +2429,7 @@
     <div id="sub-ad-tiers">
       <div class="sub-ad-tier">
         <div class="sub-ad-tier-head">⭐ <span>Plus</span></div>
-        <div class="sub-ad-tier-perk">2x daily reads &amp; writes</div>
+        <div class="sub-ad-tier-perk">2x daily Checks &amp; Actions</div>
         <div class="sub-ad-tier-price">from 30 🪙/day</div>
       </div>
       <div class="sub-ad-tier">
@@ -2536,7 +2544,7 @@
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
   <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.3 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.31 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -5585,7 +5593,7 @@ function checkUsageWarnings(usage){
 function showUsageWarningOverlay(readsLeft, writesLeft){
   const lowest = Math.min(readsLeft, writesLeft);
   $('usage-warning-count').textContent = lowest;
-  $('usage-warning-detail').textContent = `${readsLeft} reads \u00b7 ${writesLeft} writes remaining today`;
+  $('usage-warning-detail').textContent = `${readsLeft} Checks \u00b7 ${writesLeft} Actions remaining today`;
   $('usage-warning-overlay').classList.add('show');
 }
 function showLimitReachedOverlay(){
@@ -5609,11 +5617,10 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.3';
+const GAME_VERSION = '2.31';
 const GAME_VERSION_CHANGELOG = [
-  'The opening screen got a full visual polish \u2014 a subtle animated caustic light effect (like light through open water), a glowing logo, and a staggered entrance as everything appears',
-  'The main "Find My Fishing Grounds" button now has a periodic light sweep to draw the eye',
-  'All of it respects reduced-motion settings for anyone who prefers a calmer experience'
+  'Renamed "reads" and "writes" to plain-language "Checks" and "Actions" everywhere in the app \u2014 same daily limits as before, just clearer names',
+  'The technical Firestore terms are still there in fine print on the Subscription Policy page, for anyone who wants the detail'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6977,7 +6984,7 @@ const TUTORIAL_STEPS = [
   { title:'The Fish Market', desc:'Tap here for a live economy: buy fish directly, trade with other players, or just track prices. Prices actually move \u2014 every fish tier has a real, changing value.', target:'market-fab', action:'open-market' },
   { title:'Buy & Sell Fish', desc:'General Market sells a rotating selection straight from the game at the current price. User Market is real player-to-player trading \u2014 list a fish from your Bag, or buy someone else\u2019s listing directly.', target:null, action:'open-market' },
   { title:'Stock Values', desc:'Every fish tier has its own price history \u2014 updated every 2 hours, viewable by Day, Week, or Month. Prices can swing meaningfully day to day, so it pays to check before a big trade.', target:null, action:'open-market-stocks' },
-  { title:'Plus & Premium', desc:'Free accounts get 100 cloud reads and 100 writes a day \u2014 plenty for normal play, but if you want more, Plus and Premium raise that ceiling (2x and 10x) using Chum Coins you\u2019ve already earned. No real money involved.', target:null, action:'open-market-subscriptions' },
+  { title:'Plus & Premium', desc:'Every free account gets 100 daily Checks (looking things up \u2014 leaderboard, market, friends) and 100 daily Actions (things that save \u2014 a catch syncing, a trade, a battle move). Plenty for normal play. Plus and Premium raise that ceiling (2x and 10x) using Chum Coins you\u2019ve already earned. No real money involved.', target:null, action:'open-market-subscriptions' },
   { title:'World Events', desc:'Every few hours, something happens across the whole map \u2014 a Feeding Frenzy boosts everyone\u2019s odds, or a specific rare fish starts migrating and becomes far easier to find. Watch for the banner, and keep an eye on this chip when one\u2019s live.', target:'world-event-chip' },
   { title:'Catch Rate', desc:'This little button tracks your personal bite rate for the current hour of day, based on your own casting history \u2014 tap it anytime for the exact numbers.', target:'ratio-chip' },
   { title:'How Odds Really Work', desc:'Your bite chance stacks from several layers: a base rate, a big jump if you\u2019re standing in a real hotspot, a permanent bonus from your rod level, and any temporary boosts on top \u2014 lures, shares, challenges, events. Everything is capped at 98%, no matter how much stacks.', target:null, bigText:true },
@@ -7558,7 +7565,7 @@ function updateAccountUsageCard(){
     $('account-usage-note').textContent = 'Admin accounts skip the daily free-tier limit entirely.';
     return;
   }
-  $('account-usage-numbers').textContent = `${status.reads}/${status.readLimit} reads \u00b7 ${status.writes}/${status.writeLimit} writes`;
+  $('account-usage-numbers').textContent = `${status.reads}/${status.readLimit} Checks \u00b7 ${status.writes}/${status.writeLimit} Actions`;
   const readPct = Math.min(100, (status.reads/status.readLimit)*100);
   const writePct = Math.min(100, (status.writes/status.writeLimit)*100);
   const readFill = $('account-usage-read-fill');
@@ -7984,8 +7991,8 @@ function renderSubscriptionsView(){
     const t = SUBSCRIPTION_TIERS[tierKey];
     const pricing = SUBSCRIPTION_PRICING[tierKey];
     const perks = tierKey==='premium'
-      ? [`${t.multiplier}x daily reads &amp; writes (1,000/1,000 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`, `Early access to new features before anyone else`]
-      : [`${t.multiplier}x daily reads &amp; writes (200/200 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`];
+      ? [`${t.multiplier}x daily Checks &amp; Actions (1,000/1,000 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`, `Early access to new features before anyone else`]
+      : [`${t.multiplier}x daily Checks &amp; Actions (200/200 a day)`, `${t.badge} badge next to your name on the leaderboard &amp; your account`];
     html += `<div class="sub-tier-card" style="--sub-color:${t.badgeColor};">
       <div class="sub-tier-head"><span class="sub-tier-badge">${t.badge}</span><span class="sub-tier-name">${t.label}</span></div>
       <ul class="sub-perk-list">${perks.map(p=>`<li>${p}</li>`).join('')}</ul>
