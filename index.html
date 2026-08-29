@@ -1155,6 +1155,23 @@
   .shop-rod-level{color:#fff; font-weight:800; font-size:15px; margin-bottom:3px;}
   .shop-rod-sub{color:rgba(255,255,255,0.6); font-size:11.5px; line-height:1.4; max-width:190px;}
 
+  .shop-redeem-card{
+    background:rgba(255,255,255,0.06); border:1px solid rgba(57,198,107,0.3); border-radius:18px; padding:16px; margin-bottom:6px;
+  }
+  .shop-redeem-desc{color:rgba(255,255,255,0.65); font-size:12px; line-height:1.4; margin:0 0 12px;}
+  .shop-redeem-row{display:flex; gap:8px;}
+  #gift-code-input{
+    flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff;
+    border-radius:12px; padding:11px 13px; font-size:14px; font-family:'Inter',sans-serif; letter-spacing:0.04em;
+    text-transform:uppercase; min-width:0;
+  }
+  #gift-code-input::placeholder{color:rgba(255,255,255,0.35); letter-spacing:0.04em;}
+  #gift-code-redeem-btn{flex:0 0 auto; padding:11px 18px; background:linear-gradient(160deg,#39ff8f,#0e86c4); color:#04201c;}
+  #gift-code-redeem-btn:disabled{opacity:0.5;}
+  #gift-code-status{font-size:12px; font-weight:700; margin:10px 0 0; min-height:14px;}
+  #gift-code-status.gift-code-success{color:#39ff8f;}
+  #gift-code-status.gift-code-error{color:#ff6b6b;}
+
   .shop-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .shop-card{
     background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:16px;
@@ -1610,6 +1627,48 @@
   #purchase-confirm-desc{font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:10px; white-space:pre-line; line-height:1.5;}
   #purchase-confirm-price{font-family:'Bricolage Grotesque'; font-weight:800; font-size:24px; color:#0e86c4;}
   #purchase-confirm-yes:disabled{opacity:0.5; pointer-events:none;}
+
+  #gift-admin-overlay{
+    position:fixed; inset:0; z-index:1001; background:rgba(10,25,35,0.7);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #gift-admin-overlay.show{opacity:1; pointer-events:auto;}
+  #gift-admin-card{
+    position:relative; width:100%; max-width:320px; border-radius:26px; padding:28px 24px 24px; text-align:center;
+    background:linear-gradient(180deg,#0e1a24,#070d13); border:1px solid rgba(255,255,255,0.1);
+    box-shadow:0 30px 70px rgba(0,0,0,0.4);
+  }
+  #gift-admin-close{
+    position:absolute; top:10px; right:10px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.08); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation;
+  }
+  #gift-admin-close svg{width:14px; height:14px; stroke:#fff;}
+  .gift-admin-icon{font-size:36px; margin-bottom:8px;}
+  #gift-admin-card h3{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px; color:#fff; margin:0 0 4px;}
+  .gift-admin-sub{font-size:12px; color:rgba(255,255,255,0.55); margin:0 0 16px; line-height:1.4;}
+  #gift-admin-passcode-input{
+    width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff;
+    border-radius:12px; padding:13px; font-size:18px; text-align:center; letter-spacing:0.3em; font-family:'Inter',sans-serif;
+    box-sizing:border-box;
+  }
+  #gift-admin-passcode-error{color:#ff6b6b; font-size:12px; font-weight:700; margin:10px 0 0; min-height:14px;}
+  #gift-admin-amount-row{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;}
+  .gift-admin-amount-btn{
+    appearance:none; border:1.5px solid rgba(255,210,63,0.35); background:rgba(255,210,63,0.08); color:#fff;
+    border-radius:14px; padding:14px 8px; cursor:pointer; touch-action:manipulation;
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px;
+  }
+  .gift-admin-amount-btn span{display:block; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); margin-top:2px;}
+  .gift-admin-amount-btn:active{transform:scale(0.96);}
+  #gift-admin-result{min-height:10px;}
+  .gift-admin-code-label{font-size:12px; color:rgba(255,255,255,0.6); font-weight:700; margin:0 0 8px;}
+  .gift-admin-code-display{
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; color:#39ff8f;
+    background:rgba(57,255,143,0.08); border:1.5px dashed rgba(57,255,143,0.4); border-radius:14px;
+    padding:14px 10px; margin-bottom:12px; letter-spacing:0.05em; word-break:break-all;
+  }
+  .gift-admin-generating{color:rgba(255,255,255,0.6); font-size:13px;}
 
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
@@ -2403,7 +2462,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.4</h2>
+    <h2 id="version-popup-number">v2.5</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2472,6 +2531,32 @@
     <div id="purchase-confirm-price">100 🪙</div>
     <button class="btn btn-primary" id="purchase-confirm-yes" style="width:100%; margin-top:14px;">Confirm</button>
     <button class="btn btn-ghost" id="purchase-confirm-cancel" style="width:100%; margin-top:8px;">Cancel</button>
+  </div>
+</div>
+
+<div id="gift-admin-overlay">
+  <div id="gift-admin-card">
+    <button id="gift-admin-close"><svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div id="gift-admin-passcode-view">
+      <div class="gift-admin-icon">🔐</div>
+      <h3>Enter Passcode</h3>
+      <p class="gift-admin-sub">10-digit passcode required to generate gift codes.</p>
+      <input type="password" id="gift-admin-passcode-input" inputmode="numeric" maxlength="10" placeholder="••••••••••">
+      <button class="btn btn-primary" id="gift-admin-unlock-btn" style="width:100%; margin-top:10px;">Unlock</button>
+      <p id="gift-admin-passcode-error"></p>
+    </div>
+    <div id="gift-admin-generator-view" class="hidden">
+      <div class="gift-admin-icon">🎁</div>
+      <h3>Generate a Gift Code</h3>
+      <p class="gift-admin-sub">Pick an amount — the code works once, for whoever redeems it first.</p>
+      <div id="gift-admin-amount-row">
+        <button class="gift-admin-amount-btn" data-gift-amount="100">100<span>CC</span></button>
+        <button class="gift-admin-amount-btn" data-gift-amount="500">500<span>CC</span></button>
+        <button class="gift-admin-amount-btn" data-gift-amount="1000">1,000<span>CC</span></button>
+        <button class="gift-admin-amount-btn" data-gift-amount="10000">10,000<span>CC</span></button>
+      </div>
+      <div id="gift-admin-result"></div>
+    </div>
   </div>
 </div>
 
@@ -2561,7 +2646,8 @@
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
   <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.4 — What's New</button>
+  <button class="btn btn-ghost hidden" id="admin-gift-codes-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎁 Gift Codes (Admin)</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.5 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -2763,6 +2849,47 @@
   async function syncGoldTrap(uid, goldState){
     const ref = doc(db, 'players', uid);
     await updateDoc(ref, { gold: goldState });
+  }
+
+  /* ---------- Gift codes (cash-for-Chum-Coins during beta testing) ---------- */
+  function generateGiftCodeString(){
+    // No 0/O/1/I/L -- avoids characters that are easy to misread when a
+    // code gets read aloud or handwritten between friends.
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const block = (n)=>{ let s=''; for(let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; };
+    return `${block(4)}-${block(4)}-${block(4)}`;
+  }
+  async function createGiftCode(amount, createdByUid){
+    for(let attempt=0; attempt<5; attempt++){
+      const code = generateGiftCodeString();
+      const ref = doc(db, 'giftCodes', code);
+      const existing = await getDoc(ref);
+      if(!existing.exists()){
+        await setDoc(ref, { amount, redeemed:false, redeemedBy:null, redeemedAt:null, createdAt:Date.now(), createdBy:createdByUid });
+        return code;
+      }
+      // Collision against the existing code space is astronomically
+      // unlikely (32^12 possibilities) -- retrying is just a safety net.
+    }
+    throw new Error('Could not generate a unique code \u2014 try again.');
+  }
+  async function redeemGiftCode(rawCode, uid){
+    // Only the code document itself is inside the transaction (validate +
+    // mark redeemed) -- this alone guarantees two people can never both
+    // win the same code, the same race-safety pattern already proven for
+    // Market trades and Battle completion. Crediting the coins happens as
+    // a separate, already-atomic step after this succeeds (adjustCoinsSpent),
+    // reusing the exact mechanism that's been safe since the Fish Market.
+    const code = (rawCode||'').trim().toUpperCase();
+    const ref = doc(db, 'giftCodes', code);
+    return await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if(!snap.exists()) throw new Error('That code doesn\u2019t exist. Double check it and try again.');
+      const data = snap.data();
+      if(data.redeemed) throw new Error('That code has already been used.');
+      tx.update(ref, { redeemed:true, redeemedBy:uid, redeemedAt:Date.now() });
+      return { amount: data.amount };
+    }, 1, 1);
   }
 
   function normUidLookup(username){
@@ -3187,7 +3314,7 @@
   }
 
   window.DriftlineCloud = {
-    signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap, syncGoldTrap,
+    signUp, signIn, syncBag, syncShop, syncPrawnTrap, syncCrabTrap, syncGoldTrap, createGiftCode, redeemGiftCode,
     fetchLeaderboard, fetchAllPlayersForPeriods,
     sendFriendRequest, respondFriendRequest, removeFriend, fetchFriendsState, fetchPlayerByUid,
     sendBattleChallenge, respondBattleChallenge, completeBattle, forfeitBattle, fetchBattleState, fetchBattleLeaderboard,
@@ -3549,6 +3676,76 @@ function grantCoins(amount){
   shopState.coinsSpent = (shopState.coinsSpent||0) - amount;
   if(session && window.DriftlineCloud){
     window.DriftlineCloud.adjustCoinsSpent(session.uid, -amount).catch(()=>{});
+  }
+}
+async function redeemGiftCodeClick(){
+  if(!session || !window.DriftlineCloud) return;
+  const input = $('gift-code-input');
+  const statusEl = $('gift-code-status');
+  const code = input.value.trim();
+  if(!code){ statusEl.textContent = 'Enter a code first.'; statusEl.className = 'gift-code-error'; return; }
+  const btn = $('gift-code-redeem-btn');
+  btn.disabled = true; // the code's own single-use check already prevents double-crediting, this just avoids a pointless double network call
+  statusEl.textContent = 'Checking\u2026';
+  statusEl.className = '';
+  try{
+    const result = await window.DriftlineCloud.redeemGiftCode(code, session.uid);
+    grantCoins(result.amount);
+    updateMarketBalanceDisplay();
+    input.value = '';
+    statusEl.textContent = `\u{1F389} +${result.amount.toLocaleString()} Chum Coins added!`;
+    statusEl.className = 'gift-code-success';
+    $('shop-coins').textContent = getCoinsBalance().toLocaleString();
+  }catch(e){
+    statusEl.textContent = e.message || "Couldn't redeem that code.";
+    statusEl.className = 'gift-code-error';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---- Admin gift code generator (passcode-gated) ---- */
+let giftPanelUnlocked = false; // resets whenever the overlay closes -- never persisted
+function openGiftAdminPanel(){
+  $('gift-admin-overlay').classList.add('show');
+  if(giftPanelUnlocked){
+    $('gift-admin-passcode-view').classList.add('hidden');
+    $('gift-admin-generator-view').classList.remove('hidden');
+  } else {
+    $('gift-admin-passcode-view').classList.remove('hidden');
+    $('gift-admin-generator-view').classList.add('hidden');
+    $('gift-admin-passcode-input').value = '';
+    $('gift-admin-passcode-error').textContent = '';
+    $('gift-admin-result').innerHTML = '';
+  }
+}
+function closeGiftAdminPanel(){
+  $('gift-admin-overlay').classList.remove('show');
+  giftPanelUnlocked = false; // require the passcode again next time, on purpose
+}
+function checkGiftPasscode(){
+  const val = $('gift-admin-passcode-input').value.trim();
+  if(val === ADMIN_GIFT_PASSCODE){
+    giftPanelUnlocked = true;
+    $('gift-admin-passcode-view').classList.add('hidden');
+    $('gift-admin-generator-view').classList.remove('hidden');
+  } else {
+    $('gift-admin-passcode-error').textContent = 'Incorrect passcode.';
+  }
+}
+async function generateGiftCodeClick(amount){
+  if(!session || !window.DriftlineCloud) return;
+  const resultEl = $('gift-admin-result');
+  resultEl.innerHTML = '<p class="gift-admin-generating">Generating\u2026</p>';
+  try{
+    const code = await window.DriftlineCloud.createGiftCode(amount, session.uid);
+    resultEl.innerHTML = `
+      <p class="gift-admin-code-label">Code for ${amount.toLocaleString()} Chum Coins:</p>
+      <div class="gift-admin-code-display" id="gift-admin-code-text">${code}</div>
+      <button class="btn btn-ghost" id="gift-admin-copy-btn" style="width:100%;" data-code="${code}">Copy Code</button>
+    `;
+  }catch(e){
+    resultEl.innerHTML = `<p class="gift-code-error">${e.message || "Couldn't generate a code."}</p>`;
   }
 }
 
@@ -5454,6 +5651,13 @@ function hashStr(s){
 // The admin account (set below) is exempt entirely. Change this to your
 // own in-game username before publishing.
 const DRIFTLINE_ADMIN_USERNAME = 'admin'; // <-- CHANGE THIS to your own Driftline username
+// 10-digit passcode required to unlock the Gift Code generator in Settings.
+// This is a hardcoded value in client-side JS -- like the admin username
+// above, anyone who views the page source can find it. It's a friction
+// layer against casually stumbling into the panel, NOT real security.
+// Since generating a code creates free Chum Coins, don't share this
+// passcode, and treat it the way you'd treat a physical cash-box key.
+const ADMIN_GIFT_PASSCODE = '0000000000'; // <-- CHANGE THIS to your own 10-digit passcode
 const DAILY_READ_LIMIT = 100;
 const DAILY_WRITE_LIMIT = 100;
 
@@ -5661,11 +5865,10 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.4';
+const GAME_VERSION = '2.5';
 const GAME_VERSION_CHANGELOG = [
-  'New top subscription tier: Platinum \u2014 10,000/10,000 daily Checks & Actions (10x Premium)',
-  'Platinum unlocks a glowing gradient name, every avatar/hook/marker cosmetic with no buying needed, and the Abyssal fish tier with no catch requirement',
-  'Signing out now requires signing back in to view the Leaderboard or the Fish Market \u2014 your local fishing still works fine either way'
+  'New: Redeem a Gift Code in the Tackle Shop for Chum Coins \u2014 each code works exactly once, for whoever redeems it first',
+  'Admin-only: a passcode-locked Gift Codes panel in Settings to generate new codes for 100 / 500 / 1,000 / 10,000 CC'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6613,6 +6816,18 @@ function renderShopView(){
 
   let html = '';
 
+  if(session){
+    html += `<h3 class="shop-section-title">\u{1F381} Redeem a Gift Code</h3>`;
+    html += `<div class="shop-redeem-card">
+      <p class="shop-redeem-desc">Got a code from a friend? Redeem it here for Chum Coins \u2014 each code works once, for one person.</p>
+      <div class="shop-redeem-row">
+        <input type="text" id="gift-code-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" autocorrect="off" maxlength="14">
+        <button class="btn btn-primary" id="gift-code-redeem-btn" data-action="redeem-gift-code">Redeem</button>
+      </div>
+      <p id="gift-code-status"></p>
+    </div>`;
+  }
+
   html += `<h3 class="shop-section-title">\u{1F3A3} Rod Upgrade</h3>`;
   html += `<div class="shop-rod-card">
     <div>
@@ -6938,6 +7153,7 @@ function openSettingsDrawer(){
   renderAchievementsSettings();
   renderMapModeSettings();
   updateStockReportButtonState();
+  $('admin-gift-codes-btn').classList.toggle('hidden', !isDriftlineAdmin());
   $('settings-scrim').classList.add('show');
   $('settings-drawer').classList.add('show');
 }
@@ -9095,6 +9311,7 @@ $('shop-content').addEventListener('click', (e)=>{
   else if(action === 'equip-avatar') equipCosmetic('avatar', key);
   else if(action === 'equip-hook') equipCosmetic('hook', key);
   else if(action === 'equip-marker') equipCosmetic('marker', key);
+  else if(action === 'redeem-gift-code') redeemGiftCodeClick();
 });
 $('signin-banner-btn').addEventListener('click', openAccountDrawer);
 $('signin-banner-dismiss').addEventListener('click', ()=>{
@@ -9119,6 +9336,37 @@ $('replay-tutorial-btn').addEventListener('click', ()=>{
 $('settings-stock-report-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
   showLatestStockReport();
+});
+$('admin-gift-codes-btn').addEventListener('click', ()=>{
+  closeSettingsDrawer();
+  openGiftAdminPanel();
+});
+$('gift-admin-close').addEventListener('click', closeGiftAdminPanel);
+$('gift-admin-overlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'gift-admin-overlay') closeGiftAdminPanel();
+});
+$('gift-admin-unlock-btn').addEventListener('click', checkGiftPasscode);
+$('gift-admin-passcode-input').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') checkGiftPasscode();
+});
+$('gift-admin-generator-view').addEventListener('click', (e)=>{
+  const amountBtn = e.target.closest('[data-gift-amount]');
+  if(amountBtn){
+    generateGiftCodeClick(parseInt(amountBtn.dataset.giftAmount, 10));
+    return;
+  }
+  const copyBtn = e.target.closest('#gift-admin-copy-btn');
+  if(copyBtn){
+    const code = copyBtn.dataset.code;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=>{
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=>{ copyBtn.textContent = 'Copy Code'; }, 1500);
+      }).catch(()=>{ showToast('Couldn\u2019t copy \u2014 select and copy the code manually.'); });
+    } else {
+      showToast('Couldn\u2019t copy \u2014 select and copy the code manually.');
+    }
+  }
 });
 $('settings-version-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
