@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1157,12 +1158,18 @@
     appearance:none; border:1px solid rgba(255,255,255,0.25); background:transparent; color:rgba(255,255,255,0.75);
     padding:5px 10px; border-radius:999px; font-size:10.5px; font-weight:700; cursor:pointer; touch-action:manipulation;
   }
-  .mk-tier-select{display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;}
+  .mk-tier-select{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
   .mk-tier-chip{
     appearance:none; border:1.5px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7);
     padding:7px 12px; border-radius:999px; font-size:11.5px; font-weight:700; cursor:pointer; touch-action:manipulation;
   }
   .mk-tier-chip.active{background:rgba(255,255,255,0.9); color:#04121f;}
+  .mk-period-select{display:flex; gap:6px; margin-bottom:16px;}
+  .mk-period-chip{
+    flex:1; appearance:none; border:1.5px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7);
+    padding:8px 0; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer; touch-action:manipulation;
+  }
+  .mk-period-chip.active{background:linear-gradient(100deg,#4fe0ff,#0e86c4); color:#04121f; border-color:transparent;}
   #mk-chart-wrap{background:rgba(255,255,255,0.06); border-radius:18px; padding:16px; margin-bottom:14px;}
   #mk-chart-current{font-family:'Bricolage Grotesque'; font-size:26px; font-weight:800; color:#fff;}
   #mk-chart-change{font-size:12.5px; font-weight:700; margin-top:2px;}
@@ -1278,6 +1285,25 @@
   .mkd-change{font-weight:800;}
   .mkd-change.up{color:#ff6b6b;}
   .mkd-change.down{color:#39ff8f;}
+
+  #version-popup-overlay{
+    position:fixed; inset:0; z-index:998; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(60% 45% at 50% 10%, rgba(14,134,196,0.3), transparent 60%),
+      linear-gradient(180deg, #05141f 0%, #030c14 55%, #05030f 100%);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  #version-popup-overlay.show{opacity:1; pointer-events:auto;}
+  #version-popup-card{position:relative; z-index:2; width:100%; max-width:320px; text-align:center;}
+  #version-popup-icon{font-size:38px; margin-bottom:6px;}
+  #version-popup-card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px; color:#4fe0ff; margin:0 0 14px;}
+  #version-popup-list{list-style:none; margin:0 0 6px; padding:0; display:flex; flex-direction:column; gap:8px; text-align:left;}
+  #version-popup-list li{
+    padding:9px 14px; background:rgba(255,255,255,0.06); border-radius:12px;
+    font-size:12.5px; font-weight:600; color:rgba(255,255,255,0.85); line-height:1.4;
+  }
+  #version-popup-list li::before{content:'• '; color:#4fe0ff; font-weight:800;}
 
   .lb-row{
     position:relative; display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px;
@@ -2022,6 +2048,15 @@
   </div>
 </div>
 
+<div id="version-popup-overlay">
+  <div id="version-popup-card">
+    <div id="version-popup-icon">🎣</div>
+    <h2 id="version-popup-number">v1.7</h2>
+    <ul id="version-popup-list"></ul>
+    <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
+  </div>
+</div>
+
 <!-- Sign-out reminder: full-screen blur, recurring every 5 min while signed out -->
 <div id="signout-reminder-overlay">
   <div id="signout-reminder-card">
@@ -2107,6 +2142,7 @@
   <p class="settings-footnote">Every rod level adds a permanent +1% bite chance to every cast — hotspot or open water. Levels come from your all-time points, or you can skip ahead with a Rod Token from the Tackle Shop (find it in your Account).</p>
   <h3 class="settings-section-title">Need a Refresher?</h3>
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 1.7 — What's New</button>
 </div>
 
 <!-- Interactive tutorial -->
@@ -2731,6 +2767,7 @@ let userMarketListingsCache = null;
 let myListingsCache = null;
 let marketSellTarget = null; // { catchId, name, tier } currently being priced for listing
 let marketStockTierSelected = 'common';
+let marketChartPeriod = 'month'; // 'day' | 'week' | 'month'
 let battleTickInterval = null;
 let lastKnownBattleId = undefined; // undefined = "haven't checked this session yet" -- prevents the VS reveal from firing just because the app loaded while a battle was already in progress
 let battleChallengeTarget = null; // { uid, displayName } currently picking a duration for
@@ -4595,6 +4632,30 @@ function hashStr(s){
 // via simulation to average out to roughly +5%/year across 300 simulated
 // years, with the caps essentially never binding in practice -- they're
 // safety rails, not the everyday norm.
+/* ====================== VERSION POPUP ====================== */
+// Deliberately simple: a hardcoded version number + a short bullet list,
+// bumped by hand each update (+0.1 for a major change, +0.01 for a small
+// fix). Shown automatically the first time a player loads a new version,
+// and re-showable anytime from the bottom of Settings.
+const GAME_VERSION = '1.7';
+const GAME_VERSION_CHANGELOG = [
+  'Stock Values now has Day / Week / Month buttons to see price history at each timeframe',
+  'Fixed a bug where thin price history could break the chart',
+  'Added a live countdown to the next market price update',
+  'This version pop-up is new \u2014 quick notes every update from now on'
+];
+function checkVersionPopup(){
+  const lastSeen = localStorage.getItem('driftline_last_version');
+  localStorage.setItem('driftline_last_version', GAME_VERSION);
+  if(lastSeen === GAME_VERSION) return;
+  showVersionPopup();
+}
+function showVersionPopup(){
+  $('version-popup-number').textContent = 'v' + GAME_VERSION;
+  $('version-popup-list').innerHTML = GAME_VERSION_CHANGELOG.map(item=>`<li>${item}</li>`).join('');
+  $('version-popup-overlay').classList.add('show');
+}
+
 const MARKET_GENESIS_MS = Date.UTC(2026, 0, 1); // fixed epoch so every player's tick-index lines up
 const MARKET_TICK_MS = 2*60*60*1000; // 2 hours
 const MARKET_TICK_MEAN_PCT = 0.00115;
@@ -4649,8 +4710,9 @@ function advanceMarketTierCache(tierKey, uptoTickIndex){
   let entry = cache[tierKey];
   if(!entry || typeof entry.tick !== 'number' || entry.tick > uptoTickIndex){
     const genesisPrice = MARKET_GENESIS_PRICE[tierKey];
-    entry = { tick:0, price:genesisPrice, dayOpenPrice:genesisPrice, dailyCloses:[{day:0, price:genesisPrice}] };
+    entry = { tick:0, price:genesisPrice, dayOpenPrice:genesisPrice, dailyCloses:[{day:0, price:genesisPrice}], recentTicks:[{tick:0, price:genesisPrice}] };
   }
+  if(!entry.recentTicks) entry.recentTicks = [{tick: entry.tick, price: entry.price}]; // migrate older caches that predate this field
   const ticksPerDay = marketTicksPerDay();
   while(entry.tick < uptoTickIndex){
     entry.tick++;
@@ -4666,11 +4728,13 @@ function advanceMarketTierCache(tierKey, uptoTickIndex){
     const maxAllowed = entry.dayOpenPrice * (1 + MARKET_DAILY_CUMULATIVE_CAP_PCT/100);
     candidate = Math.max(minAllowed, Math.min(maxAllowed, candidate));
     entry.price = Math.max(1, candidate);
+    entry.recentTicks.push({ tick: t, price: entry.price });
     if(t % ticksPerDay === ticksPerDay-1){
       entry.dailyCloses.push({ day: Math.floor(t/ticksPerDay), price: entry.price });
     }
   }
   if(entry.dailyCloses.length > 40) entry.dailyCloses = entry.dailyCloses.slice(entry.dailyCloses.length-40);
+  if(entry.recentTicks.length > (ticksPerDay+2)) entry.recentTicks = entry.recentTicks.slice(entry.recentTicks.length-(ticksPerDay+2));
   cache[tierKey] = entry;
   saveMarketPriceCache(cache);
   return entry;
@@ -4678,6 +4742,13 @@ function advanceMarketTierCache(tierKey, uptoTickIndex){
 function tierMarketPriceToday(tierKey){
   const entry = advanceMarketTierCache(tierKey, marketTickIndex(Date.now()));
   return Math.round(entry.price);
+}
+function marketIntradayHistoryForTier(tierKey){
+  // Today's price movement tick-by-tick (up to 12 points, one per 2-hour
+  // tick) for the "Day" chart view.
+  const entry = advanceMarketTierCache(tierKey, marketTickIndex(Date.now()));
+  const ticksPerDay = marketTicksPerDay();
+  return entry.recentTicks.slice(-ticksPerDay);
 }
 function marketDailyHistoryForTier(tierKey){
   // 30 daily CLOSING prices for the Day/Week/Month chart view -- the
@@ -7160,19 +7231,33 @@ function renderStockValues(){
   html += `<div class="mk-tier-select">` + tiers.map(tk=>{
     const t = tierMeta(tk);
     return `<button class="mk-tier-chip ${tk===marketStockTierSelected?'active':''}" data-stock-tier="${tk}" style="${tk===marketStockTierSelected?`background:${t.hex};color:#04121f;`:''}">${t.label}</button>`;
-  }).join('') + `</div><div id="mk-chart-wrap"></div>`;
+  }).join('') + `</div>`;
+  html += `<div class="mk-period-select">` + [['day','Day'],['week','Week'],['month','Month']].map(([key,label])=>{
+    return `<button class="mk-period-chip ${marketChartPeriod===key?'active':''}" data-chart-period="${key}">${label}</button>`;
+  }).join('') + `</div>`;
+  html += `<div id="mk-chart-wrap"></div>`;
   content.innerHTML = html;
   renderMarketChart(marketStockTierSelected);
 }
 function renderMarketChart(tierKey){
   const wrap = $('mk-chart-wrap');
-  const hist = marketDailyHistoryForTier(tierKey);
   const t = tierMeta(tierKey);
+  let hist, periodLabel;
+  if(marketChartPeriod === 'day'){
+    hist = marketIntradayHistoryForTier(tierKey);
+    periodLabel = 'last 24 hours';
+  } else if(marketChartPeriod === 'week'){
+    hist = marketDailyHistoryForTier(tierKey).slice(-7);
+    periodLabel = 'last 7 days';
+  } else {
+    hist = marketDailyHistoryForTier(tierKey);
+    periodLabel = 'last 30 days';
+  }
   const prices = hist.map(h=>h.price);
   if(prices.length < 2){
-    // Not enough daily closes recorded yet (e.g. right after a cache reset) --
-    // show the live price without a chart rather than risk a divide-by-zero
-    // producing an invisible/broken line.
+    // Not enough history recorded yet for this period (e.g. right after a
+    // cache reset) -- show the live price without a chart rather than risk
+    // a divide-by-zero producing an invisible/broken line.
     wrap.innerHTML = `
       <div id="mk-chart-current">${Math.round(prices[0]||0).toLocaleString()} \u{1FA99}</div>
       <div id="mk-chart-change">Building price history\u2026 check back after the next update.</div>`;
@@ -7192,7 +7277,7 @@ function renderMarketChart(tierKey){
   const changePct = Math.round((prices[prices.length-1]/first - 1)*100);
   wrap.innerHTML = `
     <div id="mk-chart-current">${current.toLocaleString()} \u{1FA99}</div>
-    <div id="mk-chart-change" class="${changePct>=0?'up':'down'}">${changePct>=0?'+':''}${changePct}% \u00b7 last 30 days</div>
+    <div id="mk-chart-change" class="${changePct>=0?'up':'down'}">${changePct>=0?'+':''}${changePct}% \u00b7 ${periodLabel}</div>
     <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; margin-top:10px;">
       <defs>
         <linearGradient id="mk-chart-fill" x1="0" y1="0" x2="0" y2="1">
@@ -7460,6 +7545,7 @@ function beginGame(pt, accuracy){
   ensureBagCatchIds();
   updateRatioChip();
   checkMarketTickDigest();
+  checkVersionPopup();
   startMarketDigestTicker();
   if(session){
     refreshFriendsState();
@@ -7641,6 +7727,12 @@ $('market-content').addEventListener('click', (e)=>{
   if(stockTier){
     marketStockTierSelected = stockTier.dataset.stockTier;
     renderStockValues();
+    return;
+  }
+  const chartPeriod = e.target.closest('[data-chart-period]');
+  if(chartPeriod){
+    marketChartPeriod = chartPeriod.dataset.chartPeriod;
+    renderStockValues();
   }
 });
 $('market-sell-close').addEventListener('click', closeSellModal);
@@ -7716,6 +7808,13 @@ $('settings-scrim').addEventListener('click', (e)=>{
 $('replay-tutorial-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
   startTutorial();
+});
+$('settings-version-btn').addEventListener('click', ()=>{
+  closeSettingsDrawer();
+  showVersionPopup();
+});
+$('version-popup-close').addEventListener('click', ()=>{
+  $('version-popup-overlay').classList.remove('show');
 });
 
 /* ---- Map Mode switch (2-tap confirm since it regenerates every hotspot) ---- */
