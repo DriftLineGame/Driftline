@@ -1069,7 +1069,7 @@
   .account-note{padding:16px 20px 22px; margin:0; font-size:12px; color:var(--ink-dim); line-height:1.5;}
 
   #account-signed-in{padding:6px 20px 24px;}
-  #account-profile{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  #account-profile{display:flex; align-items:center; gap:14px; margin-bottom:12px; padding:10px; border-radius:16px; transition:background .3s ease;}
   #account-avatar{
     width:52px; height:52px; border-radius:50%; background:rgba(14,134,196,0.12);
     display:flex; align-items:center; justify-content:center; font-size:24px; flex:0 0 auto;
@@ -2462,7 +2462,7 @@
 <div id="version-popup-overlay">
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v2.5</h2>
+    <h2 id="version-popup-number">v2.7</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -2647,7 +2647,7 @@
   <button class="btn btn-primary" id="replay-tutorial-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎓 Replay Tutorial</button>
   <button class="btn btn-ghost" id="settings-stock-report-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">📊 Stock Report</button>
   <button class="btn btn-ghost hidden" id="admin-gift-codes-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">🎁 Gift Codes (Admin)</button>
-  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.5 — What's New</button>
+  <button class="btn btn-ghost" id="settings-version-btn" style="margin:0 20px 24px; width:calc(100% - 40px);">ℹ️ Version 2.7 — What's New</button>
   <a class="btn btn-ghost" href="privacy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">🔒 Privacy Policy</a>
   <a class="btn btn-ghost" href="subscription-policy.html" style="display:block; margin:0 20px 24px; width:calc(100% - 40px); text-align:center; box-sizing:border-box;">⭐ Subscription Policy</a>
 </div>
@@ -2772,6 +2772,12 @@
   }
 
   async function signUp(username, pin){
+    // Uses _rawGetDoc/_rawSetDoc directly, deliberately bypassing the
+    // daily limiter -- account access itself should never be blockable.
+    // The bug this fixes: the limiter's counter lives on the DEVICE, not
+    // the account. If Account A exhausts it and signs out, Account B (a
+    // completely different person on the same device) would inherit that
+    // exhausted counter and be unable to even reach the sign-in call.
     const uid = normUsername(username);
     if(uid.length < 3 || uid.length > 20){
       throw new Error('Username must be 3-20 characters (letters, numbers, underscore).');
@@ -2780,13 +2786,13 @@
       throw new Error('PIN must be exactly 6 digits.');
     }
     const ref = doc(db, 'players', uid);
-    const existing = await getDoc(ref);
+    const existing = await _rawGetDoc(ref);
     if(existing.exists()){
       throw new Error('That username is already taken.');
     }
     const pinHash = await hashPin(pin);
     const displayName = username.trim();
-    await setDoc(ref, {
+    await _rawSetDoc(ref, {
       displayName, pinHash, points: 0, bag: [], shop: null, prawn: null, crab: null, gold: null, battles: null,
       createdAt: Date.now(), updatedAt: Date.now()
     });
@@ -2796,7 +2802,7 @@
   async function signIn(username, pin){
     const uid = normUsername(username);
     const ref = doc(db, 'players', uid);
-    const snap = await getDoc(ref);
+    const snap = await _rawGetDoc(ref);
     if(!snap.exists()){
       throw new Error('No account found with that username.');
     }
@@ -3274,13 +3280,16 @@
     snap.forEach(d=>{
       const data = d.data();
       const record = (data.battles && data.battles.record) || { wins:0, losses:0, draws:0, gamesPlayed:0 };
-      out.push({ uid: d.id, displayName: data.displayName, avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data), ...record });
+      out.push({ uid: d.id, displayName: data.displayName, avatar: avatarIdFromData(data), banner: bannerIdFromData(data), subTier: subscriptionTierFromData(data), ...record });
     });
     return out;
   }
 
   function avatarIdFromData(data){
     return (data.shop && data.shop.equipped && data.shop.equipped.avatar) || 'default';
+  }
+  function bannerIdFromData(data){
+    return (data.shop && data.shop.equipped && data.shop.equipped.banner) || 'none';
   }
   function subscriptionTierFromData(data){
     const list = data.shop && data.shop.subscriptions;
@@ -3295,7 +3304,7 @@
     const out = [];
     snap.forEach(d => {
       const data = d.data();
-      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data) });
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, avatar: avatarIdFromData(data), banner: bannerIdFromData(data), subTier: subscriptionTierFromData(data) });
     });
     return out;
   }
@@ -3308,7 +3317,7 @@
     const out = [];
     snap.forEach(d => {
       const data = d.data();
-      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], avatar: avatarIdFromData(data), subTier: subscriptionTierFromData(data) });
+      out.push({ uid: d.id, displayName: data.displayName, points: data.points || 0, bag: data.bag || [], avatar: avatarIdFromData(data), banner: bannerIdFromData(data), subTier: subscriptionTierFromData(data) });
     });
     return out;
   }
@@ -3534,8 +3543,8 @@ function defaultShopState(){
     coinsSpent: 0,
     bonusRodLevels: 0,
     inventory: {},
-    ownedCosmetics: { avatars:['default'], hooks:['classic'], markers:['classic'] },
-    equipped: { avatar:'default', hook:'classic', marker:'classic' },
+    ownedCosmetics: { avatars:['default'], hooks:['classic'], markers:['classic'], lines:['classic'], banners:['none'], auras:['none'] },
+    equipped: { avatar:'default', hook:'classic', marker:'classic', line:'classic', banner:'none', aura:'none' },
     activeBoosts: [],
     lastChallengeClaimedWeek: null,
     trapsCollected: 0,
@@ -3545,6 +3554,10 @@ function defaultShopState(){
     unlockedAchievements: [],
     lineSlowUntil: null,
     lineSlowAmount: 0,
+    pointBoostUntil: null,
+    pointBoostMultiplier: 1,
+    redGraceBoostUntil: null,
+    redGraceBoostAmount: 0,
     subscriptions: [], // array of { tier:'plus'|'premium', expiresAt } -- can hold multiple stacked entries of the same tier
     updatedAt: 0
   };
@@ -3563,12 +3576,18 @@ function normalizeShopState(s){
     ownedCosmetics: {
       avatars: (s.ownedCosmetics && s.ownedCosmetics.avatars) || d.ownedCosmetics.avatars,
       hooks: (s.ownedCosmetics && s.ownedCosmetics.hooks) || d.ownedCosmetics.hooks,
-      markers: (s.ownedCosmetics && s.ownedCosmetics.markers) || d.ownedCosmetics.markers
+      markers: (s.ownedCosmetics && s.ownedCosmetics.markers) || d.ownedCosmetics.markers,
+      lines: (s.ownedCosmetics && s.ownedCosmetics.lines) || d.ownedCosmetics.lines,
+      banners: (s.ownedCosmetics && s.ownedCosmetics.banners) || d.ownedCosmetics.banners,
+      auras: (s.ownedCosmetics && s.ownedCosmetics.auras) || d.ownedCosmetics.auras
     },
     equipped: {
       avatar: (s.equipped&&s.equipped.avatar)||'default',
       hook: (s.equipped&&s.equipped.hook)||'classic',
-      marker: (s.equipped&&s.equipped.marker)||'classic'
+      marker: (s.equipped&&s.equipped.marker)||'classic',
+      line: (s.equipped&&s.equipped.line)||'classic',
+      banner: (s.equipped&&s.equipped.banner)||'none',
+      aura: (s.equipped&&s.equipped.aura)||'none'
     },
     activeBoosts: s.activeBoosts||[],
     lastChallengeClaimedWeek: s.lastChallengeClaimedWeek||null,
@@ -3579,6 +3598,10 @@ function normalizeShopState(s){
     unlockedAchievements: s.unlockedAchievements||[],
     lineSlowUntil: s.lineSlowUntil||null,
     lineSlowAmount: s.lineSlowAmount||0,
+    pointBoostUntil: s.pointBoostUntil||null,
+    pointBoostMultiplier: s.pointBoostMultiplier||1,
+    redGraceBoostUntil: s.redGraceBoostUntil||null,
+    redGraceBoostAmount: s.redGraceBoostAmount||0,
     subscriptions: Array.isArray(s.subscriptions) ? s.subscriptions
       : (s.subscription && typeof s.subscription==='object' ? [s.subscription] : []), // migrates the old single-object shape
     updatedAt: s.updatedAt||0
@@ -4529,8 +4552,10 @@ function addCatchesToBagBatch(catches, lat, lng){
   const bag = loadBag();
   const pointsBefore = computePoints(bag);
   const now = Date.now();
+  const pointBoostActive = shopState.pointBoostUntil && Date.now() < shopState.pointBoostUntil;
+  const bonus = pointBoostActive ? shopState.pointBoostMultiplier : 1;
   catches.forEach((c,i)=>{
-    bag.unshift({ id: genCatchId(), name:c.fish, tier:c.tier.key, ts: now+i, lat, lng, bonus:1 });
+    bag.unshift({ id: genCatchId(), name:c.fish, tier:c.tier.key, ts: now+i, lat, lng, bonus });
   });
   saveBag(bag);
   updateBagBadge();
@@ -5142,8 +5167,9 @@ function runFishingAnimation(){
   const hookColor = equippedHookColor();
   const hookEl = rig.querySelector('.hook');
   if(hookEl) hookEl.setAttribute('stroke', hookColor);
+  const lineColor = equippedLineColor();
   const lineEl = rig.querySelector('.line');
-  if(lineEl) lineEl.style.background = `linear-gradient(180deg, rgba(255,255,255,0.05), ${hookColor})`;
+  if(lineEl) lineEl.style.background = `linear-gradient(180deg, rgba(255,255,255,0.05), ${lineColor})`;
 
   overlay.classList.add('active');
 
@@ -5550,7 +5576,11 @@ function closeFishingOverlay(){
 function addToBag(name, tierKey, bonusMultiplier){
   const pointsBefore = computePoints(loadBag());
   const bag = loadBag();
-  bag.unshift({ id: genCatchId(), name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng, bonus: bonusMultiplier||1 });
+  let effectiveBonus = bonusMultiplier||1;
+  if(shopState.pointBoostUntil && Date.now() < shopState.pointBoostUntil){
+    effectiveBonus *= shopState.pointBoostMultiplier; // stacks with featured-fish bonus on purpose
+  }
+  bag.unshift({ id: genCatchId(), name, tier:tierKey, ts:Date.now(), lat:liveLatLng.lat, lng:liveLatLng.lng, bonus: effectiveBonus });
   saveBag(bag);
   updateBagBadge();
   syncBagToCloud(bag);
@@ -5583,7 +5613,11 @@ const SHOP_ITEMS = {
   lure_basic:     { name:'Basic Lure',     desc:'+10% bite chance for 15 min',  price:20,  boostAmount:10, boostMs:15*60*1000, icon:'\u{1FAB1}' },
   lure_pro:       { name:'Pro Lure',       desc:'+20% bite chance for 20 min',  price:60,  boostAmount:20, boostMs:20*60*1000, icon:'\u{1FA9D}' },
   lure_legendary: { name:'Legendary Lure', desc:'+35% bite chance for 30 min',  price:175, boostAmount:35, boostMs:30*60*1000, icon:'\u2728' },
-  steady_hands:   { name:'Steady Hands',   desc:'-20% Set the Hook bar speed for 15 min', price:70, effectType:'lineSlow', slowAmount:20, durationMs:15*60*1000, icon:'\u{1FAA2}' }
+  steady_hands:   { name:'Steady Hands',   desc:'-20% Set the Hook bar speed for 15 min', price:70, effectType:'lineSlow', slowAmount:20, durationMs:15*60*1000, icon:'\u{1FAA2}' },
+  trap_accelerator: { name:'Trap Accelerator', desc:'Instantly takes 30 min off every active trap (Prawn, Crab, Gold)', price:35, effectType:'trapSpeed', minutesOff:30, icon:'\u23E9' },
+  point_surge:    { name:'Point Surge',    desc:'2x points from every catch for 10 min', price:220, effectType:'pointBoost', multiplier:2, durationMs:10*60*1000, icon:'\u{1F4C8}' },
+  line_guard:     { name:'Line Guard',     desc:'Doubles your red-zone grace period while reeling for 15 min', price:45, effectType:'redGraceBoost', graceBonus:5, durationMs:15*60*1000, icon:'\u{1F6E1}\uFE0F' },
+  lucky_charm:    { name:'Lucky Charm',    desc:'+15% bite chance AND -15% Set the Hook bar speed for 20 min', price:130, effectType:'comboBoost', boostAmount:15, slowAmount:15, durationMs:20*60*1000, icon:'\u{1F340}' }
 };
 const AVATAR_COSMETICS = [
   { id:'default', emoji:'\u{1F3A3}', name:'Classic Rod', price:0 },
@@ -5592,21 +5626,101 @@ const AVATAR_COSMETICS = [
   { id:'shark',   emoji:'\u{1F988}', name:'Shark',       price:75 },
   { id:'octopus', emoji:'\u{1F419}', name:'Octopus',     price:100 },
   { id:'crown',   emoji:'\u{1F451}', name:'Champion',    price:200 },
-  { id:'diamond', emoji:'\u{1F48E}', name:'Diamond',     price:300 }
+  { id:'diamond', emoji:'\u{1F48E}', name:'Diamond',     price:300 },
+  { id:'wave',      emoji:'\u{1F30A}', name:'Wave',            price:5 },
+  { id:'anchor',    emoji:'\u2693',    name:'Anchor',          price:8 },
+  { id:'starfish',  emoji:'\u2B50',    name:'Starfish',        price:10 },
+  { id:'shell',     emoji:'\u{1F41A}', name:'Shell',           price:12 },
+  { id:'tropical',  emoji:'\u{1F420}', name:'Tropical Fish',   price:15 },
+  { id:'squid',     emoji:'\u{1F991}', name:'Squid',           price:18 },
+  { id:'pufferfish',emoji:'\u{1F421}', name:'Pufferfish',      price:20 },
+  { id:'lobster',   emoji:'\u{1F99E}', name:'Lobster',         price:25 },
+  { id:'seal',      emoji:'\u{1F9AD}', name:'Seal',            price:28 },
+  { id:'turtle',    emoji:'\u{1F422}', name:'Sea Turtle',      price:30 },
+  { id:'island',    emoji:'\u{1F3DD}\uFE0F', name:'Island',    price:32 },
+  { id:'dolphin',   emoji:'\u{1F42C}', name:'Dolphin',         price:38 },
+  { id:'diving',    emoji:'\u{1F93F}', name:'Diving Mask',     price:40 },
+  { id:'sailboat',  emoji:'\u26F5',    name:'Sailboat',        price:42 },
+  { id:'whale',     emoji:'\u{1F40B}', name:'Whale',           price:48 },
+  { id:'mermaid',   emoji:'\u{1F9DC}', name:'Mermaid',         price:65 },
+  { id:'trident',   emoji:'\u{1F531}', name:'Trident',         price:120 },
+  { id:'kraken',    emoji:'\u{1F419}\u200D\u2620\uFE0F', name:'Kraken', price:250 }
 ];
 const HOOK_COSMETICS = [
   { id:'classic', name:'Classic White', color:'#eaf6ff', price:0 },
   { id:'gold',    name:'Golden Hook',   color:'#ffd23f', price:90 },
   { id:'crimson', name:'Crimson Hook',  color:'#ff2d78', price:90 },
   { id:'toxic',   name:'Toxic Green',   color:'#39ff8f', price:90 },
-  { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:125 }
+  { id:'royal',   name:'Royal Purple',  color:'#a259ff', price:125 },
+  { id:'slate',    name:'Slate Grey',    color:'#8a99a8', price:6 },
+  { id:'sand',     name:'Sandy Tan',     color:'#e0c187', price:8 },
+  { id:'seafoam',  name:'Seafoam',       color:'#7fe8c9', price:12 },
+  { id:'coral',    name:'Coral Pink',    color:'#ff8a7a', price:15 },
+  { id:'ocean',    name:'Ocean Teal',    color:'#1fb6c9', price:18 },
+  { id:'sunset',   name:'Sunset Orange', color:'#ff9d3f', price:22 },
+  { id:'ice',      name:'Ice Blue',      color:'#a8e6ff', price:25 },
+  { id:'lime',     name:'Electric Lime', color:'#c6ff3f', price:28 },
+  { id:'plum',     name:'Deep Plum',     color:'#7a3f8c', price:32 },
+  { id:'copper',   name:'Copper',        color:'#c9702f', price:35 },
+  { id:'midnight', name:'Midnight',      color:'#1a2436', price:40 },
+  { id:'neon-pink',name:'Neon Pink',     color:'#ff3fc9', price:45 },
+  { id:'silver',   name:'Polished Silver', color:'#d8dee3', price:55 },
+  { id:'obsidian', name:'Obsidian',      color:'#0a0a0f', price:150 }
 ];
 const MARKER_COSMETICS = [
   { id:'classic', name:'Classic Blue',  color:'#0e86c4', price:0 },
   { id:'gold',    name:'Golden Marker', color:'#c9860a', price:90 },
   { id:'crimson', name:'Crimson Marker',color:'#e0356f', price:90 },
   { id:'toxic',   name:'Toxic Green',   color:'#2f9c74', price:90 },
-  { id:'royal',   name:'Royal Purple',  color:'#9455e0', price:125 }
+  { id:'royal',   name:'Royal Purple',  color:'#9455e0', price:125 },
+  { id:'slate',    name:'Slate Grey',    color:'#5c6b7a', price:6 },
+  { id:'sand',     name:'Sandy Tan',     color:'#b89860', price:8 },
+  { id:'seafoam',  name:'Seafoam',       color:'#3aa88a', price:12 },
+  { id:'coral',    name:'Coral Pink',    color:'#e0604f', price:15 },
+  { id:'ocean',    name:'Ocean Teal',    color:'#0e8fa0', price:18 },
+  { id:'sunset',   name:'Sunset Orange', color:'#e0742f', price:22 },
+  { id:'ice',      name:'Ice Blue',      color:'#4fa8cc', price:25 },
+  { id:'lime',     name:'Electric Lime', color:'#8fc42f', price:28 },
+  { id:'plum',     name:'Deep Plum',     color:'#5c2f6c', price:32 },
+  { id:'copper',   name:'Copper',        color:'#a8571f', price:35 },
+  { id:'midnight', name:'Midnight',      color:'#141c2a', price:40 },
+  { id:'neon-pink',name:'Neon Pink',     color:'#cc2f9e', price:45 },
+  { id:'silver',   name:'Polished Silver', color:'#9aa5ad', price:55 },
+  { id:'obsidian', name:'Obsidian',      color:'#08080c', price:150 }
+];
+const LINE_COSMETICS = [
+  { id:'classic', name:'Classic White', color:'#eaf6ff', price:0 },
+  { id:'sunburst',name:'Sunburst',      color:'#ffd23f', price:10 },
+  { id:'seafoam', name:'Seafoam',       color:'#7fe8c9', price:14 },
+  { id:'coral',   name:'Coral',         color:'#ff8a7a', price:18 },
+  { id:'sky',     name:'Sky Blue',      color:'#7fc4ff', price:22 },
+  { id:'lime',    name:'Electric Lime', color:'#c6ff3f', price:26 },
+  { id:'crimson', name:'Crimson',       color:'#ff2d78', price:32 },
+  { id:'violet',  name:'Violet',        color:'#a259ff', price:38 },
+  { id:'gold',    name:'Braided Gold',  color:'#ffb23f', price:48 },
+  { id:'phantom', name:'Phantom Black', color:'#1a1a24', price:65 },
+  { id:'prism',   name:'Prism',         color:'#ff6ec7', price:180 }
+];
+const BANNER_COSMETICS = [
+  { id:'none',      name:'No Banner',      gradient:'transparent', price:0 },
+  { id:'seafoam',   name:'Seafoam Drift',  gradient:'linear-gradient(100deg, rgba(127,232,201,0.18), rgba(14,134,196,0.1))', price:10 },
+  { id:'sunset',    name:'Sunset Glow',    gradient:'linear-gradient(100deg, rgba(255,138,63,0.2), rgba(255,45,120,0.12))', price:16 },
+  { id:'deepwater', name:'Deep Water',     gradient:'linear-gradient(100deg, rgba(14,134,196,0.22), rgba(20,28,42,0.2))', price:20 },
+  { id:'coral-reef',name:'Coral Reef',     gradient:'linear-gradient(100deg, rgba(255,138,122,0.2), rgba(127,232,201,0.15))', price:24 },
+  { id:'toxic',     name:'Toxic Tide',     gradient:'linear-gradient(100deg, rgba(57,255,143,0.22), rgba(20,28,42,0.15))', price:30 },
+  { id:'royal',     name:'Royal Current',  gradient:'linear-gradient(100deg, rgba(162,89,255,0.22), rgba(14,134,196,0.15))', price:38 },
+  { id:'gold-rush', name:'Gold Rush',      gradient:'linear-gradient(100deg, rgba(255,210,63,0.28), rgba(201,134,10,0.15))', price:50 },
+  { id:'abyss',     name:'The Abyss',      gradient:'linear-gradient(100deg, rgba(124,58,237,0.2), rgba(5,3,15,0.4))', price:220 }
+];
+const AURA_COSMETICS = [
+  { id:'none',   name:'No Aura', color:'transparent', price:0 },
+  { id:'seafoam',name:'Seafoam Glow',  color:'#7fe8c9', price:12 },
+  { id:'sunset', name:'Sunset Glow',   color:'#ff9d3f', price:18 },
+  { id:'toxic',  name:'Toxic Glow',    color:'#39ff8f', price:24 },
+  { id:'crimson',name:'Crimson Glow',  color:'#ff2d78', price:30 },
+  { id:'royal',  name:'Royal Glow',    color:'#a259ff', price:36 },
+  { id:'gold',   name:'Golden Glow',   color:'#ffd23f', price:45 },
+  { id:'phantom',name:'Phantom Pulse', color:'#7c3aed', price:200 }
 ];
 
 /* ====================== WEEKLY CHALLENGE ====================== */
@@ -5792,17 +5906,24 @@ function ensureAdminPlatinum(){
 function isDriftlineAdmin(){
   return !!(session && session.displayName && session.displayName.toLowerCase() === DRIFTLINE_ADMIN_USERNAME.toLowerCase());
 }
+function dailyUsageStorageKey(){
+  // Per-account, not per-device -- otherwise a fresh account signing in
+  // right after a different account exhausted the device's counter would
+  // immediately inherit that exhaustion for everything post-login, even
+  // though this account never used any of its own budget today.
+  return session ? `driftline_daily_usage_${session.uid}` : 'driftline_daily_usage_anonymous';
+}
 function loadDailyUsage(){
   const todayStr = new Date().toDateString();
   let usage;
-  try{ usage = JSON.parse(localStorage.getItem('driftline_daily_usage')||'null'); }catch(e){ usage = null; }
+  try{ usage = JSON.parse(localStorage.getItem(dailyUsageStorageKey())||'null'); }catch(e){ usage = null; }
   if(!usage || typeof usage!=='object' || usage.date !== todayStr){
     usage = { date: todayStr, reads: 0, writes: 0 };
   }
   return usage;
 }
 function saveDailyUsage(usage){
-  localStorage.setItem('driftline_daily_usage', JSON.stringify(usage));
+  localStorage.setItem(dailyUsageStorageKey(), JSON.stringify(usage));
 }
 window.driftlineCanUse = function(kind){
   if(isDriftlineAdmin()) return true;
@@ -5865,10 +5986,12 @@ function showLimitReachedOverlay(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '2.5';
+const GAME_VERSION = '2.7';
 const GAME_VERSION_CHANGELOG = [
-  'New: Redeem a Gift Code in the Tackle Shop for Chum Coins \u2014 each code works exactly once, for whoever redeems it first',
-  'Admin-only: a passcode-locked Gift Codes panel in Settings to generate new codes for 100 / 500 / 1,000 / 10,000 CC'
+  'Way more cosmetics: Avatars (25), Hook Skins (19), and Map Markers (19) all got a big expansion, 5-300 CC',
+  'Three brand new customization slots: Line Color, Profile Banner, and Boat Aura \u2014 all in the Shop now',
+  'Your Profile Banner now shows behind your name on the leaderboard, not just your own Account',
+  '4 new consumable items: Trap Accelerator, Point Surge (2x points), Line Guard (extra red-zone grace), and Lucky Charm (combo boost) \u2014 all with real effects now, not just for sale'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -6437,7 +6560,8 @@ function runReelingChallenge(tier){
     let distance = totalDistance;
     let tension = 20;
     let redTimer = 0;
-    const redGrace = REEL_BASE_RED_GRACE + Math.min(currentRodLevel(), 10); // capped bonus, stays hard at high levels
+    const redGraceBoostActive = shopState.redGraceBoostUntil && Date.now() < shopState.redGraceBoostUntil;
+    const redGrace = REEL_BASE_RED_GRACE + Math.min(currentRodLevel(), 10) + (redGraceBoostActive ? shopState.redGraceBoostAmount : 0); // capped rod bonus, stays hard at high levels; Line Guard adds on top temporarily
     const pullMult = REEL_PULL_MULT[tier] || 1.0;
     const reelPowerMult = 1 + Math.min(currentRodLevel(), REEL_ROD_POWER_CAP_LEVEL)*REEL_ROD_POWER_PER_LEVEL;
 
@@ -6905,6 +7029,45 @@ function renderShopView(){
     </div>`;
   }).join('') + `</div>`;
 
+  html += `<h3 class="shop-section-title">\u{1F9F5} Line Colors</h3>`;
+  html += `<div class="shop-grid">` + LINE_COSMETICS.map(c=>{
+    const owned = isCosmeticEffectivelyOwned('line', c.id);
+    const equipped = shopState.equipped.line === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon" style="color:${c.color}">\u2014</div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-line" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-line" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
+  html += `<h3 class="shop-section-title">\u{1F3F3}\uFE0F Profile Banners</h3>`;
+  html += `<div class="shop-grid">` + BANNER_COSMETICS.map(c=>{
+    const owned = isCosmeticEffectivelyOwned('banner', c.id);
+    const equipped = shopState.equipped.banner === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon" style="width:36px; height:20px; border-radius:6px; background-image:${c.gradient}; background-color:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);"></div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-banner" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-banner" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
+  html += `<h3 class="shop-section-title">\u2728 Boat Auras</h3>`;
+  html += `<div class="shop-grid">` + AURA_COSMETICS.map(c=>{
+    const owned = isCosmeticEffectivelyOwned('aura', c.id);
+    const equipped = shopState.equipped.aura === c.id;
+    return `<div class="shop-card">
+      <div class="shop-card-icon"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color==='transparent'?'#333':c.color};box-shadow:${c.color==='transparent'?'none':`0 0 8px ${c.color}`}"></span></div>
+      <div class="shop-card-name">${c.name}</div>
+      ${equipped ? `<div class="shop-card-owned">Equipped</div>`
+        : owned ? `<button class="shop-buy-btn shop-equip-btn" data-action="equip-aura" data-key="${c.id}">Equip</button>`
+        : `<button class="shop-buy-btn ${affordBadge(c.price)}" data-action="buy-aura" data-key="${c.id}">${c.price.toLocaleString()} \u{1FA99}</button>`}
+    </div>`;
+  }).join('') + `</div>`;
+
   if(!session){
     html += `<p class="shop-note">Sign in to save your coins, gear, and cosmetics across devices.</p>`;
   }
@@ -6961,9 +7124,15 @@ function renderGearView(){
   const avatar = AVATAR_COSMETICS.find(c=>c.id===shopState.equipped.avatar) || AVATAR_COSMETICS[0];
   const hook = HOOK_COSMETICS.find(c=>c.id===shopState.equipped.hook) || HOOK_COSMETICS[0];
   const marker = MARKER_COSMETICS.find(c=>c.id===shopState.equipped.marker) || MARKER_COSMETICS[0];
+  const line = LINE_COSMETICS.find(c=>c.id===shopState.equipped.line) || LINE_COSMETICS[0];
+  const banner = BANNER_COSMETICS.find(c=>c.id===shopState.equipped.banner) || BANNER_COSMETICS[0];
+  const aura = AURA_COSMETICS.find(c=>c.id===shopState.equipped.aura) || AURA_COSMETICS[0];
   html += `<div class="gear-cosmetic-row"><div class="shop-card-icon">${avatar.emoji}</div><div>Avatar: <strong>${avatar.name}</strong></div></div>`;
   html += `<div class="gear-cosmetic-row"><div class="shop-card-icon" style="color:${hook.color}">\u2014</div><div>Hook: <strong>${hook.name}</strong></div></div>`;
   html += `<div class="gear-cosmetic-row"><div class="shop-card-icon"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${marker.color};border:2px solid #fff;box-shadow:0 0 0 1px ${marker.color}"></span></div><div>Map Marker: <strong>${marker.name}</strong></div></div>`;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon" style="color:${line.color}">\u2014</div><div>Line: <strong>${line.name}</strong></div></div>`;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${banner.id==='none'?'transparent':'#fff'};border:2px solid ${banner.id==='none'?'#666':'#fff'};background-image:${banner.gradient}"></span></div><div>Banner: <strong>${banner.name}</strong></div></div>`;
+  html += `<div class="gear-cosmetic-row"><div class="shop-card-icon"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${aura.color==='transparent'?'#333':aura.color};box-shadow:${aura.color==='transparent'?'none':`0 0 6px ${aura.color}`}"></span></div><div>Boat Aura: <strong>${aura.name}</strong></div></div>`;
 
   html += `<h3 class="shop-section-title">\u{1F3C6} Achievements</h3>`;
   const unlockedCount = (shopState.unlockedAchievements||[]).length;
@@ -7038,6 +7207,10 @@ function reallyBuyItem(key){
 function activateItem(key){
   const item = SHOP_ITEMS[key];
   if(!item || !(shopState.inventory[key]>0)) return;
+  if(item.effectType === 'trapSpeed' && !prawnTrap && !crabTrap && !goldTrap){
+    showToast('No active traps to speed up right now \u2014 deploy one first, then use this.');
+    return; // don't consume the item for a mistake that has no effect
+  }
   shopState.inventory[key]--;
   if(item.effectType === 'lineSlow'){
     shopState.lineSlowUntil = Date.now() + item.durationMs;
@@ -7046,6 +7219,39 @@ function activateItem(key){
     saveShopState();
     syncShopToCloud();
     showToast(`${item.name} activated! Set the Hook bar slowed ${item.slowAmount}% for ${Math.round(item.durationMs/60000)} min \u{1FAA2}`);
+  } else if(item.effectType === 'trapSpeed'){
+    const msOff = item.minutesOff*60000;
+    let affected = 0;
+    if(prawnTrap){ prawnTrap.resolveAt -= msOff; savePrawnTrap(); syncPrawnTrapToCloud(); affected++; }
+    if(crabTrap){ crabTrap.resolveAt -= msOff; saveCrabTrap(); syncCrabTrapToCloud(); affected++; }
+    if(goldTrap){ goldTrap.resolveAt -= msOff; saveGoldTrap(); syncGoldTrapToCloud(); affected++; }
+    updatePrawnChip(); updateCrabChip(); updateGoldChip();
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    showToast(`${item.name} activated! -${item.minutesOff} min off ${affected} active trap${affected===1?'':'s'} \u23E9`);
+  } else if(item.effectType === 'pointBoost'){
+    shopState.pointBoostUntil = Date.now() + item.durationMs;
+    shopState.pointBoostMultiplier = item.multiplier;
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    showToast(`${item.name} activated! ${item.multiplier}x points from every catch for ${Math.round(item.durationMs/60000)} min \u{1F4C8}`);
+  } else if(item.effectType === 'redGraceBoost'){
+    shopState.redGraceBoostUntil = Date.now() + item.durationMs;
+    shopState.redGraceBoostAmount = item.graceBonus;
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    showToast(`${item.name} activated! Red-zone grace +${item.graceBonus}s for ${Math.round(item.durationMs/60000)} min \u{1F6E1}\uFE0F`);
+  } else if(item.effectType === 'comboBoost'){
+    grantBoost(key, item.boostAmount, item.durationMs);
+    shopState.lineSlowUntil = Date.now() + item.durationMs;
+    shopState.lineSlowAmount = item.slowAmount;
+    shopState.updatedAt = Date.now();
+    saveShopState();
+    syncShopToCloud();
+    showToast(`${item.name} activated! +${item.boostAmount}% odds AND -${item.slowAmount}% hook speed for ${Math.round(item.durationMs/60000)} min \u{1F340}`);
   } else {
     grantBoost(key, item.boostAmount, item.boostMs);
     showToast(`${item.name} activated! +${item.boostAmount}% for ${Math.round(item.boostMs/60000)} min \u{1F525}`);
@@ -7055,12 +7261,18 @@ function activateItem(key){
 function cosmeticListFor(type){
   if(type==='avatar') return AVATAR_COSMETICS;
   if(type==='hook') return HOOK_COSMETICS;
-  return MARKER_COSMETICS;
+  if(type==='marker') return MARKER_COSMETICS;
+  if(type==='line') return LINE_COSMETICS;
+  if(type==='banner') return BANNER_COSMETICS;
+  return AURA_COSMETICS;
 }
 function cosmeticOwnedKeyFor(type){
   if(type==='avatar') return 'avatars';
   if(type==='hook') return 'hooks';
-  return 'markers';
+  if(type==='marker') return 'markers';
+  if(type==='line') return 'lines';
+  if(type==='banner') return 'banners';
+  return 'auras';
 }
 function isCosmeticEffectivelyOwned(type, id){
   // Platinum unlocks every cosmetic WHILE active -- this is a live check,
@@ -7113,6 +7325,8 @@ function updateEquippedVisuals(){
   if(hookSwatch) hookSwatch.style.background = equippedHookColor();
   const boatSwatch = $('account-boat-swatch');
   if(boatSwatch) boatSwatch.style.background = equippedMarkerColor();
+  const profileEl = $('account-profile');
+  if(profileEl) profileEl.style.background = equippedBannerGradient();
   updateMarkerVisual();
 }
 function equippedHookColor(){
@@ -7123,8 +7337,22 @@ function equippedMarkerColor(){
   const marker = MARKER_COSMETICS.find(c=>c.id===shopState.equipped.marker) || MARKER_COSMETICS[0];
   return marker.color;
 }
+function equippedLineColor(){
+  const line = LINE_COSMETICS.find(c=>c.id===shopState.equipped.line) || LINE_COSMETICS[0];
+  return line.color;
+}
+function equippedAuraColor(){
+  const aura = AURA_COSMETICS.find(c=>c.id===shopState.equipped.aura) || AURA_COSMETICS[0];
+  return aura.color;
+}
+function equippedBannerGradient(){
+  const banner = BANNER_COSMETICS.find(c=>c.id===shopState.equipped.banner) || BANNER_COSMETICS[0];
+  return banner.gradient;
+}
 function boatMarkerHtml(color){
-  return `<div class="boat-marker">
+  const auraColor = equippedAuraColor();
+  const auraStyle = auraColor !== 'transparent' ? `filter:drop-shadow(0 0 7px ${auraColor}) drop-shadow(0 0 3px ${auraColor});` : '';
+  return `<div class="boat-marker" style="${auraStyle}">
     <svg width="30" height="26" viewBox="0 0 30 26">
       <ellipse cx="15" cy="18.5" rx="12" ry="2.4" fill="${color}" fill-opacity="0.3"/>
       <path d="M4 15 L26 15 L22 22 L8 22 Z" fill="${color}" stroke="#ffffff" stroke-width="1.4"/>
@@ -8919,7 +9147,9 @@ function renderLeaderboard(list, period){
     if(topClass[i]) cls.push(topClass[i]);
     const avatarObj = AVATAR_COSMETICS.find(c=>c.id===p.avatar) || AVATAR_COSMETICS[0];
     const subBadge = subscriptionBadgeHtml(p.subTier);
-    return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms">
+    const bannerObj = BANNER_COSMETICS.find(c=>c.id===p.banner) || BANNER_COSMETICS[0];
+    const bannerStyle = bannerObj.id!=='none' ? ` background-image:${bannerObj.gradient};` : '';
+    return `<div class="${cls.join(' ')}" style="animation-delay:${Math.min(i*30,400)}ms;${bannerStyle}">
       <div class="lb-rank">${medals[i] || ('#'+(i+1))}</div>
       <div class="lb-avatar">${avatarObj.emoji}</div>
       <div class="lb-name">${wrapPlayerName(p.displayName, p.subTier)}${subBadge}${isMe?' (you)':''}</div>
@@ -9308,9 +9538,15 @@ $('shop-content').addEventListener('click', (e)=>{
   else if(action === 'buy-avatar') buyCosmetic('avatar', key);
   else if(action === 'buy-hook') buyCosmetic('hook', key);
   else if(action === 'buy-marker') buyCosmetic('marker', key);
+  else if(action === 'buy-line') buyCosmetic('line', key);
+  else if(action === 'buy-banner') buyCosmetic('banner', key);
+  else if(action === 'buy-aura') buyCosmetic('aura', key);
   else if(action === 'equip-avatar') equipCosmetic('avatar', key);
   else if(action === 'equip-hook') equipCosmetic('hook', key);
   else if(action === 'equip-marker') equipCosmetic('marker', key);
+  else if(action === 'equip-line') equipCosmetic('line', key);
+  else if(action === 'equip-banner') equipCosmetic('banner', key);
+  else if(action === 'equip-aura') equipCosmetic('aura', key);
   else if(action === 'redeem-gift-code') redeemGiftCodeClick();
 });
 $('signin-banner-btn').addEventListener('click', openAccountDrawer);
