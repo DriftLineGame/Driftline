@@ -2230,6 +2230,27 @@
   #server-chip .srv-dot{background:#ef4444;}
   #server-chip.hidden{display:none;}
 
+/* v3.1: What's New scrolls when it's taller than the screen, with a close button pinned top right */
+#version-popup-overlay{overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; align-items:flex-start;
+  padding:calc(64px + var(--safe-t, 0px)) 20px calc(28px + var(--safe-b, 0px));}
+#version-popup-card{margin:auto 0;}
+#version-popup-x{position:fixed; top:calc(14px + var(--safe-t, 0px)); right:calc(14px + var(--safe-r, 0px)); z-index:3;
+  width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,0.18); background:rgba(11,28,58,0.92);
+  color:#fff; font-size:26px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);}
+#version-popup-x:active{transform:scale(0.94);}
+
+/* v3.1: dial lists shrink to fit shorter screens instead of being cut off */
+.dial.compact .dial-items{gap:6px;}
+.dial.compact .dial-item{min-height:46px !important; padding-top:4px !important; padding-bottom:4px !important; border-radius:17px !important;}
+.dial.compact .dial-ico{width:34px; height:34px; border-radius:12px;}
+.dial.compact .dial-text b{font-size:13.5px;}
+.dial.compact .dial-text small{font-size:11px;}
+.dial.tight .dial-item{min-height:40px !important; padding-top:3px !important; padding-bottom:3px !important;}
+.dial.tight .dial-ico{width:30px; height:30px;}
+.dial.tight .dial-text small{display:none;}
+.dial.scrolls .dial-items{-webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 22px, #000 100%); mask-image:linear-gradient(to bottom, transparent 0, #000 22px, #000 100%);}
+
 </style>
 </head>
 <body>
@@ -3038,9 +3059,10 @@
 </div>
 
 <div id="version-popup-overlay">
+  <button id="version-popup-x" type="button" aria-label="Close">&times;</button>
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v3.0</h2>
+    <h2 id="version-popup-number">v3.1</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -3411,6 +3433,10 @@
     return bagInFlight;
   }
   async function pumpBag(){
+    // let syncBag() store this promise before anything below can finish; otherwise a check with
+    // nothing new to send would end synchronously and leave a stale promise behind that blocks
+    // every later upload until the page is reloaded
+    await Promise.resolve();
     let last = null;
     try{
       while(bagQueued){
@@ -3428,7 +3454,11 @@
     } finally { bagInFlight = null; }
     return last;
   }
-  async function flushBag(){ if(bagInFlight){ try{ await bagInFlight; }catch(e){} } }
+  async function flushBag(){
+    // send anything not uploaded yet (a catch made a second ago, or one whose upload failed), then wait for it
+    try{ const bag = JSON.parse(localStorage.getItem('driftline_bag') || '[]'); if(mySession() && bag.length) syncBag(null, bag); }catch(e){}
+    if(bagInFlight){ try{ await bagInFlight; }catch(e){} }
+  }
 
   function withPlayer(p){
     markSynced(p.player.uid, (p.player.bag || []).map(c=>c.id));
@@ -3740,11 +3770,14 @@ function normalizeShopState(s){
   // shopState.ownedCosmetics.markers.includes(...) calls elsewhere.
   const d = defaultShopState();
   if(!s || typeof s !== 'object') return d;
-  if(s.inventory && Object.keys(RETIRED_SHOP_ITEMS).some(k=>k in s.inventory)){
+  // listed here (not the RETIRED_SHOP_ITEMS constant further down) because this runs
+  // while the page is still loading, before that constant exists
+  const RETIRED = { steady_hands:70, line_guard:45, lucky_charm:130 };
+  if(s.inventory && Object.keys(RETIRED).some(k=>k in s.inventory)){
     // v3.0: refund any unused items from the old reeling mini-game
     const inv = Object.assign({}, s.inventory);
     let refund = 0;
-    Object.keys(RETIRED_SHOP_ITEMS).forEach(k=>{ if(inv[k] > 0) refund += inv[k]*RETIRED_SHOP_ITEMS[k]; delete inv[k]; });
+    Object.keys(RETIRED).forEach(k=>{ if(inv[k] > 0) refund += inv[k]*RETIRED[k]; delete inv[k]; });
     s = Object.assign({}, s, { inventory: inv, coinsSpent: (s.coinsSpent||0) - refund });
     if(refund) retiredRefundNote = `Refunded ${refund} Chum Coins for Steady Hands, Line Guard and Lucky Charm items (they only worked with reeling, which is gone).`;
   }
@@ -5752,7 +5785,7 @@ function isDriftlineAdmin(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '3.0';
+const GAME_VERSION = '3.1';
 const GAME_VERSION_CHANGELOG = [
   'Driftline now runs on its own server. Sign in once with your same username and PIN: your fish, coins and friends all came with you',
   'No more daily Checks and Actions limits, for anyone',
@@ -5769,7 +5802,8 @@ const GAME_VERSION_CHANGELOG = [
   'Sign-in is now protected against PIN guessing',
   'A brand new cast: watch your lure fly out, splash and sink past light shafts and kelp while a school swims by, then haul your fish up through the surface into the air. Tap anywhere to skip',
   'Every fish now has its own drawn look, based on its species and rarity, in your bag, the Field Guide, raids and hatching',
-  'Custom Driftline icons, Chum Coin and crew crests replace emoji across the game, plus a new Driftline logo'
+  'Custom Driftline icons, Chum Coin and crew crests replace emoji across the game, plus a new Driftline logo',
+  'v3.1 fixes: this list now scrolls and has a close button, the bobber and menu lists fit smaller screens, rod tokens no longer reset after reloading the page, and a fish you just caught can be listed on the Market straight away'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -8914,6 +8948,7 @@ $('settings-version-btn').addEventListener('click', ()=>{
   closeSettingsDrawer();
   showVersionPopup();
 });
+$('version-popup-x').addEventListener('click', ()=>$('version-popup-close').click());
 $('version-popup-close').addEventListener('click', ()=>{
   $('version-popup-overlay').classList.remove('show');
 });
@@ -10472,8 +10507,22 @@ function openDial(name){
   $('dial-scrim').classList.add('show');
   document.body.classList.add('dial-open');
   if(name === 'modes'){ updateDialTexts(); flushWalking(false); }
+  fitDial(document.querySelector(`.dial[data-dial="${name}"]`));
   if('vibrate' in navigator) navigator.vibrate(8);
 }
+// Shorter phones (or a taller bottom panel) leave less room above the buttons:
+// shrink the items until they all fit, and only scroll as a last resort.
+function fitDial(d){
+  if(!d) return;
+  const list = d.querySelector('.dial-items'); if(!list) return;
+  d.classList.remove('compact', 'tight');
+  const over = ()=> list.scrollHeight > list.clientHeight + 1;
+  if(over()) d.classList.add('compact');
+  if(over()) d.classList.add('tight');
+  d.classList.toggle('scrolls', over());
+  list.scrollTop = list.scrollHeight; // start next to the button
+}
+window.addEventListener('resize', ()=>{ const d = document.querySelector('.dial.open'); if(d) fitDial(d); });
 function closeDials(){
   document.querySelectorAll('.dial.open').forEach(d=>{ d.classList.remove('open'); d.querySelector('.dial-main').setAttribute('aria-expanded','false'); });
   const scrim = $('dial-scrim'); if(scrim) scrim.classList.remove('show');
