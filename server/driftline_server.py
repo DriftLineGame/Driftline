@@ -602,6 +602,14 @@ def api_sync_shop(uid, body):
                 continue
             if len(json.dumps(v)) > 20000:
                 continue
+            if k == "bonusRodLevels":
+                # rod tokens are only ever bought, so a phone with an old copy can't lower them
+                try:
+                    v = max(int(float(v)), int(shop.get(k) or 0))
+                except (TypeError, ValueError, OverflowError):
+                    continue
+            elif k == "unlockedAchievements" and isinstance(v, list):
+                v = list(shop.get(k) or []) + [a for a in v if a not in (shop.get(k) or [])]
             shop[k] = v
         if isinstance(shop.get("pointBoostMultiplier"), (int, float)):
             shop["pointBoostMultiplier"] = min(3, max(1, shop["pointBoostMultiplier"]))
