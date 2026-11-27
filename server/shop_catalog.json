@@ -1,0 +1,380 @@
+{
+ "cosmetics": {
+  "avatar": [
+   {
+    "id": "default",
+    "price": 0
+   },
+   {
+    "id": "fish",
+    "price": 50
+   },
+   {
+    "id": "crab",
+    "price": 85
+   },
+   {
+    "id": "shark",
+    "price": 75
+   },
+   {
+    "id": "octopus",
+    "price": 100
+   },
+   {
+    "id": "crown",
+    "price": 200
+   },
+   {
+    "id": "diamond",
+    "price": 300
+   },
+   {
+    "id": "wave",
+    "price": 5
+   },
+   {
+    "id": "anchor",
+    "price": 8
+   },
+   {
+    "id": "starfish",
+    "price": 10
+   },
+   {
+    "id": "shell",
+    "price": 12
+   },
+   {
+    "id": "tropical",
+    "price": 15
+   },
+   {
+    "id": "squid",
+    "price": 18
+   },
+   {
+    "id": "pufferfish",
+    "price": 20
+   },
+   {
+    "id": "lobster",
+    "price": 25
+   },
+   {
+    "id": "seal",
+    "price": 28
+   },
+   {
+    "id": "turtle",
+    "price": 30
+   },
+   {
+    "id": "island",
+    "price": 32
+   },
+   {
+    "id": "dolphin",
+    "price": 38
+   },
+   {
+    "id": "diving",
+    "price": 40
+   },
+   {
+    "id": "sailboat",
+    "price": 42
+   },
+   {
+    "id": "whale",
+    "price": 48
+   },
+   {
+    "id": "mermaid",
+    "price": 65
+   },
+   {
+    "id": "trident",
+    "price": 120
+   },
+   {
+    "id": "kraken",
+    "price": 250
+   }
+  ],
+  "hook": [
+   {
+    "id": "classic",
+    "price": 0
+   },
+   {
+    "id": "gold",
+    "price": 90
+   },
+   {
+    "id": "crimson",
+    "price": 90
+   },
+   {
+    "id": "toxic",
+    "price": 90
+   },
+   {
+    "id": "royal",
+    "price": 125
+   },
+   {
+    "id": "slate",
+    "price": 6
+   },
+   {
+    "id": "sand",
+    "price": 8
+   },
+   {
+    "id": "seafoam",
+    "price": 12
+   },
+   {
+    "id": "coral",
+    "price": 15
+   },
+   {
+    "id": "ocean",
+    "price": 18
+   },
+   {
+    "id": "sunset",
+    "price": 22
+   },
+   {
+    "id": "ice",
+    "price": 25
+   },
+   {
+    "id": "lime",
+    "price": 28
+   },
+   {
+    "id": "plum",
+    "price": 32
+   },
+   {
+    "id": "copper",
+    "price": 35
+   },
+   {
+    "id": "midnight",
+    "price": 40
+   },
+   {
+    "id": "neon-pink",
+    "price": 45
+   },
+   {
+    "id": "silver",
+    "price": 55
+   },
+   {
+    "id": "obsidian",
+    "price": 150
+   }
+  ],
+  "marker": [
+   {
+    "id": "classic",
+    "price": 0
+   },
+   {
+    "id": "gold",
+    "price": 90
+   },
+   {
+    "id": "crimson",
+    "price": 90
+   },
+   {
+    "id": "toxic",
+    "price": 90
+   },
+   {
+    "id": "royal",
+    "price": 125
+   },
+   {
+    "id": "slate",
+    "price": 6
+   },
+   {
+    "id": "sand",
+    "price": 8
+   },
+   {
+    "id": "seafoam",
+    "price": 12
+   },
+   {
+    "id": "coral",
+    "price": 15
+   },
+   {
+    "id": "ocean",
+    "price": 18
+   },
+   {
+    "id": "sunset",
+    "price": 22
+   },
+   {
+    "id": "ice",
+    "price": 25
+   },
+   {
+    "id": "lime",
+    "price": 28
+   },
+   {
+    "id": "plum",
+    "price": 32
+   },
+   {
+    "id": "copper",
+    "price": 35
+   },
+   {
+    "id": "midnight",
+    "price": 40
+   },
+   {
+    "id": "neon-pink",
+    "price": 45
+   },
+   {
+    "id": "silver",
+    "price": 55
+   },
+   {
+    "id": "obsidian",
+    "price": 150
+   }
+  ],
+  "line": [
+   {
+    "id": "classic",
+    "price": 0
+   },
+   {
+    "id": "sunburst",
+    "price": 10
+   },
+   {
+    "id": "seafoam",
+    "price": 14
+   },
+   {
+    "id": "coral",
+    "price": 18
+   },
+   {
+    "id": "sky",
+    "price": 22
+   },
+   {
+    "id": "lime",
+    "price": 26
+   },
+   {
+    "id": "crimson",
+    "price": 32
+   },
+   {
+    "id": "violet",
+    "price": 38
+   },
+   {
+    "id": "gold",
+    "price": 48
+   },
+   {
+    "id": "phantom",
+    "price": 65
+   },
+   {
+    "id": "prism",
+    "price": 180
+   }
+  ],
+  "banner": [
+   {
+    "id": "none",
+    "price": 0
+   },
+   {
+    "id": "seafoam",
+    "price": 10
+   },
+   {
+    "id": "sunset",
+    "price": 16
+   },
+   {
+    "id": "deepwater",
+    "price": 20
+   },
+   {
+    "id": "coral-reef",
+    "price": 24
+   },
+   {
+    "id": "toxic",
+    "price": 30
+   },
+   {
+    "id": "royal",
+    "price": 38
+   },
+   {
+    "id": "gold-rush",
+    "price": 50
+   },
+   {
+    "id": "abyss",
+    "price": 220
+   }
+  ],
+  "aura": [
+   {
+    "id": "none",
+    "price": 0
+   },
+   {
+    "id": "seafoam",
+    "price": 12
+   },
+   {
+    "id": "sunset",
+    "price": 18
+   },
+   {
+    "id": "toxic",
+    "price": 24
+   },
+   {
+    "id": "crimson",
+    "price": 30
+   },
+   {
+    "id": "royal",
+    "price": 36
+   },
+   {
+    "id": "gold",
+    "price": 45
+   },
+   {
+    "id": "phantom",
+    "price": 200
+   }
+  ]
+ }
+}

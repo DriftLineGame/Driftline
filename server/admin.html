@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Driftline Admin · SCODE</title>
+<style>
+:root{--pink:#EC4899;--violet:#8B5CF6;--blue:#3B82F6;--sea:#0e86c4;--ink:#12293a;--grey:#5c7486;--bg:#F4F8FB;--soft:#E8F1F7;--line:#D6E4EE;--grad:linear-gradient(90deg,var(--pink),var(--violet),var(--blue))}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{font:inherit;border:0;cursor:pointer;border-radius:10px;padding:7px 12px;font-weight:700;background:#fff;box-shadow:0 1px 0 var(--line)}
+button.pri{background:linear-gradient(135deg,#3fd6ff,#0e86c4);color:#fff}button.bad{background:#FDE7EF;color:#BE185D}button.small{padding:4px 9px;font-size:12.5px}
+input{font:inherit;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;background:#fff;box-shadow:0 1px 0 var(--line);position:sticky;top:0;z-index:2}
+header h1{font-size:20px;font-weight:900}
+header .sp{flex:1}
+.scode{font-size:12px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+main{max-width:1150px;margin:0 auto;padding:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 0 var(--line),0 6px 18px rgba(14,80,130,.06)}
+.card b{display:block;font-size:24px;font-weight:900}.card span{color:var(--grey);font-size:13px;font-weight:700}
+.card a{font-size:13px;word-break:break-all;color:var(--sea)}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.1em;color:var(--sea);margin:22px 0 8px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 0 var(--line)}
+th,td{text-align:left;padding:8px 10px;font-size:14px;border-bottom:1px solid var(--soft);vertical-align:middle}
+th{font-size:12px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#22c55e;margin-right:6px}
+.muted{color:var(--grey);font-size:13px}
+#login{max-width:340px;margin:16vh auto;background:#fff;border-radius:20px;padding:26px;box-shadow:0 10px 40px rgba(14,80,130,.12);text-align:center}
+#login h1{margin-bottom:6px}#login input{width:100%;margin:14px 0 10px}#login button{width:100%}
+#msg{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;display:none}
+code{background:var(--soft);padding:2px 6px;border-radius:6px;font-weight:700}
+</style></head><body>
+<div id="login" hidden>
+  <h1>Driftline Admin</h1>
+  <p class="muted">Password is in <code>server\admin-password.txt</code></p>
+  <input id="pw" type="password" placeholder="Admin password" autofocus>
+  <button class="pri" id="go">Sign in</button>
+  <p class="muted" id="lerr" style="margin-top:10px"></p>
+</div>
+<div id="app" hidden>
+  <header><h1>Driftline Admin</h1><span class="scode">Powered by SCODE</span><span class="sp"></span><button id="refresh">Refresh</button><button id="out">Sign out</button></header>
+  <main>
+    <div class="cards" id="cards"></div>
+    <h2>Online now</h2><div id="online" class="muted"></div>
+    <h2>Players</h2>
+    <div class="row" style="margin-bottom:8px"><input id="q" placeholder="Search username"><button id="search">Search</button></div>
+    <table><thead><tr><th>Player</th><th>Points</th><th>Coins</th><th>Fish</th><th>Crew</th><th>Last active</th><th></th></tr></thead><tbody id="players"></tbody></table>
+    <h2>Gift codes</h2>
+    <div class="row" style="margin-bottom:8px"><input id="gamt" type="number" min="1" placeholder="Chum Coins"><button class="pri" id="gmake">Make code</button><span id="gnew"></span></div>
+    <table><thead><tr><th>Code</th><th>Coins</th><th>Made</th><th>Used by</th></tr></thead><tbody id="gifts"></tbody></table>
+    <h2>Data used (last 14 days)</h2>
+    <table><thead><tr><th>Day</th><th>Requests</th><th>Sent to phones</th><th>Received</th></tr></thead><tbody id="traffic"></tbody></table>
+    <h2>Backups</h2>
+    <div class="row"><button id="backup">Back up now</button><span class="muted">A dated copy is also saved automatically every day in <code>server\backups</code>.</span></div>
+  </main>
+</div>
+<div id="msg"></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mb = b => (b/1048576).toFixed(b > 104857600 ? 0 : 2) + ' MB';
+const ago = ms => { if(!ms) return '-'; const s = (Date.now()-ms)/1000; return s < 90 ? 'just now' : s < 5400 ? Math.round(s/60)+' min ago' : s < 129600 ? Math.round(s/3600)+' h ago' : Math.round(s/86400)+' days ago'; };
+function toast(t){ const m = $('msg'); m.textContent = t; m.style.display = 'block'; clearTimeout(m._t); m._t = setTimeout(()=>m.style.display='none', 2600); }
+async function api(path, data){
+  const r = await fetch(path, data ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) } : {});
+  if(r.status === 401){ show(false); throw new Error('Sign in'); }
+  return r.json();
+}
+function show(on){ $('login').hidden = on; $('app').hidden = !on; }
+async function load(){
+  const o = await api('/api/overview');
+  show(true);
+  const up = o.uptime > 3600 ? Math.floor(o.uptime/3600)+' h '+Math.floor(o.uptime%3600/60)+' min' : Math.floor(o.uptime/60)+' min';
+  const td = o.today || { requests:0, bytes_out:0 };
+  $('cards').innerHTML = `
+    <div class="card"><span>Server link</span>${o.link ? `<a href="${esc(o.link)}" target="_blank">${esc(o.link)}</a>` : '<b>-</b>'}</div>
+    <div class="card"><b>${o.players}</b><span>accounts</span></div>
+    <div class="card"><b>${o.online.length}</b><span>online now (last 10 min)</span></div>
+    <div class="card"><b>${o.active_today}</b><span>played in the last day</span></div>
+    <div class="card"><b>${mb(td.bytes_out)}</b><span>sent today · ${td.requests} requests</span></div>
+    <div class="card"><b>${up}</b><span>uptime · v${esc(o.version)}</span></div>`;
+  $('online').innerHTML = o.online.length ? o.online.map(x=>`<span class="dot"></span>${esc(x.uid)} <span class="muted">(${x.ago < 60 ? 'now' : Math.round(x.ago/60)+' min'})</span>`).join(' &nbsp; ') : 'Nobody right now.';
+  $('gifts').innerHTML = o.gifts.map(g=>`<tr><td><code>${esc(g.code)}</code></td><td>${g.amount}</td><td>${ago(g.createdAt)}</td><td>${g.redeemed ? esc(g.redeemedBy) : '<span class="muted">not used yet</span>'}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">No codes yet.</td></tr>';
+  $('traffic').innerHTML = o.traffic.map(t=>`<tr><td>${t.day}</td><td>${t.requests}</td><td>${mb(t.bytes_out)}</td><td>${mb(t.bytes_in)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nothing yet.</td></tr>';
+  await players();
+}
+async function players(){
+  const d = await api('/api/players?q=' + encodeURIComponent($('q').value.trim()));
+  $('players').innerHTML = d.players.map(p=>`<tr>
+    <td>${p.online ? '<span class="dot"></span>' : ''}<b>${esc(p.name)}</b> <span class="muted">${esc(p.uid)}</span></td>
+    <td>${Math.round(p.points).toLocaleString()}</td><td>${p.coins.toLocaleString()}</td><td>${p.fish.toLocaleString()}</td><td>${esc(p.crew || '-')}</td><td>${ago(p.updated)}</td>
+    <td class="row"><button class="small" data-pin="${esc(p.uid)}">Reset PIN</button><button class="small" data-coins="${esc(p.uid)}">Give coins</button><button class="small bad" data-kick="${esc(p.uid)}">Sign out</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No players found.</td></tr>';
+}
+$('go').onclick = async ()=>{
+  const r = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: $('pw').value }) });
+  const d = await r.json();
+  if(d.ok) load(); else $('lerr').textContent = d.error;
+};
+$('pw').onkeydown = e=>{ if(e.key === 'Enter') $('go').click(); };
+$('out').onclick = async ()=>{ await fetch('/logout', { method:'POST' }); show(false); };
+$('refresh').onclick = load;
+$('search').onclick = players;
+$('q').onkeydown = e=>{ if(e.key === 'Enter') players(); };
+$('gmake').onclick = async ()=>{
+  const d = await api('/api/gift', { amount: parseInt($('gamt').value, 10) });
+  if(d.ok){ $('gnew').innerHTML = `New code: <code>${esc(d.code)}</code>`; load(); } else toast(d.error);
+};
+$('backup').onclick = async ()=>{ const d = await api('/api/backup', {}); toast(d.ok ? 'Backed up' : 'Backup failed'); };
+$('players').onclick = async e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.pin){
+    const pin = prompt(`New 6-digit PIN for ${b.dataset.pin}:`); if(!pin) return;
+    const d = await api(`/api/players/${encodeURIComponent(b.dataset.pin)}/pin`, { pin }); toast(d.ok ? 'PIN changed. Tell them the new PIN.' : d.error);
+  } else if(b.dataset.coins){
+    const amount = prompt(`How many Chum Coins to give ${b.dataset.coins}? (negative takes away)`); if(!amount) return;
+    const d = await api(`/api/players/${encodeURIComponent(b.dataset.coins)}/coins`, { amount }); toast(d.ok ? 'Done' : d.error); players();
+  } else if(b.dataset.kick){
+    if(!confirm(`Sign ${b.dataset.kick} out on every device?`)) return;
+    const d = await api(`/api/players/${encodeURIComponent(b.dataset.kick)}/signout`, {}); toast(d.ok ? 'Signed out' : d.error);
+  }
+};
+load().catch(()=>show(false));
+setInterval(()=>{ if(!$('app').hidden) load().catch(()=>{}); }, 30000);
+</script>
+</body></html>

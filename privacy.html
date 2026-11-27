@@ -80,7 +80,15 @@ This is a hobby project, not a company, and this isn't written by a lawyer. It's
 <p>This account system is intentionally lightweight (there's no email, phone number, or real-world identity required or collected). That also means it isn't bank-grade security — treat your PIN the way you'd treat a game password, not a financial one.</p>
 
 <h2>Where your data lives</h2>
-<p>Gameplay and account data is stored in Google Firebase (Firestore), a third-party cloud database provider. Driftline doesn't sell, rent, or share your data with advertisers or other third parties. Nobody's data is used for anything other than making the game work.</p>
+<p>Since version 3.0, gameplay and account data is stored on Driftline's own server, run by the developer, instead of a third-party cloud database. Your PIN is stored only as a strong one-way hash, and the server keeps dated backups so nobody loses progress. Driftline doesn't sell, rent, or share your data with advertisers or other third parties. Nobody's data is used for anything other than making the game work.</p>
+
+<h2>Docks, eggs and raids</h2>
+<ul>
+  <li>To show nearby docks, the game sends your approximate position to the Driftline server. The server looks up public map data for that area from OpenStreetMap (it asks for the area, never for you), and doesn't store your position.</li>
+  <li>When you visit a dock or fight a boss, the server checks you're standing close enough. It records which docks you visited recently (so they can restock), not a trail of where you've been.</li>
+  <li>To hatch eggs, your phone measures how far you've walked and sends just the distance (for example "0.3 km"), never the route.</li>
+  <li>Your crew and the docks it holds are visible to other players.</li>
+</ul>
 
 <h2>The player market</h2>
 <p>If you list a fish for sale, other players can see the fish, its price, and your username in the marketplace. Trades are recorded (who sold what, to whom, for how much) so both sides of a transaction can see accurate history.</p>
@@ -101,7 +109,7 @@ This is a hobby project, not a company, and this isn't written by a lawyer. It's
 <h2>Changes to this policy</h2>
 <p>If what the game collects or how it's used ever changes meaningfully, this page will be updated to reflect that.</p>
 
-<div class="updated">Last updated: alongside Driftline's Fish Market release.</div>
+<div class="updated">Last updated: alongside Driftline 3.0.</div>
 
 </div>
 </body>

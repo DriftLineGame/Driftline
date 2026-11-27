@@ -1,0 +1,10 @@
+# Driftline server secrets and data: never upload these
+server/admin-password.txt
+server/email-password.txt
+server/config.json
+server/data/
+server/backups/
+server/*.db
+server/*.db-*
+server/cloudflared.exe
+__pycache__/
