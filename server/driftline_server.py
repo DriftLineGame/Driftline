@@ -911,8 +911,9 @@ def save_battle(bid, b):
 
 def api_battle_challenge(uid, body):
     target = norm_username(body.get("opponentUid"))
-    hours = math.floor(num(body.get("durationHours"), "durationHours"))
-    if not 1 <= hours <= 168:
+    hours = num(body.get("durationHours"), "durationHours")
+    hours = int(hours) if hours == int(hours) else round(hours, 2)  # 0.5 = the 30-minute battle
+    if not 0.5 <= hours <= 168:
         raise bad("Invalid battle length.")
     vis = body.get("visibility") if body.get("visibility") in ("hidden", "halfway", "transparent") else "hidden"
     with tx():
@@ -967,7 +968,7 @@ def api_battle_respond(uid, body):
         if ob and ob["active"]:
             raise bad("That player is already in a battle.")
         t = now()
-        end = t + b["durationHours"] * 3600000
+        end = int(t + b["durationHours"] * 3600000)
         mine, theirs = compute_points(me["data"].get("bag")), compute_points(opp["data"].get("bag")) if opp else 0
         p1 = b["player1Uid"] == uid
         b.update({"status": "active", "acceptedAt": t, "endAt": end,

@@ -3062,7 +3062,7 @@
   <button id="version-popup-x" type="button" aria-label="Close">&times;</button>
   <div id="version-popup-card">
     <div id="version-popup-icon">🎣</div>
-    <h2 id="version-popup-number">v3.1</h2>
+    <h2 id="version-popup-number">v3.2</h2>
     <ul id="version-popup-list"></ul>
     <button class="btn btn-primary" id="version-popup-close" style="width:100%; margin-top:16px;">Got It</button>
   </div>
@@ -5785,7 +5785,7 @@ function isDriftlineAdmin(){
 // bumped by hand each update (+0.1 for a major change, +0.01 for a small
 // fix). Shown automatically the first time a player loads a new version,
 // and re-showable anytime from the bottom of Settings.
-const GAME_VERSION = '3.1';
+const GAME_VERSION = '3.2';
 const GAME_VERSION_CHANGELOG = [
   'Driftline now runs on its own server. Sign in once with your same username and PIN: your fish, coins and friends all came with you',
   'No more daily Checks and Actions limits, for anyone',
@@ -5803,7 +5803,8 @@ const GAME_VERSION_CHANGELOG = [
   'A brand new cast: watch your lure fly out, splash and sink past light shafts and kelp while a school swims by, then haul your fish up through the surface into the air. Tap anywhere to skip',
   'Every fish now has its own drawn look, based on its species and rarity, in your bag, the Field Guide, raids and hatching',
   'Custom Driftline icons, Chum Coin and crew crests replace emoji across the game, plus a new Driftline logo',
-  'v3.1 fixes: this list now scrolls and has a close button, the bobber and menu lists fit smaller screens, rod tokens no longer reset after reloading the page, and a fish you just caught can be listed on the Market straight away'
+  'v3.1 fixes: this list now scrolls and has a close button, the bobber and menu lists fit smaller screens, rod tokens no longer reset after reloading the page, and a fish you just caught can be listed on the Market straight away',
+  'v3.2 fix: 30-minute battles work again, with any score setting'
 ];
 function checkVersionPopup(){
   const lastSeen = localStorage.getItem('driftline_last_version');
@@ -7656,7 +7657,7 @@ function renderFriendsDrawer(){
     html += battleState.incoming.map(b=>`
       <div class="friends-row">
         <div class="friends-row-avatar">\u2694\uFE0F</div>
-        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours}h</div>
+        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours < 1 ? Math.round(b.durationHours*60) + 'm' : b.durationHours + 'h'}</div>
         <div class="friends-row-actions">
           <button class="fr-accept" data-battle-action="accept" data-battle-id="${b.battleId}">Accept</button>
           <button class="fr-decline" data-battle-action="decline" data-battle-id="${b.battleId}">Decline</button>
@@ -7708,7 +7709,7 @@ function renderFriendsDrawer(){
     html += battleState.outgoing.map(b=>`
       <div class="friends-row">
         <div class="friends-row-avatar">\u2694\uFE0F</div>
-        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours}h</div>
+        <div class="friends-row-name">${b.opponentDisplayName} \u2014 ${b.durationHours < 1 ? Math.round(b.durationHours*60) + 'm' : b.durationHours + 'h'}</div>
         <div class="friends-pending-tag">Sent</div>
       </div>`).join('');
   }
