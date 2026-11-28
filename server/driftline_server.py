@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from aiohttp import web, ClientSession, ClientTimeout
 
-VERSION = "3.0"
+VERSION = "3.2"
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 P = lambda *a: os.path.join(HERE, *a)
