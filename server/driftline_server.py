@@ -1143,6 +1143,7 @@ def api_buy(uid, body):
 
 
 # ======================= DOCKS =======================
+OVERPASS_MIRRORS = ["https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"]
 OSM_CELL = 0.1
 BUOY_CELL = 0.01
 BUOY_PER_CELL = 2
@@ -1214,11 +1215,21 @@ async def fetch_osm_cell(cell):
   nwr["waterway"="dock"]({bb});
 );out center 400;"""
     try:
-        async with HTTP.post(CFG["overpass_url"], data={"data": query}, headers={"User-Agent": "Driftline/3.0 (game server)"},
-                             timeout=ClientTimeout(total=30)) as r:
-            if r.status != 200:
-                raise RuntimeError(f"HTTP {r.status}")
-            js = await r.json(content_type=None)
+        # the main OpenStreetMap lookup service is often busy (HTTP 502/504); try the public mirrors before giving up
+        urls = [CFG["overpass_url"]] + ([] if os.environ.get("DRIFTLINE_OVERPASS_URL") else OVERPASS_MIRRORS)
+        js, errors = None, []
+        for url in urls:
+            try:
+                async with HTTP.post(url, data={"data": query}, headers={"User-Agent": "Driftline/3.2 (game server)"},
+                                     timeout=ClientTimeout(total=25)) as r:
+                    if r.status != 200:
+                        raise RuntimeError(f"HTTP {r.status}")
+                    js = await r.json(content_type=None)
+                break
+            except Exception as e:
+                errors.append(str(e) or type(e).__name__)
+        if js is None:
+            raise RuntimeError(", ".join(errors))
         rows = []
         for el in js.get("elements", []):
             tags = el.get("tags") or {}
